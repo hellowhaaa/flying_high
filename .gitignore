@@ -1,0 +1,17 @@
+# ini
+
+.config.ini
+
+# test folder
+
+test&transform/
+crawler_fail/
+unsure_to_use/
+
+# json file
+
+json_file/
+
+chromedriver
+
+.DS_Store
