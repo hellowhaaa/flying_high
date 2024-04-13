@@ -1,3 +1,9 @@
+from airflow import DAG
+from airflow.operators.python import PythonOperator
+from datetime import timedelta, datetime
+import pendulum
+from airflow.operators.empty import EmptyOperator
+from airflow.operators.python import PythonOperator
 from pymongo import MongoClient
 from selenium import webdriver
 from selenium.webdriver.common.by import By
@@ -8,24 +14,19 @@ from webdriver_manager.chrome import ChromeDriverManager
 from selenium.common.exceptions import TimeoutException
 from dotenv import load_dotenv
 import os
-load_dotenv()
-
-
-# Setup Chrome options
-chrome_options = webdriver.ChromeOptions()
-chrome_options.add_argument("--headless")  # Ensure GUI is off
-chrome_options.add_argument("--no-sandbox")
-chrome_options.add_argument("--disable-dev-shm-usage")
-
-# Set path to chromedriver as per your configuration
-webdriver_service = Service(ChromeDriverManager().install())
-
-# Choose Chrome Browser
-driver = webdriver.Chrome(service=webdriver_service, options=chrome_options)
 
 def crawl_data():
     try:
+        # Setup Chrome options
+        chrome_options = webdriver.ChromeOptions()
+        chrome_options.add_argument("--headless")  # Ensure GUI is off
+        chrome_options.add_argument("--no-sandbox")
+        chrome_options.add_argument("--disable-dev-shm-usage")
         url = 'https://www.taoyuan-airport.com/flight_arrival?k=&time=all'
+        # Set path to chromedriver as per your configuration
+        webdriver_service = Service(ChromeDriverManager().install())
+        # Choose Chrome Browser
+        driver = webdriver.Chrome(service=webdriver_service, options=chrome_options)
         driver.get(url)
         for i in range(2,500):
             print(i)
@@ -42,7 +43,6 @@ def crawl_data():
             terminal = f'//*[@id="print"]/ul[2]/li[{i}]/div[4]'
             gate = f'//*[@id="print"]/ul[2]/li[{i}]/div[5]'
             status = f'//*[@id="print"]/ul[2]/li[{i}]/div[7]/p'
-            # Wait for the required element to load on the page
             # ? ------ airline ------
             try:  
                 WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, airline)))
@@ -136,8 +136,8 @@ def crawl_data():
     finally:
         # Close the browser
         driver.quit()
-        
 def insert_mongodb_atlas():
+    load_dotenv()
     uri = os.getenv("MONGODB_URI")
     conn = MongoClient(uri)
     try:
@@ -145,18 +145,43 @@ def insert_mongodb_atlas():
         print("Pinged your deployment. You successfully connected to MongoDB!")
     except Exception as e:
         print(e)
-
-    # Create a MongoClient instance
     db = conn['flying_high']
-    # Access a collection (similar to a table in relational databases)
     collection = db['flight_arrive']
+    if_database_exist()
+    return collection
 
+def if_database_exist():
+    uri = os.getenv("MONGODB_URI")
+    conn = MongoClient(uri)
     mongo_dblist = conn.list_database_names()
     if "flying_high" in mongo_dblist:
         print("flying_high database 已存在！")
     else:
         print('flying_high database 不存在')
-    
-    return collection
-    
-crawl_data()        
+
+
+default_args = {
+    'owner': 'airflow',
+    'depends_on_past': False, 
+    'email_on_failure': False,
+    'email_on_retry': False,
+    'retries': 1,
+    'retry_delay': timedelta(minutes=5),
+}
+
+with DAG(
+    dag_id="arrive_flight",
+    schedule_interval="*/3 * * * *",
+    default_args=default_args,
+    catchup=False, # 不會去執行以前的任務
+    max_active_runs=1,
+    tags=['flight'],
+) as dag:
+    task_start = EmptyOperator(
+    task_id="task_start",
+    dag=dag
+    )
+    task_end = EmptyOperator(
+    task_id="task_end",
+    dag=dag
+)
