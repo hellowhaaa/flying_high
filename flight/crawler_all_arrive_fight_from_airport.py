@@ -6,8 +6,10 @@ from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.chrome.service import Service
 from webdriver_manager.chrome import ChromeDriverManager
 from selenium.common.exceptions import TimeoutException
-from configparser import ConfigParser
+from dotenv import load_dotenv
 import os
+load_dotenv()
+
 
 # Setup Chrome options
 chrome_options = webdriver.ChromeOptions()
@@ -30,13 +32,13 @@ def crawl_all():
 
 def crawl_data():
     try:
-        url = 'https://www.taoyuan-airport.com/flight_depart?k=&time=all'
+        url = 'https://www.taoyuan-airport.com/flight_arrival?k=&time=all'
         driver.get(url)
         for i in range(2,500):
             print(i)
         # Use the correct method to find the element
-            scheduled_depart_time = f'//*[@id="print"]/ul[2]/li[{i}]/div[1]/span[2]'
-            actual_depart_time = f'//*[@id="print"]/ul[2]/li[{i}]/div[8]/span[2]'
+            scheduled_arrive_time = f'//*[@id="print"]/ul[2]/li[{i}]/div[1]/span[2]'
+            actual_arrive_time = f'//*[@id="print"]/ul[2]/li[{i}]/div[8]/span[2]'
             # next_sch_path = '//*[@id="print"]/ul[2]/li[3]/div[1]/span[2]'
             # next_act_path = '//*[@id="print"]/ul[2]/li[3]/div[8]/span[2]'
         
@@ -64,24 +66,25 @@ def crawl_data():
                 print(alphabet_ls)
             except TimeoutException:
                 airline_element = "Not Found"
-                print(f"airlines: {airline_element}")   
+                print(f"airlines: {airline_element}")
+                break   
                 # ? ------ actual_depart_time -----
             try:
-                WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, actual_depart_time)))
-                actual_depart_time_element = driver.find_element(By.XPATH, actual_depart_time).text.strip()
-                print(flight + ' actual_depart_time: ' + actual_depart_time_element)
+                WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, actual_arrive_time)))
+                actual_arrive_time_element = driver.find_element(By.XPATH, actual_arrive_time).text.strip()
+                print(flight + ' actual_arrive_time: ' + actual_arrive_time_element)
             except TimeoutException:
-                actual_depart_time_element = "Not Found"
-                print(f"actual_depart_time: {actual_depart_time_element}")
+                actual_arrive_time_element = "Not Found"
+                print(f"actual_arrive_time: {actual_arrive_time_element}")
                 break 
             # ? ------ scheduled_depart -----
             try:
-                WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, scheduled_depart_time)))
-                scheduled_depart_time_element = driver.find_element(By.XPATH, scheduled_depart_time).text.strip()
-                print(flight+ ' scheduled_depart_time: '+ scheduled_depart_time_element)
+                WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, scheduled_arrive_time)))
+                scheduled_arrive_time_element = driver.find_element(By.XPATH, scheduled_arrive_time).text.strip()
+                print(flight+ ' scheduled_arrive_time: '+ scheduled_arrive_time_element)
             except TimeoutException:
-                scheduled_depart_time_element = "Not Found"
-                print(f"scheduled_depart_time: {scheduled_depart_time_element}")
+                scheduled_arrive_time_element = "Not Found"
+                print(f"scheduled_arrive_time: {scheduled_arrive_time_element}")
                 
             # ? ------ destination ------
             try:
@@ -122,8 +125,8 @@ def crawl_data():
                 status_element = "Not Found"
                 print(f"Status: {status_element}")
             flight_dic = {
-                "scheduled_depart_time": scheduled_depart_time_element,
-                "actual_depart_time": actual_depart_time_element,
+                "scheduled_depart_time": scheduled_arrive_time_element,
+                "actual_depart_time": actual_arrive_time_element,
                 "destination": destination_element,           
                 'airline': alphabet_ls,
                 'terminal': terminal_element,
@@ -140,10 +143,9 @@ def crawl_data():
     finally:
         # Close the browser
         driver.quit()
-        # os.system("pkill chromedriver")
         
 def insert_mongodb_atlas():
-    uri = "mongodb+srv://root:HCadEw7bWkMlybDF@cluster0.ddhtgvi.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0"
+    uri = os.getenv("MONGODB_URI")
     conn = MongoClient(uri)
     try:
         conn.admin.command('ping')
@@ -154,7 +156,7 @@ def insert_mongodb_atlas():
     # Create a MongoClient instance
     db = conn['flying_high']
     # Access a collection (similar to a table in relational databases)
-    collection = db['flight_depart']
+    collection = db['flight_arrive']
 
     mongo_dblist = conn.list_database_names()
     if "flying_high" in mongo_dblist:

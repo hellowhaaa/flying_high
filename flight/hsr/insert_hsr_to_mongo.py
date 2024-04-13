@@ -3,6 +3,14 @@ import json
 from pymongo import MongoClient
 from datetime import datetime, timedelta
 from zoneinfo import ZoneInfo
+from dotenv import load_dotenv
+import os
+
+# 使用相對路徑
+relative_path = '../.env'  # 回到兩層目錄再進入 config 目錄
+dotenv_path = os.path.join(os.path.dirname(__file__), relative_path)
+load_dotenv(dotenv_path)
+
 # URL to send the request
 URL= "https://superiorapis-creator.cteam.com.tw/manager/feature/proxy/534480ccb85539bba80486617b843b6f96/pub_4f12308f3bc8f08dc6617b85b1fda9"
 
@@ -16,9 +24,6 @@ midnight = datetime(current_date.year, current_date.month, current_date.day, tzi
 # 格式化日期時間為 "YYYY-MM-DDT00:00:00Z" 格式
 formatted_midnight = midnight.strftime("%Y-%m-%dT%H:%M:%SZ")
 
-
-# Define enum
-# Origin path:start_station_no
 
 enum1 = {
     "南港": 1,
@@ -85,7 +90,7 @@ def insert_json():
 
 
 def insert_mongodb_atlas():
-    uri = "mongodb+srv://root:HCadEw7bWkMlybDF@cluster0.ddhtgvi.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0"
+    uri = os.getenv("MONGODB_URI")
     conn = MongoClient(uri)
     try:
         conn.admin.command('ping')

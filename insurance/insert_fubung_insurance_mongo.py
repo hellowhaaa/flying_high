@@ -1,9 +1,9 @@
 
-from configparser import ConfigParser
 import os
 from pymongo import MongoClient
 from datetime import datetime, timezone
-
+from dotenv import load_dotenv
+load_dotenv()
 # TODO variable --------
 
 def insurance_json():
@@ -184,7 +184,7 @@ def insurance_json():
     
 
 def insert_mongodb_atlas():
-    uri = "mongodb+srv://root:HCadEw7bWkMlybDF@cluster0.ddhtgvi.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0"
+    uri = os.getenv("MONGODB_URI")
     conn = MongoClient(uri)
     try:
         conn.admin.command('ping')
