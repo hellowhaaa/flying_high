@@ -1,17 +1,27 @@
 # ini
-
 .config.ini
 
 # test folder
-
 test&transform/
 crawler_fail/
 unsure_to_use/
 
 # json file
-
 json_file/
 
+# chromedrive
 chromedriver
 
+# environment
 .DS_Store
+.vscode
+
+# flight folder
+flight/config/
+flight/logs/
+flight/plugins/
+flight/.env
+
+#insurance folder
+insurance/.env
+
