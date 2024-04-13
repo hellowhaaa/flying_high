@@ -14,6 +14,7 @@ from webdriver_manager.chrome import ChromeDriverManager
 from selenium.common.exceptions import TimeoutException
 from dotenv import load_dotenv
 import os
+from airflow.utils.dates import days_ago
 
 def crawl_data():
     try:
@@ -166,12 +167,13 @@ default_args = {
     'email_on_failure': False,
     'email_on_retry': False,
     'retries': 1,
-    'retry_delay': timedelta(minutes=5),
+    'retry_delay': timedelta(minutes=5)
 }
 
 with DAG(
     dag_id="arrive_flight",
-    schedule_interval="*/3 * * * *",
+    schedule="*/5 * * * *",
+    start_date=pendulum.datetime(2024, 4, 5, tz="UTC"),
     default_args=default_args,
     catchup=False, # 不會去執行以前的任務
     max_active_runs=1,
@@ -184,4 +186,12 @@ with DAG(
     task_end = EmptyOperator(
     task_id="task_end",
     dag=dag
-)
+    )
+    
+    task_arrive_flight = PythonOperator(
+        task_id = "insert_arrive_flight_mongodb",
+        python_callable=crawl_data,
+        dag = dag  
+    )
+    
+(task_start >> task_arrive_flight >> task_end)
