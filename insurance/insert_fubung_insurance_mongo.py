@@ -6,30 +6,64 @@ from dotenv import load_dotenv
 load_dotenv()
 # TODO variable --------
 
+_2million = 2000000
+_3million = 3000000
+_4million = 4000000
+_5million = 5000000
+_6million = 6000000
+_7million = 7000000
+_8million = 8000000
+_9million = 9000000
+_10million = 10000000
+_11million = 11000000
+_12million = 12000000
+_13million = 13000000
+_14million = 14000000
+_15million = 15000000
+
+_20w = 200000
+_30w = 300000
+_40w = 400000
+_50w = 500000
+_60w = 600000
+_70w = 700000
+_80w = 800000
+_90w = 900000
+_100w = 1000000
+_110w = 1100000
+_120w = 1200000
+_130w = 1300000
+_140w = 1400000
+_150w = 1500000
+
+_1w = 10000
+_3w = 30000
+_6w = 60000
+
 def insurance_json():
-    plan_index = 0  # 方案
-    plan_name = 's方案'
+    plan_index = 2  # 方案
+    plan_name = 'L方案'
     person = "本人" # 幫誰保保險
-    days = 2 # 旅遊天數
+    days = 3 # 旅遊天數
     person_count = 1  # 幫幾個人保
     country = '日本' # 旅遊地點
     age = 27
     
     
-    insured_amount_price = 5000000  # 投保額度
-    insurance_premium_price = 354  # 保費
-    sudden_illness_price = 500000 # 海外突發疾病健康保險
-    medical_insurance_price = 500000 # 傷害醫療費用保險
-    Death_disability_price = 5000000 # 旅行平安保險
-    trip_cancel_price = 10000  # 旅程更改保險
+    insured_amount_price = _15million  # 投保額度
+    insurance_premium_price = 1121  # 保費
+    max_sudden_illness_price = _150w # 海外突發疾病健康保險 （最高）
+    max_medical_insurance_price = _150w # 傷害醫療費用保險 （最高）
+    max_death_disability_price = _15million # 旅行平安保險 （最高）
+    actual_trip_cancel_price = _6w  # 旅程取消保險 (實支實付)
 
-    flight_delay_price = 1000 # 班機延誤保險(定額型)
-    trip_change_price = 10000 # 旅程更改保險
-    baggage_delay_price = 1000 # 行李延誤保險(定額型)
-    baggage_damage_price = 2000 # 行李損失保險(定額型)
-    file_damage_price = 1000 # 旅行文件損失保險(定額型)
-    third_party_price = 250000 # 第三人責任險
-    emergency_assistance_price = 250000 # 急難救助
+    fix_flight_delay_price = 5000 # 班機延誤保險(定額型)
+    actual_trip_change_price = _6w # 旅程更改保險 （實支實付）
+    fix_baggage_delay_price = 6000 # 行李延誤保險(定額型)
+    fix_baggage_damage_price = 8000 # 行李損失保險(定額型)
+    fix_file_damage_price = 6000 # 旅行文件損失保險(定額型)
+    max_third_party_price = 1000000 # 第三人責任險 （最高）
+    max_emergency_assistance_price = 1000000 # 急難救助 （最高）
 
     create_date = datetime.now(timezone.utc)
     update_date = datetime.now(timezone.utc)
@@ -48,7 +82,8 @@ def insurance_json():
             "content": [
                 {
                 "sudden_illness": {
-                    "price": sudden_illness_price,
+                    "pay_type":"最高",
+                    "price": max_sudden_illness_price,
                     "name": "海外突發疾病健康保險",
                     "description": [
                     "(1) 海外突發疾病住院醫療保險：被保險人於本保險契約賠償責任期間內，在海外因條款所定義之突發疾病需住院診療時，本公司就其住院第一日起至第一百八十日止所實際發生之住院醫療費用給付「海外突發疾病住院醫療保險金」。(2) 海外突發疾病門診醫療保險：保險人於本保險契約賠償責任期間內，在海外因突發疾病而需接受門診診療時，本公司就其實際發生之門診醫療費用給付「海外突發疾病門診醫療保險金」，但每次門診醫療保險金的給付總額以本保險契約所載之「海外突發疾病住院醫療保險金限額」乘上「海外特定地區限額調整係數表」之調整係數之千分之五為限，且每日給付次數以一次為限。註：被保險人依中華民國傳染病防治法第三條規定所稱之傳染病所生之住院、門診或急診費用，本公司不負給付海外突發疾病的各項醫療保險金的責任，但契約另有約定者不在此限。※本保險契約之用詞定義如下：一、海外：係指臺灣、澎湖、金門、馬祖等由中華民國政府所轄範圍以外之地區。二、突發疾病：係指被保險人需即時在醫院或診所診療始能避免損及身體健康之疾病，且在本公司該次賠償責任期間開始日前一百八十天以內，未曾接受該疾病之診療者。三、醫院：係指依照當地醫療法規定領有開業執照並設有病房收治病人之公、私立及醫療法人醫院。四、診所：係指依照當地醫療法規定領有開業執照的診所。五、住院：係指被保險人經醫師診斷其突發疾病必須入住醫院，且正式辦理住院手續並確實在醫院接受診療者。但不包含相當於中華民國全民健康保險法第五十一條所稱之日間住院及精神衛生法第三十五條所稱之日間留院。六、醫師：係指依照當地政府之法令規定，合法領有醫師執照之執業醫師，且非要保人本人或被保險人本人。"
@@ -56,7 +91,8 @@ def insurance_json():
                     
                 },
                 "medical_insurance": {
-                    "price": medical_insurance_price,
+                    "pay_type":"最高",
+                    "price": max_medical_insurance_price,
                     "name": "傷害醫療費用保險",
                     "description": [
                     "被保險人於本公司賠償責任期間內，因遭受本保險契約條款所約定之意外傷害事故，致其支出醫療費用時，本公司依照本保險契約的約定，給付保險金。"
@@ -64,7 +100,8 @@ def insurance_json():
                     "necessities":["理賠申請書","保單或投保憑證影本","事故證明","診斷証明書正本","實支實付：醫療費用收據正本","癌症件:病理切片報告/檢驗報告","骨折件:X 光片(碟)","受益人之身分證明","存摺影印本"]
                 },
                 "Death_disability": {
-                    "price": Death_disability_price,
+                    "pay_type":"最高",
+                    "price": max_death_disability_price,
                     "name": "旅行平安保險",
                     "description": [
                     "被保險人於本公司賠償責任期間內，因遭受本保險契約條款所約定之意外傷害事故，致其身體蒙受傷害而致失能或死亡時，本公司依照本保險契約的約定，給付保險金。"
@@ -82,7 +119,8 @@ def insurance_json():
                 {
                 "index": 0,
                 "trip_cancel": {
-                    "price": trip_cancel_price,
+                    "pay_type":"實支實付",
+                    "price": actual_trip_cancel_price,
                     "name": "旅程取消保險(實支實付)",
                     "count":1,
                     "description": [
@@ -95,9 +133,10 @@ def insurance_json():
                 },
                 "index": 1,
                 "flight_delay": {
-                    "price": flight_delay_price,
+                    "pay_type":"實支實付",
+                    "price": fix_flight_delay_price,
                     "name": "班機延誤保險(定額型)",
-                    "count":1,
+                    "count":2,
                     "description": [
                     "被保險人於海外旅行期間內，其隨行託運並取得託運行李領取單之個人行李因公共交通工具業者之處理失當，致其在抵達目的地六小時後仍未領得時，本公司依本保險契約約定之保險金額給付保險金。對於下列事故與物品，本公司不負理賠責任：一、被保險人於返回中華民國境內機場之行李延誤。二、被保險人於返回出發地或居住所之行李延誤。三、被保險人事先運送之行李，或非隨身託運而分開郵寄或運送之物品。"
                     ],
@@ -106,7 +145,8 @@ def insurance_json():
                 },
                 "index": 2,
                 "trip_change": {
-                    "price": trip_change_price,
+                    "pay_type":"實支實付",
+                    "price": actual_trip_change_price,
                     "name": "旅程更改保險(實支實付)",
                     "count":1,
                     "description": [
@@ -117,7 +157,8 @@ def insurance_json():
                 },
                 "index": 3,
                 "baggage_delay": {
-                    "price": baggage_delay_price,
+                    "pay_type":"定額",
+                    "price": fix_baggage_delay_price,
                     "name": "行李延誤保險(定額型)",
                     "count":1,
                     "description": [
@@ -128,7 +169,8 @@ def insurance_json():
                 },
                 "index": 4,
                 "baggage_damage": {
-                    "price": baggage_damage_price,
+                    "pay_type":"定額",
+                    "price": fix_baggage_damage_price,
                     "name": "行李損失保險(定額型)",
                     "count":2,
                     "description": [
@@ -139,7 +181,8 @@ def insurance_json():
                 },
                 "index": 5,
                 "file_damage": {
-                    "price": file_damage_price,
+                    "pay_type":"定額",
+                    "price": fix_file_damage_price,
                     "name": "旅行文件損失保險(定額型)",
                     "count":1,
                     "description": [
@@ -155,7 +198,8 @@ def insurance_json():
             "name": "第三人責任險",
             "content": [
                 {
-                "price": third_party_price,
+                "pay_type":"最高",
+                "price": max_third_party_price,
                 "name": "第三人責任險",
                 "description": [
                     "被保險人於本保險契約約定之賠償責任期間內，對於第三人之體傷、死亡或財物受損，依法應負賠償責任，而受賠償請求時，本公司依約對被保險人負理賠責任。"
@@ -168,7 +212,8 @@ def insurance_json():
             "name": "急難救助",
             "content": [
                 {
-                "price": emergency_assistance_price,
+                "pay_type":"最高",
+                "price": max_emergency_assistance_price,
                 "name": "緊急救援費用保險",
                 "description": [
                     "被保險人於本保險契約約定之賠償責任期間內，因下列事故致其本人或親友必須支付救援費用，本公司依條款契約規定負給付保險金之責。一、於中華民國境外旅行時：1.因遭受意外傷害事故，並自意外傷害事故發生之日起一百八十日以內死亡者。2.於中華民國境外，因賠償責任期間內發生之意外事故引起突發疾病而死亡，或因該突發疾病而於賠償責任期間屆滿後三十日內死亡者。3.因遭受意外傷害事故，或於中華民國境外因意外事故引起突發疾病，因而須接受治療且連續住院七日以上者；若被保險人住院期間須轉院治療者，該轉送期間亦計入上開期間。二、於中華民國境內旅行時：1.因遭受意外傷害事故，並自意外傷害事故發生之日起一百八十日以內死亡者。2.因遭受意外傷害事故而須接受治療，且連續住院十四日以上者；若被保險人住院期間須轉院治療者，該轉送期間亦計入上開期間。三、因其所搭乘之飛機或船舶遭遇意外災難而行蹤不明；且警方、政府機關或救難組織已展開搜救者。四、因登山而行蹤不明；前開所謂行蹤不明，指被保險人超過原預定下山時間四十八小時，且警方或救難組織已開始搜救者。五、遭受意外傷害事故失蹤，且警方或救難組織已開始搜救者。"
