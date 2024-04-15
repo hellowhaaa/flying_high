@@ -50,6 +50,8 @@ def crawl_data():
             gate = f'//*[@id="print"]/ul[2]/li[{i}]/div[5]'
             status = f'//*[@id="print"]/ul[2]/li[{i}]/div[7]/p'
             # Wait for the required element to load on the page\\\
+            # ? ------ taiwan_title_time ------
+                
             try:  
                 WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, taiwan_title_time)))
                 taiwan_title_time_element = driver.find_element(By.XPATH, taiwan_title_time).text.strip()
@@ -57,8 +59,7 @@ def crawl_data():
             except TimeoutException:
                 taiwan_title_time_element = "Not Found"
                 print(f"airlines: {taiwan_title_time_element}")   
-                
-                
+
                 
             # ? ------ airline ------
             try:  
@@ -137,8 +138,8 @@ def crawl_data():
             collection = insert_mongodb_atlas()
             result = collection.update_many(
                 {
-                    "taiwan_title_time": taiwan_title_time_element,  # 日期时间必须匹配
-                    "airline": alphabet_ls  # 航空公司必须匹配
+                    "taiwan_title_time": taiwan_title_time_element,  # 符合的日期時間
+                    "airline": alphabet_ls  # 符合的航空公司
                 },
                 {
                     "$set": {
@@ -152,17 +153,15 @@ def crawl_data():
                         "updated_at": datetime.datetime.utcnow()
                     },
                     "$setOnInsert": {
-                        "created_at": datetime.datetime.utcnow()  # 只在首次创建时设置
+                        "created_at": datetime.datetime.utcnow()  # 只有在首次創建時 insert
                     }
                 },
-                upsert=True  # 如果没有找到匹配的文档，将创建新文档
+                upsert=True  # 如果沒有找到 match 'taiwan_title_time', 'airline'的 document，就 insert 一個新的
             )
-
-# 打印操作结果，帮助调试
             print(f'Matched count: {result.matched_count}')
             print(f'Modified count: {result.modified_count}')
             if result.upserted_id:
-                print(f'Upserted ID: {result.upserted_id}')  # 新建文档的 ID
+                print(f'Upserted ID: {result.upserted_id}')  # 新建 document 的 ID
 
             print('--------------------')
     except Exception as e:
