@@ -1,4 +1,3 @@
 FROM apache/airflow:2.7.1
 COPY requirements.txt ./requirements.txt
-RUN pip install -r requirements.txt
-RUN airflow db upgrade
+RUN pip install apache-airflow==2.7.1 -r requirements.txt

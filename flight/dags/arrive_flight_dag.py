@@ -236,8 +236,8 @@ default_args = {
 
 with DAG(
     dag_id="arrive_flight",
-    schedule="*/30 * * * *",
-    start_date=pendulum.datetime(2024, 4, 4, tz="UTC"),
+    # schedule="*/30 * * * *",
+    # start_date=pendulum.datetime(2024, 4, 4, tz="UTC"),
     default_args=default_args,
     catchup=False, # 不會去執行以前的任務
     max_active_runs=1,
