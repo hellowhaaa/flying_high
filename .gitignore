@@ -24,6 +24,7 @@ flight/.env
 flight/dags/__pycache__
 flight/dags/.env
 logs/
+.env
 
 #insurance folder
 insurance/.env

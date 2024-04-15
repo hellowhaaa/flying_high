@@ -7,6 +7,7 @@ from selenium.webdriver.chrome.service import Service
 from webdriver_manager.chrome import ChromeDriverManager
 from selenium.common.exceptions import TimeoutException
 import os
+import datetime
 from dotenv import load_dotenv
 load_dotenv()
 # Setup Chrome options
@@ -35,6 +36,7 @@ def crawl_data():
         for i in range(2,500):
             print(i)
         # Use the correct method to find the element
+            taiwan_title_time = '//*[@id="print"]/p[2]'
             scheduled_depart_time = f'//*[@id="print"]/ul[2]/li[{i}]/div[1]/span[2]'
             actual_depart_time = f'//*[@id="print"]/ul[2]/li[{i}]/div[8]/span[2]'
             # next_sch_path = '//*[@id="print"]/ul[2]/li[3]/div[1]/span[2]'
@@ -47,7 +49,17 @@ def crawl_data():
             terminal = f'//*[@id="print"]/ul[2]/li[{i}]/div[4]'
             gate = f'//*[@id="print"]/ul[2]/li[{i}]/div[5]'
             status = f'//*[@id="print"]/ul[2]/li[{i}]/div[7]/p'
-            # Wait for the required element to load on the page
+            # Wait for the required element to load on the page\\\
+            try:  
+                WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, taiwan_title_time)))
+                taiwan_title_time_element = driver.find_element(By.XPATH, taiwan_title_time).text.strip()
+                print(taiwan_title_time_element)
+            except TimeoutException:
+                taiwan_title_time_element = "Not Found"
+                print(f"airlines: {taiwan_title_time_element}")   
+                
+                
+                
             # ? ------ airline ------
             try:  
                 WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, airline)))
@@ -122,13 +134,16 @@ def crawl_data():
                 status_element = "Not Found"
                 print(f"Status: {status_element}")
             flight_dic = {
+                "taiwan_title_time": taiwan_title_time_element,
                 "scheduled_depart_time": scheduled_depart_time_element,
                 "actual_depart_time": actual_depart_time_element,
                 "destination": destination_element,           
                 'airline': alphabet_ls,
                 'terminal': terminal_element,
                 'gate': gate_element,
-                'status': status_element    
+                'status': status_element,
+                'created_at': datetime.datetime.utcnow(),
+                'updated_at': datetime.datetime.utcnow()
             }
             collection = insert_mongodb_atlas()
             collection.insert_one(flight_dic)
