@@ -133,7 +133,7 @@ def insurance_json():
                 },
                 "index": 1,
                 "flight_delay": {
-                    "pay_type":"實支實付",
+                    "pay_type":"定額",
                     "price": fix_flight_delay_price,
                     "name": "班機延誤保險(定額型)",
                     "count":2,
