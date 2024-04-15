@@ -5,6 +5,9 @@ from datetime import datetime, timezone
 from dotenv import load_dotenv
 load_dotenv()
 # TODO variable --------
+_1million = 1000000
+_1_2million = 1200000
+_1_5million = 1500000
 _2million = 2000000
 _3million = 3000000
 _4million = 4000000
@@ -37,13 +40,25 @@ _150w = 1500000
 
 _1w = 10000
 _3w = 30000
+_5w = 50000
 _6w = 60000
-
+_10w = 100000
 def insurance_json():
     plan_index = 0  # 方案
     plan_name = '海外輕鬆型(T2)'
+    
+    # plan_index = 1  # 方案
+    # plan_name = '海外安心型(T2)'
+    
+    # plan_index = 2  # 方案
+    # plan_name = '賞櫻限定型(Z)'
+    
+    # plan_index = 3  # 方案
+    # plan_name = '早鳥豪華型(U2)'
+    
+    
     person = "本人" # 幫誰保保險
-    days = 3 # 旅遊天數
+    days = 4 # 旅遊天數
     person_count = 1  # 幫幾個人保
     # country = '日本' # 旅遊地點
     country = None # 旅遊地點
@@ -51,21 +66,23 @@ def insurance_json():
     age = 27
     
     
- 
-    insured_amount_price = 5000000  # 投保額度
-    insurance_premium_price = 412  # 預估保費
+    i = '3' # 百萬
     
-    max_death_disability_price = 5000000 # 意外事故身故失能
-    actual_medical_insurance_price = 200000 # 傷害醫療實支實付型 （實支實付）
-    max_sudden_illness_price = 200000 # 海外突發疾病(甲型)
-    max_trip_cancel_price = 60000  # 旅程取消(不含傳染病及檢疫) (最高)
-
+    y = '1' # 十萬
+    
+    insured_amount_price = int(i+'000000') # 投保額度
+    insurance_premium_price = 454  # 預估保費
+    
+    max_death_disability_price = int(i+'000000') # 意外事故身故失能
+    actual_medical_insurance_price = int(i+'00000') # 傷害醫療實支實付型 （實支實付）
+    max_sudden_illness_price = int(i+'00000') # 海外突發疾病(甲型)
+    
+    max_trip_cancel_price = _6w  # 旅程取消(不含傳染病及檢疫) (最高)
     fix_flight_delay_price = 3000 # 班機延誤 (定額)
-    max_trip_change_price = 30000 # 旅程更改(不含傳染病及檢疫) (最高)
+    max_trip_change_price = _3w # 旅程更改(不含傳染病及檢疫) (最高)
     fix_baggage_delay_price = 3000 # 行李延誤 (定額)
     fix_baggage_damage_price = 3000 # 行李損失 (定額)
     fix_file_damage_price = 1000 # 旅行文件損失 (定額)
-   
 
     fix_divert_price = 3000 # 改降非原定機場 (定額)
     day_hijack_price = 3000 # 劫機保險 (日額)
@@ -74,8 +91,8 @@ def insurance_json():
     max_credict_card_lost_price = None # 信用卡盜用損失
     fix_room_lost_price = None # 居家竊盜損失
     
-    third_party_price = 1000000 # 第三人責任險
-    emergency_assistance_price = 1500000 # 急難救助
+    third_party_price = _1million # 第三人責任險
+    emergency_assistance_price = _1_5million # 急難救助
     
     create_date = datetime.now(timezone.utc)
     update_date = datetime.now(timezone.utc)
@@ -98,6 +115,7 @@ def insurance_json():
             [
                 {
                     "sudden_illness": {
+                        "index": 0,
                         "pay_type":"最高",
                         "price": max_sudden_illness_price,
                         "name": "海外突發疾病(甲型)",
@@ -108,6 +126,7 @@ def insurance_json():
                         "necessities":["保險金申請書","保險單或其謄本","醫療診斷書或住院證明","醫療費用收據","受益人的身分證明"]
                     },
                     "medical_insurance": {
+                        "index": 1,
                         "pay_type":"實支實付",
                         "price": actual_medical_insurance_price,
                         "name": "傷害醫療(實支實付)",
@@ -118,6 +137,7 @@ def insurance_json():
                         
                     },
                     "Death_disability": {
+                        "index": 2,
                         "pay_type":"最高",
                         "price": max_death_disability_price,
                         "name": "意外事故身故失能(最高)",
@@ -137,8 +157,8 @@ def insurance_json():
             "content": 
             [
                 {
-                    "index": 0,
                     "trip_cancel": {
+                        "index": 0,
                         "pay_type":"最高",
                         "price": max_trip_cancel_price,
                         "name": "旅程取消(最高)",
@@ -149,6 +169,7 @@ def insurance_json():
                         "necessities":["理賠申請書","旅行契約或交通工具之購票證明或旅館預約證明或票券購買證明","損失費用單據正本","預繳費用無法獲得退款或以其他非貨幣形式償還之證明文件","事故證明文件:死亡證明書或相驗屍體證明書或醫院或醫師開立之病危通知書"]
                     },
                     "flight_delay": {
+                        "index": 1,
                         "pay_type":"定額",
                         "price": fix_flight_delay_price,
                         "name": "班機延誤(定額型)",
@@ -159,6 +180,7 @@ def insurance_json():
                         "necessities":["理賠申請書","機票及登機證或航空業者出具之搭機證明","航空業者所出具載有班機延誤期間之證明"]
                     },
                     "trip_change": {
+                        "index": 2,
                         "pay_type":"最高",
                         "price": max_trip_change_price,
                         "name": "旅程更改保險(最高)",
@@ -169,6 +191,7 @@ def insurance_json():
                         "necessities":["理賠申請書","費用單據正本","預定行程之相關證明文件"]
                     },
                     "baggage_delay": {
+                        "index": 3,
                         "pay_type":"定額",
                         "price": fix_baggage_delay_price,
                         "name": "行李延誤(定額型)",
@@ -179,6 +202,7 @@ def insurance_json():
                         "necessities":["理賠申請書","公共交通工具業者所出具行李延誤達六小時以上之文件"]
                     },
                     "baggage_damage": {
+                        "index": 4,
                         "pay_type":"定額",
                         "price": fix_baggage_damage_price,
                         "name": "行李損失(定額型)",
@@ -190,6 +214,7 @@ def insurance_json():
                         "necessities":["理賠申請書","向警方報案證明或公共交通工具業者所開立之事故與損失證明"]
                     },
                     "file_damage": {
+                        "index": 5,
                         "pay_type":"定額",
                         "price": fix_file_damage_price,
                         "name": "旅行文件損失(定額型)",
@@ -309,26 +334,16 @@ def insurance_json():
 def insert_mongodb_atlas():
 
     uri = os.getenv("MONGODB_URI")
-    # Create a new client and connect to the server
     conn = MongoClient(uri)
-    # Send a ping to confirm a successful connection
     try:
         conn.admin.command('ping')
         print("Pinged your deployment. You successfully connected to MongoDB!")
     except Exception as e:
         print(e)
-
-    # Create a MongoClient instance
     db = conn['flying_high']
-    # Access a collection (similar to a table in relational databases)
     collection = db['insurance_guotai']
 
-    mongo_dblist = conn.list_database_names()
-    if "flying_high" in mongo_dblist:
-        print("flying_high database 已存在！")
-    else:
-        print('flying_high database 不存在')
-    
+
     return collection
 
 insurance_json()
