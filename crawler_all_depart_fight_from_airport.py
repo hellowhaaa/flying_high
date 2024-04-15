@@ -133,20 +133,36 @@ def crawl_data():
             except TimeoutException:
                 status_element = "Not Found"
                 print(f"Status: {status_element}")
-            flight_dic = {
-                "taiwan_title_time": taiwan_title_time_element,
-                "scheduled_depart_time": scheduled_depart_time_element,
-                "actual_depart_time": actual_depart_time_element,
-                "destination": destination_element,           
-                'airline': alphabet_ls,
-                'terminal': terminal_element,
-                'gate': gate_element,
-                'status': status_element,
-                'created_at': datetime.datetime.utcnow(),
-                'updated_at': datetime.datetime.utcnow()
-            }
+            
             collection = insert_mongodb_atlas()
-            collection.insert_one(flight_dic)
+            result = collection.update_many(
+                {
+                    "taiwan_title_time": taiwan_title_time_element,  # 日期时间必须匹配
+                    "airline": alphabet_ls  # 航空公司必须匹配
+                },
+                {
+                    "$set": {
+                        "scheduled_depart_time": scheduled_depart_time_element,
+                        "actual_depart_time": actual_depart_time_element,
+                        "destination": destination_element,
+                        "airline": alphabet_ls,
+                        "terminal": terminal_element,
+                        "gate": gate_element,
+                        "status": status_element,
+                        "updated_at": datetime.datetime.utcnow()
+                    },
+                    "$setOnInsert": {
+                        "created_at": datetime.datetime.utcnow()  # 只在首次创建时设置
+                    }
+                },
+                upsert=True  # 如果没有找到匹配的文档，将创建新文档
+            )
+
+# 打印操作结果，帮助调试
+            print(f'Matched count: {result.matched_count}')
+            print(f'Modified count: {result.modified_count}')
+            if result.upserted_id:
+                print(f'Upserted ID: {result.upserted_id}')  # 新建文档的 ID
 
             print('--------------------')
     except Exception as e:
