@@ -4,7 +4,7 @@ from datetime import timedelta, datetime
 import pendulum
 from airflow.operators.empty import EmptyOperator
 from airflow.operators.python import PythonOperator
-from pymongo import MongoClient
+from pymongo.mongo_client import MongoClient
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
@@ -16,19 +16,58 @@ from dotenv import load_dotenv
 import os
 from airflow.utils.dates import days_ago
 
+from selenium import webdriver
+from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
+
 def crawl_data():
     try:
-        # Setup Chrome options
-        chrome_options = webdriver.ChromeOptions()
-        chrome_options.add_argument("--headless")  # Ensure GUI is off
-        chrome_options.add_argument("--no-sandbox")
-        chrome_options.add_argument("--disable-dev-shm-usage")
+        options = webdriver.ChromeOptions()
+        options.add_argument('--ignore-ssl-errors=yes')
+        options.add_argument('--ignore-certificate-errors')
+        
+        # Set command timeout to 60 seconds
+        capabilities = options.to_capabilities()
+        driver = webdriver.Remote(
+            command_executor='http://remote_chromedriver:4444/wd/hub',
+            keep_alive=True,
+            options=options # Increase the timeout to 60 seconds
+        )
+        
         url = 'https://www.taoyuan-airport.com/flight_arrival?k=&time=all'
-        # Set path to chromedriver as per your configuration
-        webdriver_service = Service(ChromeDriverManager().install())
-        # Choose Chrome Browser
-        driver = webdriver.Chrome(service=webdriver_service, options=chrome_options)
         driver.get(url)
+    # try:
+        # Setup Chrome options
+        # chrome_options = webdriver.ChromeOptions()
+        # chrome_options.add_argument("--headless")  # Ensure GUI is off
+        # chrome_options.add_argument("--no-sandbox")
+        # chrome_options.add_argument("--disable-dev-shm-usage")
+        # url = 'https://www.taoyuan-airport.com/flight_arrival?k=&time=all'
+        # Set path to chromedriver as per your configuration
+        # webdriver_service = Service(ChromeDriverManager().install())
+        # chrome_options = webdriver.ChromeOptions()
+        # chrome_options.add_argument("--headless")
+        # chrome_options.add_argument("--no-sandbox")
+        # chrome_options.add_argument("--disable-dev-shm-usage")
+
+        # Connect to the remote ChromeDriver through Selenium
+    #     try:
+    #         # remote_webdriver = 'remote_chromedriver'
+    #         options = webdriver.ChromeOptions()
+    #         options.add_argument('--ignore-ssl-errors=yes')
+    #         options.add_argument('--ignore-certificate-errors')
+    #         driver = webdriver.Remote(
+    #             command_executor='http://remote_chromedriver:4444/wd/hub',
+    #             options=options)
+    #             # Scraping part
+    #         url = 'https://www.taoyuan-airport.com/flight_arrival?k=&time=all'
+    #         driver.get(url)
+    #     except Exception as e:
+    #         print(e)
+    #     # Choose Chrome Browser
+    #     # driver = webdriver.Chrome(service=webdriver_service, options=chrome_options)
+        
+    #     # with webdriver.Remote(f'{remote_webdriver}:4444/wd/hub', options=options) as driver:
+    #     # driver.get(url)
         for i in range(2,500):
             print(i)
         # Use the correct method to find the element
@@ -127,16 +166,40 @@ def crawl_data():
                 'gate': gate_element,
                 'status': status_element    
             }
-            collection = insert_mongodb_atlas()
-            collection.insert_one(flight_dic)
-
-            print('--------------------')
+            # load_dotenv()
+            # uri = os.getenv("MONGODB_URI")
+            # conn = MongoClient(uri)
+            # try:
+            #     conn.admin.command('ping')
+            #     print("Pinged your deployment. You successfully connected to MongoDB!")
+            # except Exception as e:
+            #     print(e)
+            # db = conn['flying_high']
+            # collection = db['flight_arrive']
+            # collection.insert_one(flight_dic)
+            try:
+                insert_to_mongo(flight_dic)
+            except Exception as e:
+                print(e)
     except Exception as e:
-        print(f"An error occurred: {e}")
+        print(f"Error during web scraping: {e}")
+
+    #         print('--------------------')
+    # except Exception as e:
+    #     print(f"An error occurred: {e}")
             
-    finally:
-        # Close the browser
-        driver.quit()
+    # finally:
+    #     # Close the browser
+        # driver.quit()
+def insert_to_mongo(data):
+    load_dotenv()
+    DATABASE_URL = os.getenv("MONGODB_URI")
+    client = MongoClient(DATABASE_URL)
+    collection = client['flying_high']['flight_arrive']
+    if data:
+        collection.insert_one(data)
+    client.close()
+    
 def insert_mongodb_atlas():
     load_dotenv()
     uri = os.getenv("MONGODB_URI")
@@ -172,8 +235,8 @@ default_args = {
 
 with DAG(
     dag_id="arrive_flight",
-    schedule="*/5 * * * *",
-    start_date=pendulum.datetime(2024, 4, 5, tz="UTC"),
+    schedule="*/30 * * * *",
+    start_date=pendulum.datetime(2024, 4, 4, tz="UTC"),
     default_args=default_args,
     catchup=False, # 不會去執行以前的任務
     max_active_runs=1,
