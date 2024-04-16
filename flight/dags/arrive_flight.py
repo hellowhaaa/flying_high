@@ -1,4 +1,10 @@
-from pymongo import MongoClient
+from airflow import DAG
+from airflow.operators.python import PythonOperator
+from datetime import timedelta
+import pendulum
+from airflow.operators.empty import EmptyOperator
+from airflow.operators.python import PythonOperator
+from pymongo.mongo_client import MongoClient
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
@@ -7,8 +13,12 @@ from selenium.webdriver.chrome.service import Service
 from webdriver_manager.chrome import ChromeDriverManager
 from selenium.common.exceptions import TimeoutException
 from dotenv import load_dotenv
-import datetime
 import os
+import datetime
+from airflow.utils.dates import days_ago
+
+from selenium import webdriver
+from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
 
 
 def crawl_data():
@@ -154,8 +164,6 @@ def crawl_data():
                     print(f'Upserted ID: {result.upserted_id}')  # 新建 document 的 ID
             except Exception as e:
                 print(e)
-                
-
             print('--------------------')
     except Exception as e:
         print(f"An error occurred: {e}")        
@@ -174,3 +182,39 @@ def insert_mongodb_atlas():
     db = client['flying_high']
     collection = db['flight_arrive']
     return collection
+
+
+default_args = {
+    'owner': 'airflow',
+    'depends_on_past': False, 
+    'email_on_failure': False,
+    'email_on_retry': False,
+    'retries': 1,
+    'retry_delay': timedelta(minutes=5)
+}
+
+with DAG(
+    dag_id="release_arrive_flight",
+    schedule="*/30 * * * *",
+    start_date=pendulum.datetime(2024, 4, 15, tz="UTC"),
+    default_args=default_args,
+    catchup=False, # 不會去執行以前的任務
+    max_active_runs=1,
+    tags=['flight'],
+) as dag:
+    task_start = EmptyOperator(
+    task_id="task_start",
+    dag=dag
+    )
+    task_end = EmptyOperator(
+    task_id="task_end",
+    dag=dag
+    )
+    
+    task_arrive_flight = PythonOperator(
+        task_id = "insert_arrive_flight_mongodb",
+        python_callable=crawl_data,
+        dag = dag  
+    )
+    
+(task_start >> task_arrive_flight >> task_end)
