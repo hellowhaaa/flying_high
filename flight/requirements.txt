@@ -2,3 +2,4 @@ pymongo[srv]==3.11
 selenium==4.19.0
 webdriver-manager==4.0.1
 apache-airflow-providers-mongo==3.0.0
+python-dotenv==1.0.1

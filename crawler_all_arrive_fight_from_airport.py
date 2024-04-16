@@ -135,8 +135,8 @@ def crawl_data():
                 },
                 {
                     "$set": {
-                        "scheduled_depart_time": scheduled_arrive_time_element,
-                        "actual_depart_time": actual_arrive_time_element,
+                        "scheduled_arrive_time": scheduled_arrive_time_element,
+                        "actual_arrive_time": actual_arrive_time_element,
                         "destination": destination_element,
                         "airline": alphabet_ls,
                         "terminal": terminal_element,

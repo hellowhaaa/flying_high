@@ -192,10 +192,9 @@ def crawl_data():
     #     # Close the browser
         # driver.quit()
 def insert_to_mongo(data):
-    # HCadEw7bWkMlybDF
-    DATABASE_URL = "mongodb+srv://root:HCadEw7bWkMlybDF@cluster0.ddhtgvi.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0"
-    # DATABASE_URL = "mongodb+srv://admin:HCadEw7bWkMlybDF@cluster0.ibhiiti.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0"
-    client = MongoClient(DATABASE_URL)
+    load_dotenv()
+    url = os.getenv("MONGODB_URI")
+    client = MongoClient(url)
     collection = client['flying_high']['flight_arrive']
     if data:
         collection.insert_one(data)
@@ -236,8 +235,8 @@ default_args = {
 
 with DAG(
     dag_id="arrive_flight",
-    # schedule="*/30 * * * *",
-    # start_date=pendulum.datetime(2024, 4, 4, tz="UTC"),
+    schedule="*/30 * * * *",
+    start_date=pendulum.datetime(2024, 4, 8, tz="UTC"),
     default_args=default_args,
     catchup=False, # 不會去執行以前的任務
     max_active_runs=1,
