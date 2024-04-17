@@ -3,6 +3,7 @@ from airflow.operators.python import PythonOperator
 from datetime import timedelta
 import pendulum
 from airflow.operators.empty import EmptyOperator
+from airflow.sensors.external_task import ExternalTaskSensor
 from airflow.operators.python import PythonOperator
 from pymongo.mongo_client import MongoClient
 from selenium import webdriver
@@ -206,8 +207,13 @@ with DAG(
     max_active_runs=1,
     tags=['flight'],
 ) as dag:
-    task_start = EmptyOperator(
+    task_start = ExternalTaskSensor(
     task_id="task_start",
+    external_dag_id = "release_arrive_flight",
+    external_task_id = "task_end",
+    execution_delta=timedelta(minutes=0),
+    timeout=1500,
+    poke_interval=60,
     dag=dag
     )
     task_end = EmptyOperator(
