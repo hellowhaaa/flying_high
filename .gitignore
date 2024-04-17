@@ -29,3 +29,5 @@ logs/
 #insurance folder
 insurance/.env
 
+# server folder
+server/__pycache__/
