@@ -31,3 +31,6 @@ insurance/.env
 
 # server folder
 server/__pycache__/
+
+# streamlit folder
+.streamlit/
