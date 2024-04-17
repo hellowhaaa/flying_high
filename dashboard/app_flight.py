@@ -46,5 +46,28 @@ selected_locations = st.multiselect("Filter by Destination:", unique_locations)
 if selected_locations:
     data = data[data['destination'].isin(selected_locations)]
 
-# show = get_data()
+
+st.title(' :blue[Flying High]   _flight Time_ :sunglasses:')
+st.write(data)
+
+def get_fubung_data():
+    # collection = db['flight_depart'].find({"status":"0"})
+    collection = db['insurance_fubung'].find()
+    
+    return pd.DataFrame(collection)
+
+data = get_fubung_data()
+
+st.title(' :blue[Flying High]   _Fubon Insurance_ ')
+st.write(data)
+
+def get_guotai_data():
+    # collection = db['flight_depart'].find({"status":"0"})
+    collection = db['insurance_guotai'].find()
+    
+    return pd.DataFrame(collection)
+
+data = get_fubung_data()
+
+st.title(' :blue[Flying High]   _Cathay Insurance_ ')
 st.write(data)
