@@ -164,6 +164,8 @@ services:
       # Required to handle warm shutdown of the celery workers properly
       # See https://airflow.apache.org/docs/docker-stack/entrypoint.html#signal-propagation
       DUMB_INIT_SETSID: "0"
+      NODE_MAX_INSTANCE: "5"
+      NODE_MAX_SESSION: "5"
     restart: always
     depends_on:
       <<: *airflow-common-depends-on
@@ -288,11 +290,11 @@ services:
       airflow-init:
         condition: service_completed_successfully
   selenium:
-  container_name: remote_chromedriver
-  image: seleniarm/standalone-chromium:123.0
-  ports:
-    - 4444:4444
-  restart: always
+    container_name: remote_chromedriver
+    image: seleniarm/standalone-chromium:latest
+    ports:
+      - 4444:4444
+    restart: always
   # selenium:
   #   container_name: remote_chromedriver
   #   image: seleniarm/standalone-chromium:latest
