@@ -1,6 +1,7 @@
 # views.py
-from flask import request, redirect, url_for, render_template, flash
+from flask import request, redirect, url_for, render_template, flash, current_app
 from models import User
+
 
 
 def register():
@@ -11,6 +12,7 @@ def register():
         user = User(username=username, email=email, password=password)
         user.hash_password()
         user.save()
+        current_app.logger.info(f"User saved: {user.username}")
         flash('Registration successful, please login.', 'success')
         return redirect(url_for('login'))
     return render_template('register.html')
