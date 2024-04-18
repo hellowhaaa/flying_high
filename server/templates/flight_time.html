@@ -1,0 +1,22 @@
+{% extends "layout.html" %} {% block content %}
+<style>
+  .background-image {
+    /* 使用 Jinja2 模板语法在 CSS 中设置背景图像 */
+    background-image: url("{{ url_for('static', filename='images/airplane.jpg') }}");
+
+    /* 背景图像尽可能地填充屏幕，但要确保图片内容完整显示 */
+    opacity: 0.8;
+    height: 100vh;
+    width: 100vw;
+    background-position: center center; /* 图像居中显示 */
+    background-repeat: no-repeat; /* 不重复图像 */
+    background-size: cover; /* 图像完整地适应容器 */
+    position: fixed; /* 固定位置，使其不随滚动条滚动 */
+    top: 0;
+    left: 0;
+    z-index: -1; /* 确保背景图像在内容之下 */
+  }
+</style>
+<div class="background-image"></div>
+
+{{airline}} {% endblock %}

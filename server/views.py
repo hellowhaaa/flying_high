@@ -39,7 +39,9 @@ def index():
 def flight_information():
     return render_template('flight_info.html')
 
-
+def submit_airline():
+    selected_airline = request.form.get('airline')
+    return render_template('flight_time.html', airline=selected_airline)
 
 def insurance():
     return render_template('insurance.html')
