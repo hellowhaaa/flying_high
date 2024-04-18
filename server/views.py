@@ -1,6 +1,6 @@
 # views.py
 from flask import request, redirect, url_for, render_template, flash, current_app
-from models import User
+from models import User, Location
 
 
 
@@ -15,7 +15,8 @@ def register():
         current_app.logger.info(f"User saved: {user.username}")
         flash('Registration successful, please login.', 'success')
         return redirect(url_for('login'))
-    return render_template('register.html')
+    locations = Location.objects.all()
+    return render_template('register.html', locations=locations)
 
 def login():
     if request.method == 'POST':

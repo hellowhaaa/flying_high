@@ -13,13 +13,29 @@ class Address(db.EmbeddedDocument):
     district = db.StringField(required=True)
     road = db.StringField(required=True)
     road_detail = db.StringField()
-    
-    
+
+
+
+class Road(db.EmbeddedDocument):
+    name = db.StringField(required=True)  # 路的名称
+
+class Area(db.EmbeddedDocument):
+    AreaName = db.StringField(required=True)  # 地区名称
+    RoadList = db.ListField(db.EmbeddedDocumentField(Road))  # 地区下的路列表
+
+class Location(db.Document):
+    CityName = db.StringField(required=True)  # 城市名称
+    AreaList = db.ListField(db.EmbeddedDocumentField(Area))  # 城市下的地区列表
+
+
+
+
+  
 class User(db.Document):
     username = db.StringField(required=True, unique=True)
     email = db.EmailField(required=True, unique=True)
     password = db.StringField(required=True)
-    address = db.embeddedDocumentField(Address)
+    address = db.EmbeddedDocumentField(Address)
     
     created_at = db.DateTimeField(default=datetime.datetime.now)
 
