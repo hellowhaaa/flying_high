@@ -6,11 +6,20 @@ import datetime
 from werkzeug.security import generate_password_hash, check_password_hash
 db = MongoEngine()
 
+
+class Address(db.EmbeddedDocument):
+    zip = db.StringField(required=True)
+    county = db.StringField(required=True)
+    district = db.StringField(required=True)
+    road = db.StringField(required=True)
+    road_detail = db.StringField()
+    
+    
 class User(db.Document):
     username = db.StringField(required=True, unique=True)
     email = db.EmailField(required=True, unique=True)
     password = db.StringField(required=True)
-    # address = db.StringField(required=True)
+    address = db.embeddedDocumentField(Address)
     
     created_at = db.DateTimeField(default=datetime.datetime.now)
 
