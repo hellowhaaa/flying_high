@@ -21,62 +21,32 @@
 
 <!--  選項 －－－－－ -->
 <div class="my-3">
-  <form action="/submit-airline" method="post">
+  <form action="/submit_airline" method="post">
     <div class="container-lg .bg-primary-subtle text-white">
       Choose your flight
 
-      <div class="dropdown">
-        <button
-          class="btn btn-secondary dropdown-toggle"
-          type="button"
-          data-bs-toggle="dropdown"
-          aria-expanded="false"
-        >
-          Airline
-        </button>
-        <ul class="dropdown-menu dropdown-menu-dark">
-          <li>
-            <button
-              class="dropdown-item"
-              type="submit"
-              name="airline"
-              value="JL"
-            >
-              JL Japan Airline
-            </button>
-          </li>
-          <li>
-            <button
-              class="dropdown-item"
-              type="submit"
-              name="airline"
-              value="UA"
-            >
-              UA United Airline
-            </button>
-          </li>
-          <li>
-            <button
-              class="dropdown-item"
-              type="submit"
-              name="airline"
-              value="CI"
-            >
-              CI China Airline
-            </button>
-          </li>
-        </ul>
+      <div class="input-group mb-3">
+        <label class="input-group-text" for="airline">Airline</label>
+        <select class="form-select" id="airline" name="airline">
+          <option selected>Choose...</option>
+          <option value="JL">JL Japan Airline</option>
+          <option value="UA">UA United Airline</option>
+          <option value="CI">CI China Airline</option>
+          <!-- ...更多选项... -->
+        </select>
       </div>
+
       <div class="form-group my-3">
         <input
           type="text"
-          name="airline"
+          name="flight_number"
           class="form-control"
           placeholder="Flight Number"
           aria-label="Flight Number"
           aria-describedby="basic-addon1"
         />
       </div>
+
       <button type="submit" class="btn btn-secondary">Search</button>
     </div>
   </form>

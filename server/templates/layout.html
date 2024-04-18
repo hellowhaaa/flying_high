@@ -95,10 +95,12 @@
 
     {% block scripts %}
     <script>
-      const dropdownElementList = document.querySelectorAll(".dropdown-toggle");
-      const dropdownList = [...dropdownElementList].map(
-        (dropdownToggleEl) => new bootstrap.Dropdown(dropdownToggleEl)
-      );
+      function selectAirline(airlineCode) {
+        // 更新隐藏字段的值
+        document.getElementById("selectedAirline").value = airlineCode;
+        // 更新下拉按钮的文本（可选）
+        document.getElementById("dropdownMenuButton").textContent = airlineCode;
+      }
     </script>
     {% endblock %}
   </body>
