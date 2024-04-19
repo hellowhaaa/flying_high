@@ -29,8 +29,8 @@ def get_arrive_flight_time(flight):  # airline_code 是 JL96 的組合\l
         '$gt': utc_midnight
     }
     }
-    result = client['flying_high']['flight_arrive2'].find(
+    result = client['flying_high']['flight_arrive2'].find_one(
     filter=filter
     )
-    return list(result)
+    return result
 

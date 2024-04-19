@@ -56,30 +56,26 @@ def arrive_flight_time():
         current_app.logger.error("Catch an exception.", exc_info=True)
     share_code_list = []
     if flight_result:
-        flight_info = flight_result[0]
-        print(flight_info)
-        # for airline_entry in flight_info['airline']:
-        #     if airline_name in airline_entry:
-        #         main_code = airline_entry[airline_name]
-        #     else:
-        #         for code in airline_entry.values():
-        #             share_code_list.append(code)
-    # print("main:",main_code)
-    # print("shared",share_code_list)
-    # if flight_info['status'] == '':
-    #     flight_info['status'] = '已排定起飛時間'
-    # flight = {
-    #     'main_code': main_code,
-    #     'share_code': share_code_list, 
-    #     'destination': flight_info['destination'],
-    #     'gate': flight_info['gate'],
-    #     'scheduled_arrive_time': flight_info['scheduled_arrive_time'],
-    #     'actual_arrive_time': flight_info['actual_arrive_time'],
-    #     'status': flight_info['status'],
-    #     'terminal': flight_info['terminal']
-    # }
-    # print(flight)
-    # return render_template('arrive_flight_time.html', airline_name=airline_name, flight= flight)
+        for each_air in flight_result['airline']:
+            if each_air['airline_code'] == flight:
+                main_code = flight
+            else:
+                share_code_list.append(each_air['airline_code'])
+    print("main:",main_code)
+    print("shared",share_code_list)
+    if flight_result['status'] == '':
+        flight_result['status'] = '已排定起飛時間'
+    flight = {
+        'main_code': main_code,
+        'share_code': share_code_list, 
+        'destination': flight_result['destination'],
+        'gate': flight_result['gate'],
+        'scheduled_arrive_time': flight_result['scheduled_arrive_time'],
+        'actual_arrive_time': flight_result['actual_arrive_time'],
+        'status': flight_result['status'],
+        'terminal': flight_result['terminal']
+    }
+    print(flight)
     return render_template('arrive_flight_time.html',flight= flight)
 
 def insurance():
