@@ -1,7 +1,7 @@
 # app.py
 from flask import Flask
 from models import db
-from views import register, login, success, dashboard, insurance,flight_information,index,submit_airline
+from views import register, login, success, dashboard, insurance,search_flight,index,flight_time
 import logging
 from logging.handlers import RotatingFileHandler
 import os
@@ -32,13 +32,13 @@ if not app.debug:
     app.logger.info('App startup')
 
 
-app.add_url_rule('/flight_information', view_func=flight_information, methods=['GET', 'POST'])
+app.add_url_rule('/search_flight', view_func=search_flight, methods=['GET', 'POST'])
 app.add_url_rule('/insurance', view_func=insurance, methods=['GET', 'POST'])
 app.add_url_rule('/dashboard', view_func=dashboard, methods=['GET', 'POST'])
 app.add_url_rule('/login', view_func=login, methods=['GET', 'POST'])
 app.add_url_rule('/success', view_func=success, methods=['GET', 'POST'])
 app.add_url_rule('/register', view_func=register, methods=['GET', 'POST'])
-app.add_url_rule('/submit_airline', view_func=submit_airline, methods=['POST'])
+app.add_url_rule('/flight_time', view_func=flight_time, methods=['POST'])
 app.add_url_rule('/', view_func=index, methods=['GET', 'POST'])
 if __name__ == '__main__':
     app.secret_key = os.getenv("SECRET_KEY")

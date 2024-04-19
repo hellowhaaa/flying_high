@@ -36,10 +36,10 @@ def index():
     return render_template('homepage.html')
 
 
-def flight_information():
-    return render_template('flight_info.html')
+def search_flight():
+    return render_template('search_flight.html')
 
-def submit_airline():
+def flight_time():
     selected_airline = request.form.get('airline')
     flight_number = request.form.get('flight_number')
     return render_template('flight_time.html', airline=selected_airline, flight_number= flight_number)
