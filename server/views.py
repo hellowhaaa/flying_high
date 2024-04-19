@@ -2,6 +2,7 @@
 from flask import request, redirect, url_for, render_template, flash, current_app
 from models import User, Location
 from select_data_from_mongo import get_flight_time
+import logging
 
 
 def register():
@@ -43,18 +44,46 @@ def search_flight():
 
 
 def flight_time():
-    selected_airline = request.form.get('airline')
-    flight_number = request.form.get('flight_number')
-    selected_airline = selected_airline.split(',')
-    airline_code = selected_airline[0]
-    flight = airline_code + flight_number
-    airline_name = selected_airline[1]
-    ci_flights = get_flight_time(airline_name,flight)
+    try:
+        selected_airline = request.form.get('airline')
+        flight_number = request.form.get('flight_number')
+        selected_airline = selected_airline.split(',')
+        airline_code = selected_airline[0]
+        flight = airline_code + flight_number
+        airline_name = selected_airline[1]
+        ci_flights = get_flight_time(airline_name,flight)
+        current_app.logger.info(f"Flight time retrieved for {flight}")
+    except Exception:
+        current_app.logger.error("Catch an exception.", exc_info=True)
+    share_code_list = []
+    if ci_flights:
+        flight_info = ci_flights[0]
+        print(flight_info)
+        for airline_entry in flight_info['airline']:
+            if airline_name in airline_entry:
+                # 如果主航空公司的名称是这个字典的键，获取它的代码
+                main_code = airline_entry[airline_name]
+            else:
+                # 否则，迭代这个字典的值并添加到共享代码列表
+                for code in airline_entry.values():
+                    share_code_list.append(code)
+    print("main:",main_code)
+    print("shared",share_code_list)
     
-    print('ci_flight_', ci_flights)
-    for i in ci_flights:
-        print(i)
-    
+    if flight_info['status'] == '':
+        flight_info['status'] = '已排定起飛時間'
+
+    flight = {
+        'main_code': main_code,
+        'share_code': share_code_list,  # 确保这是一个列表
+        'destination': flight_info['destination'],
+        'gate': flight_info['gate'],
+        'scheduled_arrive_time': flight_info['scheduled_arrive_time'],
+        'actual_arrive_time': flight_info['actual_arrive_time'],
+        'status': flight_info['status'],
+        'terminal': flight_info['terminal']
+    }
+    print(flight)
     
     
     return render_template('flight_time.html', airline_name=airline_name, flight= flight)

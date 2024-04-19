@@ -19,4 +19,23 @@
 </style>
 <div class="background-image"></div>
 
-{{airline_name}} {{flight}}{% endblock %}
+{{airline_name}}
+<div class="container-lg .bg-primary-subtle text-white">
+  <div class="row">
+    <div class="col-3">
+      <h5>Code share flights</h5>
+      <p>main_code: {{ flight.main_code }}</p>
+      {% for object in flight.share_code %}
+      <p>Share code: {{ object }}</p>
+      {% endfor %}
+
+      <p>{{ flight.destination }}</p>
+      <p>{{ flight.gate }}</p>
+      <p>{{ flight.scheduled_arrive_time }}</p>
+      <p>{{ flight.actual_arrive_time }}</p>
+      <p>{{ flight.status }}</p>
+    </div>
+  </div>
+
+  {% endblock %}
+</div>
