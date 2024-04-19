@@ -7,6 +7,7 @@ from logging.handlers import RotatingFileHandler
 import os
 from dotenv import load_dotenv
 
+
 env_path = os.path.join(os.getcwd(), 'server', '.env')
 print(env_path)
 print("MONGODB_URI from .env:", os.getenv("MONGODB_URI"))

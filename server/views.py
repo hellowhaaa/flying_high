@@ -1,7 +1,7 @@
 # views.py
 from flask import request, redirect, url_for, render_template, flash, current_app
 from models import User, Location
-
+from select_data_from_mongo import get_flight_time
 
 
 def register():
@@ -39,10 +39,25 @@ def index():
 def search_flight():
     return render_template('search_flight.html')
 
+
+
+
 def flight_time():
     selected_airline = request.form.get('airline')
     flight_number = request.form.get('flight_number')
-    return render_template('flight_time.html', airline=selected_airline, flight_number= flight_number)
+    selected_airline = selected_airline.split(',')
+    airline_code = selected_airline[0]
+    flight = airline_code + flight_number
+    airline_name = selected_airline[1]
+    ci_flights = get_flight_time(airline_name,flight)
+    
+    print('ci_flight_', ci_flights)
+    for i in ci_flights:
+        print(i)
+    
+    
+    
+    return render_template('flight_time.html', airline_name=airline_name, flight= flight)
 
 def insurance():
     return render_template('insurance.html')

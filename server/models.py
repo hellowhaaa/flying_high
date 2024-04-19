@@ -47,4 +47,36 @@ class User(db.Document):
     meta = {
         'collection': 'user'  # 指定 MongoDB 集合名
     }
+
+
+# # 定义嵌入文档 Airline
+# class Airline(db.EmbeddedDocument):
+#     code = db.StringField() 
     
+    
+# class FlightManager3(db.Document):
+#     _id = db.ObjectIdField()  # MongoDB中的默认ID字段
+#     airline = db.MapField(field=db.StringField())
+#     taiwan_title_time = db.StringField()
+#     actual_depart_time = db.StringField()
+#     created_at = db.DateTimeField()
+#     destination = db.StringField()
+#     gate = db.StringField()
+#     scheduled_depart_time = db.StringField()
+#     status = db.StringField()
+#     terminal = db.StringField()
+#     updated_at = db.DateTimeField()
+
+#     meta = {
+#         'collection': 'flight_arrive'  # 指定 MongoDB 集合名
+#     }
+    
+    
+#     @staticmethod
+#     def get_flight_time(airline_code):  # airline_code 是 JL96 的組合
+#         flights = FlightManager3.objects(__raw__={
+#             'airline': {
+#                 '$elemMatch': {'中華航空': {'$regex': airline_code }}
+#             }
+#         })
+#         return flights
