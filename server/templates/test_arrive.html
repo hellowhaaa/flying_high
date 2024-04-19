@@ -24,7 +24,55 @@
           left: 0;
           z-index: -1; /* 确保背景图像在内容之下 */
         }
+        .outer {
+            min-height: 90vh; /* Set to the height of the viewport */
+            display: flex;
+            justify-content: center; /* Center horizontally */
+            align-items: center; /* Center vertically */
+        }
+        .flight-info {
+            position: relative; /* Allows absolute positioning inside */
+            background: rgba(255, 255, 255, 0.5); /* Semi-transparent white background */
+            padding: 2rem;
+            border-radius: 1rem; /* Rounded corners */
+            box-shadow: 0 0 1rem rgba(0, 0, 0, 0.1); /* Soft shadow */
+            width: 75%;
+            min-height: 300px; /* Ensures that there's enough space for positioning */
+        }
+        .route-info {
+    display: flex;  /* 开启Flexbox布局 */
+    justify-content: space-between; /* 确保元素在容器中均匀分布 */
+    margin-bottom: 1rem; /* 和下一个元素之间的间隔 */
+}
+
+.route-info p {
+    margin-right: 10px; /* 每个段落的左右边距 */
+}
+
+        .button-group {
+            position: absolute; /* Position absolutely inside the flight-info */
+            bottom: 20px; /* 20 pixels from the bottom of the flight-info */
+            right: 20px; /* 20 pixels from the right of the flight-info */
+            display: flex;
+            
+        }
+
+        button {
+            padding: 0.5rem 1rem;
+            border: none;
+            border-radius: 0.3rem;
+            cursor: pointer;
+            background-color: #4d9ad5e7;
+            color: white;
+            font-size: 1rem;
+            margin: 0.3rem 0.3rem;
+        }
+
+        button:hover {
+            background-color: #0056b3;
+        }
     </style>
+
 </head>
 
   <body>
@@ -73,29 +121,45 @@
 
     <div class="container">
         
-          <div class="background-image"></div>
-          
-          中華航空123465
-          <div class="container-lg text-black bg-light-subtle bg-opacity-50">
-            <div class="row">
-              <div class="col-3">
-                <h5>Code share flights</h5>
-                <p>main_code: CI790</p>
-                <p>VM560</p>
-            
-          
-                <p>蜆港</p>
-                <p>T1</p>
-                <p>00:50</p>
-                <p>01:20</p>
-                <p>抵達</p>
-                <p>T1</p>
-              </div>
+        <div class="background-image"></div>
+        <div class="outer">
+            <div class="flight-info">
+                <div class="d-flex justify-content-between">
+                    <h3>中華航空 CI790</h3>
+                    
+                    <h6>Code Share Flights: VM560</h6>
+                </div>
+                <div class="container d-flex ">
+                    <div class="mt-3">
+                        <div class="route-info">
+                            <h6>From: 蜆港</h6>
+                            <h6>To: 桃園機場</h6>
+                        </div> 
+                        <p>Terminal: T1</p>
+                        <p>Scheduled Arrived Time: 00:50</p>
+                        <p>Actual Arrived Time: 01:20</p>
+                        <p>Status: Arrived</p>
+                        更新時間: 2021-12-01 01:20
+                        <div class="mt-3">
+                            <div class="button-group">
+                                <button type="button">桃園機場資訊</button>
+                                <button type="button">交通</button>
+                                <button type="button">登機口</button>
+                            </div>
+                        </div>     
+                    </div>   
+                </div>
+                
             </div>
-          
-          </div>
+            
+        </div>
+    </div>
+        </div>
     </div>
 </div>
+
+    
+</body>
     <script
       src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.8/dist/umd/popper.min.js"
       integrity="sha384-I7E8VVD/ismYTF4hNIPjVp/Zjvgyol6VFvRkX/vR+Vc4jQkC+hVqc2pM8ODewa9r"
