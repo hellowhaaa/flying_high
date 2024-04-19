@@ -25,6 +25,9 @@ def crawl_data():
         options = webdriver.ChromeOptions()
         options.add_argument('--ignore-ssl-errors=yes')
         options.add_argument('--ignore-certificate-errors')
+        options.add_argument('--headless')
+        options.add_argument('--no-sandbox')
+        options.add_argument('--disable-dev-shm-usage')
         
         # Set command timeout to 60 seconds
         capabilities = options.to_capabilities()
@@ -74,7 +77,9 @@ def crawl_data():
                 for i in range(len(flight2)):
                     airline_dict = {}
                     if i %2 == 0:
-                        airline_dict[flight2[i]] = flight2[i+1]
+                        airline_dict['airline_name'] = flight2[i]
+                        airline_dict['airline_code'] = flight2[i+1]
+                        # airline_dict[flight2[i]] = flight2[i+1]
                         alphabet_ls.append(airline_dict)
                 print(alphabet_ls)
             except TimeoutException:
@@ -109,7 +114,7 @@ def crawl_data():
             
                 
                 
-            # # ? ------ terminal ------   
+            # ? ------ terminal ------   
             try:  
                 WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, terminal)))
                 terminal_element = driver.find_element(By.XPATH, terminal).text.strip()
@@ -118,7 +123,7 @@ def crawl_data():
                 terminal_element = "Not Found"
                 print(f"terminal: {terminal_element}")
                 
-            # # ? ------ gate ------  
+            # ? ------ gate ------  
             try:  
                 WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, gate)))
                 gate_element = driver.find_element(By.XPATH, gate).text.strip()
@@ -185,7 +190,7 @@ def insert_mongodb_atlas():
     # except Exception as e:
     #     print(e)
     db = client['flying_high']
-    collection = db['flight_depart']
+    collection = db['flight_depart2']
     return collection   
 
 default_args = {
@@ -198,7 +203,7 @@ default_args = {
 }
 
 with DAG(
-    dag_id="release_depart_flight",
+    dag_id="release_depart_flight2",
     schedule="*/30 * * * *",
     start_date=pendulum.datetime(2024, 4, 15, tz="UTC"),
     default_args=default_args,
