@@ -44,46 +44,43 @@ def search_flight():
 
 def arrive_flight_time():
     try:
-        selected_airline = request.form.get('airline')
-        flight_number = request.form.get('flight_number')
-        selected_airline = selected_airline.split(',')
-        airline_code = selected_airline[0]
-        flight = airline_code + flight_number
-        airline_name = selected_airline[1]
-        ci_flights = get_arrive_flight_time(airline_name,flight)
-        current_app.logger.info(f"Flight time retrieved for {flight}")
+        if request.method == 'POST':
+            airline_code = request.form.get('airline')
+            flight_number = request.form.get('flight_number')
+            flight = airline_code + flight_number
+        if request.method == 'GET':
+            flight = airline_code + flight_number
+        flight_result = get_arrive_flight_time(flight)
+        current_app.logger.info(f"Flight time retrieved for {flight_result}")
     except Exception:
         current_app.logger.error("Catch an exception.", exc_info=True)
     share_code_list = []
-    if ci_flights:
-        flight_info = ci_flights[0]
+    if flight_result:
+        flight_info = flight_result[0]
         print(flight_info)
-        for airline_entry in flight_info['airline']:
-            if airline_name in airline_entry:
-                main_code = airline_entry[airline_name]
-            else:
-                for code in airline_entry.values():
-                    share_code_list.append(code)
-    print("main:",main_code)
-    print("shared",share_code_list)
-    
-    if flight_info['status'] == '':
-        flight_info['status'] = '已排定起飛時間'
-
-    flight = {
-        'main_code': main_code,
-        'share_code': share_code_list, 
-        'destination': flight_info['destination'],
-        'gate': flight_info['gate'],
-        'scheduled_arrive_time': flight_info['scheduled_arrive_time'],
-        'actual_arrive_time': flight_info['actual_arrive_time'],
-        'status': flight_info['status'],
-        'terminal': flight_info['terminal']
-    }
-    print(flight)
-    
-    
-    return render_template('arrive_flight_time.html', airline_name=airline_name, flight= flight)
+        # for airline_entry in flight_info['airline']:
+        #     if airline_name in airline_entry:
+        #         main_code = airline_entry[airline_name]
+        #     else:
+        #         for code in airline_entry.values():
+        #             share_code_list.append(code)
+    # print("main:",main_code)
+    # print("shared",share_code_list)
+    # if flight_info['status'] == '':
+    #     flight_info['status'] = '已排定起飛時間'
+    # flight = {
+    #     'main_code': main_code,
+    #     'share_code': share_code_list, 
+    #     'destination': flight_info['destination'],
+    #     'gate': flight_info['gate'],
+    #     'scheduled_arrive_time': flight_info['scheduled_arrive_time'],
+    #     'actual_arrive_time': flight_info['actual_arrive_time'],
+    #     'status': flight_info['status'],
+    #     'terminal': flight_info['terminal']
+    # }
+    # print(flight)
+    # return render_template('arrive_flight_time.html', airline_name=airline_name, flight= flight)
+    return render_template('arrive_flight_time.html',flight= flight)
 
 def insurance():
     return render_template('insurance.html')

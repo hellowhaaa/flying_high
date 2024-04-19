@@ -9,7 +9,7 @@ load_dotenv()
 
 
 
-def get_arrive_flight_time(airline_name,flight):  # airline_code 是 JL96 的組合\l
+def get_arrive_flight_time(flight):  # airline_code 是 JL96 的組合\l
     url = os.getenv("MONGODB_URI_FLY")
     client = MongoClient(url)
     taiwan_tz = pytz.timezone('Asia/Taipei')
@@ -20,7 +20,7 @@ def get_arrive_flight_time(airline_name,flight):  # airline_code 是 JL96 的組
     filter={
         'airline': {
             '$elemMatch': {
-                airline_name: {
+                'airline_code': {
                     '$regex': flight
                 }
             }
@@ -29,7 +29,7 @@ def get_arrive_flight_time(airline_name,flight):  # airline_code 是 JL96 的組
         '$gt': utc_midnight
     }
     }
-    result = client['flying_high']['flight_arrive'].find(
+    result = client['flying_high']['flight_arrive2'].find(
     filter=filter
     )
     return list(result)
