@@ -1,7 +1,7 @@
 # views.py
 from flask import request, redirect, url_for, render_template, flash, current_app
 from models import User, Location
-from select_data_from_mongo import get_flight_time
+from select_data_from_mongo import get_arrive_flight_time
 import logging
 
 
@@ -42,8 +42,7 @@ def search_flight():
 
 
 
-
-def flight_time():
+def arrive_flight_time():
     try:
         selected_airline = request.form.get('airline')
         flight_number = request.form.get('flight_number')
@@ -51,7 +50,7 @@ def flight_time():
         airline_code = selected_airline[0]
         flight = airline_code + flight_number
         airline_name = selected_airline[1]
-        ci_flights = get_flight_time(airline_name,flight)
+        ci_flights = get_arrive_flight_time(airline_name,flight)
         current_app.logger.info(f"Flight time retrieved for {flight}")
     except Exception:
         current_app.logger.error("Catch an exception.", exc_info=True)
@@ -61,10 +60,8 @@ def flight_time():
         print(flight_info)
         for airline_entry in flight_info['airline']:
             if airline_name in airline_entry:
-                # 如果主航空公司的名称是这个字典的键，获取它的代码
                 main_code = airline_entry[airline_name]
             else:
-                # 否则，迭代这个字典的值并添加到共享代码列表
                 for code in airline_entry.values():
                     share_code_list.append(code)
     print("main:",main_code)
@@ -75,7 +72,7 @@ def flight_time():
 
     flight = {
         'main_code': main_code,
-        'share_code': share_code_list,  # 确保这是一个列表
+        'share_code': share_code_list, 
         'destination': flight_info['destination'],
         'gate': flight_info['gate'],
         'scheduled_arrive_time': flight_info['scheduled_arrive_time'],
@@ -86,7 +83,7 @@ def flight_time():
     print(flight)
     
     
-    return render_template('flight_time.html', airline_name=airline_name, flight= flight)
+    return render_template('arrive_flight_time.html', airline_name=airline_name, flight= flight)
 
 def insurance():
     return render_template('insurance.html')

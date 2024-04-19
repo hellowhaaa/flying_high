@@ -1,7 +1,7 @@
 # app.py
 from flask import Flask
 from models import db
-from views import register, login, success, dashboard, insurance,search_flight,index,flight_time
+from views import register, login, success, dashboard, insurance,search_flight,index,arrive_flight_time
 import logging
 from logging.handlers import RotatingFileHandler
 import os
@@ -39,7 +39,7 @@ app.add_url_rule('/dashboard', view_func=dashboard, methods=['GET', 'POST'])
 app.add_url_rule('/login', view_func=login, methods=['GET', 'POST'])
 app.add_url_rule('/success', view_func=success, methods=['GET', 'POST'])
 app.add_url_rule('/register', view_func=register, methods=['GET', 'POST'])
-app.add_url_rule('/flight_time', view_func=flight_time, methods=['POST'])
+app.add_url_rule('/arrive_flight_time', view_func=arrive_flight_time, methods=['POST'])
 app.add_url_rule('/', view_func=index, methods=['GET', 'POST'])
 if __name__ == '__main__':
     app.secret_key = os.getenv("SECRET_KEY")

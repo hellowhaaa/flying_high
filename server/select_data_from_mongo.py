@@ -9,7 +9,7 @@ load_dotenv()
 
 
 
-def get_flight_time(airline_name,flight):  # airline_code 是 JL96 的組合\l
+def get_arrive_flight_time(airline_name,flight):  # airline_code 是 JL96 的組合\l
     url = os.getenv("MONGODB_URI_FLY")
     client = MongoClient(url)
     taiwan_tz = pytz.timezone('Asia/Taipei')
