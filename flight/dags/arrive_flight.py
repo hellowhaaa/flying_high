@@ -40,7 +40,6 @@ def crawl_data():
             keep_alive=True,
             options=options # Increase the timeout to 60 seconds
         )
-        
         url = 'https://www.taoyuan-airport.com/flight_arrival?k=&time=all'
         driver.get(url)
         for i in range(2,500):
@@ -98,18 +97,14 @@ def crawl_data():
                 destination_element = driver.find_element(By.XPATH, destination).text.strip()
                 logging.info(f"destination: {destination_element}")
             except TimeoutException as e:
-                logging.error(f"An exception occurred: {str(e)}. destination not found", exc_info=True)  
-            
-                
-                
+                logging.error(f"An exception occurred: {str(e)}. destination not found", exc_info=True)
             # ? ------ terminal ------   
             try:  
                 WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, terminal)))
                 terminal_element = driver.find_element(By.XPATH, terminal).text.strip()
                 logging.info(f"terminal: {terminal_element}")
             except TimeoutException as e:
-                logging.error(f"An exception occurred: {str(e)}. terminal not found", exc_info=True)  
-                
+                logging.error(f"An exception occurred: {str(e)}. terminal not found", exc_info=True) 
             # ? ------ gate ------  
             try:  
                 WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, gate)))
