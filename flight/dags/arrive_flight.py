@@ -15,11 +15,14 @@ from selenium.common.exceptions import TimeoutException
 from dotenv import load_dotenv
 import os
 import datetime
+import logging
 from airflow.utils.dates import days_ago
 
 from selenium import webdriver
 from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
 
+FORMAT = '%(asctime)s %(levelname)s: %(message)s'
+logging.basicConfig(level=logging.DEBUG, format=FORMAT)
 
 def crawl_data():
     try:
@@ -44,71 +47,58 @@ def crawl_data():
             taiwan_title_time = '//*[@id="print"]/p[2]'
             scheduled_arrive_time = f'//*[@id="print"]/ul[2]/li[{i}]/div[1]/span[2]'
             actual_arrive_time = f'//*[@id="print"]/ul[2]/li[{i}]/div[8]/span[2]'
-            # next_sch_path = '//*[@id="print"]/ul[2]/li[3]/div[1]/span[2]'
-            # next_act_path = '//*[@id="print"]/ul[2]/li[3]/div[8]/span[2]'
-        
             destination = f'//*[@id="print"]/ul[2]/li[{i}]/div[2]/p[2]'
-            # next_destination = '//*[@id="print"]/ul[2]/li[3]/div[2]/p[2]'
-     
             airline = f'//*[@id="print"]/ul[2]/li[{i}]/div[3]'
             terminal = f'//*[@id="print"]/ul[2]/li[{i}]/div[4]'
             gate = f'//*[@id="print"]/ul[2]/li[{i}]/div[5]'
             status = f'//*[@id="print"]/ul[2]/li[{i}]/div[7]/p'
-            # Wait for the required element to load on the page
             # ? ------ taiwan_title_time ------
             try:  
                 WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, taiwan_title_time)))
                 taiwan_title_time_element = driver.find_element(By.XPATH, taiwan_title_time).text.strip()
-                print(taiwan_title_time_element)
-            except TimeoutException:
-                taiwan_title_time_element = "Not Found"
-                print(f"airlines: {taiwan_title_time_element}") 
+                logging.info(f"taiwan_title_time: {taiwan_title_time_element}")
+            except TimeoutException as e:
+                logging.error(f"An exception occurred: {str(e)}. taiwan_title_time not found", exc_info=True) 
             # ? ------ airline ------
             try:  
                 WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, airline)))
                 airline_element = driver.find_element(By.XPATH, airline).text.strip()
                 flight2 = airline_element.split()
                 flight = airline_element
-                print(flight)
                 alphabet_ls= []
                 for i in range(len(flight2)):
                     airline_dict = {}
                     if i %2 == 0:
                         airline_dict['airline_name'] = flight2[i]
                         airline_dict['airline_code'] = flight2[i+1]
-                        # airline_dict[flight2[i]] = flight2[i+1]
                         alphabet_ls.append(airline_dict)
-                print(alphabet_ls)
-            except TimeoutException:
-                airline_element = "Not Found"
-                print(f"airlines: {airline_element}")
+                logging.info(f"airline: {alphabet_ls}")
+            except TimeoutException as e:
+                logging.error(f"An exception occurred: {str(e)}. airline not found", exc_info=True) 
                 break   
-                # ? ------ actual_depart_time -----
+                # ? ------ actual_arrive_time -----
             try:
                 WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, actual_arrive_time)))
                 actual_arrive_time_element = driver.find_element(By.XPATH, actual_arrive_time).text.strip()
-                print(flight + ' actual_arrive_time: ' + actual_arrive_time_element)
-            except TimeoutException:
-                actual_arrive_time_element = "Not Found"
-                print(f"actual_arrive_time: {actual_arrive_time_element}")
+                logging.info(f"actual_arrive_time: {actual_arrive_time_element}")
+            except TimeoutException as e:
+                logging.error(f"An exception occurred: {str(e)}. actual_arrive_time not found", exc_info=True) 
                 break 
-            # ? ------ scheduled_depart -----
+            # ? ------ scheduled_arrive_time -----
             try:
                 WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, scheduled_arrive_time)))
                 scheduled_arrive_time_element = driver.find_element(By.XPATH, scheduled_arrive_time).text.strip()
-                print(flight+ ' scheduled_arrive_time: '+ scheduled_arrive_time_element)
-            except TimeoutException:
-                scheduled_arrive_time_element = "Not Found"
-                print(f"scheduled_arrive_time: {scheduled_arrive_time_element}")
+                logging.info(f"scheduled_arrive_time: {scheduled_arrive_time_element}")
+            except TimeoutException as e:
+                logging.error(f"An exception occurred: {str(e)}. scheduled_arrive_time not found", exc_info=True) 
                 
             # ? ------ destination ------
             try:
                 WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, destination)))
                 destination_element = driver.find_element(By.XPATH, destination).text.strip()
-                print(flight+ ' destination: '+ destination_element)
-            except TimeoutException:
-                destination_element = "Not Found"
-                print(f"destination_element: {destination_element}")  
+                logging.info(f"destination: {destination_element}")
+            except TimeoutException as e:
+                logging.error(f"An exception occurred: {str(e)}. destination not found", exc_info=True)  
             
                 
                 
@@ -116,29 +106,24 @@ def crawl_data():
             try:  
                 WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, terminal)))
                 terminal_element = driver.find_element(By.XPATH, terminal).text.strip()
-                print(flight+ ' terminal: '+ terminal_element)
-            except TimeoutException:
-                terminal_element = "Not Found"
-                print(f"terminal: {terminal_element}")
+                logging.info(f"terminal: {terminal_element}")
+            except TimeoutException as e:
+                logging.error(f"An exception occurred: {str(e)}. terminal not found", exc_info=True)  
                 
             # ? ------ gate ------  
             try:  
                 WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, gate)))
                 gate_element = driver.find_element(By.XPATH, gate).text.strip()
-                print(flight+ ' Gate: '+ gate_element)
-            except TimeoutException:
-                gate_element = "Not Found"
-                print(f"Gate: {gate_element}")
+                logging.info(f"gate: {gate_element}")
+            except TimeoutException as e:
+                logging.error(f"An exception occurred: {str(e)}. gate not found", exc_info=True) 
             # ? ------ status ------ 
             try:  
                 WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, status)))
                 status_element = driver.find_element(By.XPATH, status).text.strip()
-                if status_element == '出發 已飛':
-                    status_element = '0' # 
-                print(flight+ ' Status: '+ status_element)
-            except TimeoutException:
-                status_element = "Not Found"
-                print(f"Status: {status_element}")
+                logging.info(f"status: {status_element}")
+            except TimeoutException as e:
+                logging.error(f"An exception occurred: {str(e)}. status not found", exc_info=True) 
             collection = insert_mongodb_atlas()
             try:
                 result = collection.update_many(
@@ -163,15 +148,15 @@ def crawl_data():
                     },
                     upsert=True  # 如果沒有找到 match 'taiwan_title_time', 'airline'的 document，就 insert 一個新的
                 )
-                print(f'Matched count: {result.matched_count}')
-                print(f'Modified count: {result.modified_count}')
+                logging.info(f"Matched count: {result.matched_count}")
+                logging.info(f"Modified count: {result.modified_count}")
                 if result.upserted_id:
-                    print(f'Upserted ID: {result.upserted_id}')  # 新建 document 的 ID
+                    logging.info(f'Upserted ID: {result.upserted_id}')  # 新建 document 的 ID
             except Exception as e:
-                print(e)
+                logging.error(f"An exception occurred: {str(e)}", exc_info=True) 
             print('--------------------')
     except Exception as e:
-        print(f"An error occurred: {e}")        
+        logging.error(f"An exception occurred: {str(e)}", exc_info=True)         
     finally:
         driver.quit()
         
