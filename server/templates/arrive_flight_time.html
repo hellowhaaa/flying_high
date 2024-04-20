@@ -71,7 +71,8 @@
   <div class="outer">
     <div class="flight-info">
       <div class="d-flex justify-content-between">
-        <h3>中華航空 CI790</h3>
+        <h3>{{flight.main_code}} {{flight.airline_name}}</h3>
+
         {% for object in flight.share_code %}
         <h6>Code Share Flights: {{ object }}</h6>
         {% endfor %}

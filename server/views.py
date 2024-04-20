@@ -48,8 +48,11 @@ def arrive_flight_time():
             airline_code = request.form.get('airline')
             flight_number = request.form.get('flight_number')
             flight = airline_code + flight_number
-        if request.method == 'GET':
+        else:
+            airline_code = request.args.get('airline_code')
+            flight_number = request.args.get('flight_number')
             flight = airline_code + flight_number
+            print(flight)
         flight_result = get_arrive_flight_time(flight)
         current_app.logger.info(f"Flight time retrieved for {flight_result}")
     except Exception:
@@ -59,6 +62,7 @@ def arrive_flight_time():
         for each_air in flight_result['airline']:
             if each_air['airline_code'] == flight:
                 main_code = flight
+                airline_name = each_air['airline_name']
             else:
                 share_code_list.append(each_air['airline_code'])
     print("main:",main_code)
@@ -66,6 +70,7 @@ def arrive_flight_time():
     if flight_result['status'] == '':
         flight_result['status'] = '已排定起飛時間'
     flight = {
+        "airline_name":airline_name,
         'main_code': main_code,
         'share_code': share_code_list, 
         'destination': flight_result['destination'],
