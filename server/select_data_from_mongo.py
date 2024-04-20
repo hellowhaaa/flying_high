@@ -2,7 +2,7 @@
 from pymongo import MongoClient
 import os 
 from dotenv import load_dotenv
-from datetime import datetime, tzinfo, timezone
+from datetime import datetime, tzinfo, timezone, timedelta
 import pytz
 load_dotenv()
 
@@ -13,9 +13,16 @@ def get_arrive_flight_time(flight):  # airline_code 是 JL96 的組合\l
     url = os.getenv("MONGODB_URI_FLY")
     client = MongoClient(url)
     taiwan_tz = pytz.timezone('Asia/Taipei')
+    #  今天凌晨
     tw_now = datetime.now(taiwan_tz)
     tw_midnight = taiwan_tz.localize(datetime(tw_now.year, tw_now.month, tw_now.day, 0, 0, 0))
     utc_midnight = tw_midnight.astimezone(pytz.utc)  # UTC Time
+    
+    # 兩天前測試
+    # two_days_ago = tw_now - timedelta(days=2)
+    # tw_midnight = taiwan_tz.localize(datetime(two_days_ago.year, two_days_ago.month, two_days_ago.day, 0, 0, 0))
+    # utc_midnight = tw_midnight.astimezone(pytz.utc)
+    
     
     filter={
         'airline': {
