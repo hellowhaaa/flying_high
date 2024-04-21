@@ -119,6 +119,15 @@ def crawl_data():
                 logging.info(f"status: {status_element}")
             except TimeoutException:
                 logging.error(f"An exception occurred: {str(e)}. status not found", exc_info=True)
+            # ? ------ calculate time difference ------
+            try:
+                time_diff_minute = calculate_time_diff(actual_depart_time_element, scheduled_depart_time_element)
+                logging.info(f"Time difference: {time_diff_minute['time_difference_min']} minutes")
+            except Exception as e:
+                logging.error(f"An exception occurred: {str(e)}", exc_info=True)
+            
+            
+            
             collection = insert_mongodb_atlas()
             try:
                 result = collection.update_many(
@@ -135,6 +144,7 @@ def crawl_data():
                             "terminal": terminal_element,
                             "gate": gate_element,
                             "status": status_element,
+                            "time_difference": time_diff_minute,
                             "updated_at": datetime.datetime.utcnow()
                         },
                         "$setOnInsert": {
@@ -167,7 +177,41 @@ def insert_mongodb_atlas():
     #     print(e)
     db = client['flying_high']
     collection = db['flight_depart2']
-    return collection   
+    return collection
+
+def calculate_time_diff(actual_depart_time_element, scheduled_depart_time_element):
+    if actual_depart_time_element != "":
+        time_diff= ""
+        time_condition = ""
+        return_dict = {}
+        time_format = "%H:%M"
+        right_depart_time_str = actual_depart_time_element
+        left_depart_time_str = scheduled_depart_time_element
+        right_depart_time = datetime.datetime.strptime(right_depart_time_str, time_format).time()
+        left_depart_time = datetime.datetime.strptime(left_depart_time_str, time_format).time()
+        start_time_16_00 = datetime.datetime.strptime("16:00", time_format).time()
+        end_time_23_59 = datetime.datetime.strptime("23:59", time_format).time()
+        start_time_00_00 = datetime.datetime.strptime("00:00", time_format).time()
+        end_time_05_00 = datetime.datetime.strptime("05:00", time_format).time()
+        if right_depart_time < left_depart_time:
+            time_diff = datetime.datetime.combine(datetime.datetime.today(), right_depart_time) - datetime.datetime.combine(datetime.datetime.today(), left_depart_time)
+            minutes_diff = time_diff.total_seconds() / 60
+            if minutes_diff > -10:
+                time_condition = "早出發"
+                logging.info(f"{time_condition} 時間差: {-minutes_diff} minutes")
+            elif start_time_16_00 <= left_depart_time <= end_time_23_59 and start_time_00_00 <= right_depart_time <= end_time_05_00:
+                time_condition = "跨日"
+                time_diff = (datetime.datetime.combine(datetime.datetime.today() + datetime.timedelta(days=1), right_depart_time) - datetime.datetime.combine(datetime.datetime.today(), left_depart_time))
+                logging.info(f"{time_condition} 時間差: {time_diff.total_seconds() / 60} minutes")
+        else:
+            time_diff = datetime.datetime.combine(datetime.datetime.today(), right_depart_time) - datetime.datetime.combine(datetime.datetime.today(), left_depart_time)
+            time_condition = "正常出發"
+            logging.info(f"{time_condition}的情況 時間差: {time_diff.total_seconds() / 60} minutes")
+        return_dict = {"time_condition":time_condition,
+                    "time_difference_min":int(time_diff.total_seconds() / 60)}
+        return return_dict
+    return return_dict
+        
 
 default_args = {
     'owner': 'airflow',
