@@ -34,3 +34,6 @@ server/__pycache__/
 
 # streamlit folder
 .streamlit/
+
+# logs folder
+server/logs/
