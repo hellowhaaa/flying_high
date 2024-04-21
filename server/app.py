@@ -9,8 +9,8 @@ from dotenv import load_dotenv
 
 
 env_path = os.path.join(os.getcwd(), 'server', '.env')
-print(env_path)
-print("MONGODB_URI from .env:", os.getenv("MONGODB_URI"))
+log_path = os.path.join(os.getcwd(), 'server', 'logs')
+
 # 然后使用这个路径来加载 .env 文件
 load_dotenv(env_path)
 app = Flask(__name__)
@@ -18,20 +18,23 @@ app.config['MONGODB_SETTINGS'] = {
     'host': os.getenv("MONGODB_URI_FLY"),
     "db": "flying_high"
 }
-
 db.init_app(app)
-print(app.config['MONGODB_SETTINGS'])
+
 # Logger 配置
 if not app.debug:
-    file_handler = RotatingFileHandler('app.log', maxBytes=10240, backupCount=10)
+    file_handler = RotatingFileHandler(log_path+'/app.log', maxBytes=10240, backupCount=3)
     file_handler.setFormatter(logging.Formatter(
         '%(asctime)s %(levelname)s: %(message)s [in %(pathname)s:%(lineno)d]'
     ))
     file_handler.setLevel(logging.INFO)
     app.logger.addHandler(file_handler)
     app.logger.setLevel(logging.INFO)
-    app.logger.info('App startup')
-
+    app.logger.info(' App startup')
+    
+app.logger.info("env_path: " + env_path)
+app.logger.info("log_path: " + log_path)
+app.logger.info("MONGODB_URI from .env: " + os.getenv("MONGODB_URI"))
+app.logger.info(app.config['MONGODB_SETTINGS'])
 
 app.add_url_rule('/search_flight', view_func=search_flight, methods=['GET', 'POST'])
 app.add_url_rule('/insurance', view_func=insurance, methods=['GET', 'POST'])
