@@ -24,9 +24,16 @@ flight/.env
 flight/dags/__pycache__
 flight/dags/.env
 logs/
+.env
 
 #insurance folder
 insurance/.env
 
-.env
+# server folder
+server/__pycache__/
 
+# streamlit folder
+.streamlit/
+
+# logs folder
+server/logs/

@@ -1,0 +1,104 @@
+{% extends "layout.html" %} {% block content %}
+<div class="my-3">
+  <form method="post">
+    <div class="form-group my-3">
+      <label for="username">Username</label>
+      <input
+        type="text"
+        class="form-control"
+        id="username"
+        name="username"
+        placeholder="Enter username"
+        required
+      />
+    </div>
+
+    <div class="form-group my-3">
+      <label for="password">Password</label>
+      <input
+        type="password"
+        class="form-control"
+        id="password"
+        name="password"
+        placeholder="Password"
+        required
+      />
+    </div>
+    <div class="form-group my-3">
+      <label for="email">Email</label>
+      <input
+        type="email"
+        class="form-control"
+        id="email"
+        name="email"
+        placeholder="email"
+        required
+      />
+    </div>
+    <div class="form-group">
+      <label for="countySelect">縣市</label>
+      <select
+        name="county"
+        id="countySelect"
+        class="form-control"
+        onchange="updateDistricts()"
+      >
+        {% for loc in locations %}
+        <option value="{{ loc.county }}">{{ loc.county }}</option>
+        {% endfor %}
+      </select>
+    </div>
+
+    <div class="form-group">
+      <label for="districtSelect">區</label>
+      <select
+        name="district"
+        id="districtSelect"
+        class="form-control"
+        onchange="updateRoads()"
+      >
+        <!-- 区的选项将通过 JavaScript 动态填充 -->
+      </select>
+    </div>
+
+    <div class="form-group">
+      <label for="roadSelect">路段</label>
+      <select name="road" id="roadSelect" class="form-control">
+        <!-- 路段的选项将通过 JavaScript 动态填充 -->
+      </select>
+    </div>
+
+    <button type="submit" class="btn btn-primary">Submit</button>
+  </form>
+</div>
+
+<!-- JavaScript -->
+<script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.2/dist/umd/popper.min.js"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+<script>
+  var locations = {{ locations|tojson }};
+  function updateDistricts() {
+      var county = document.getElementById('countySelect').value;
+      var districts = locations.find(loc => loc.county === county).districts;
+      var districtSelect = document.getElementById('districtSelect');
+      districtSelect.innerHTML = '';
+      districts.forEach(function(dist) {
+          districtSelect.add(new Option(dist.name, dist.name));
+      });
+      updateRoads();  // 更新路段选择
+  }
+
+  function updateRoads() {
+      var districtName = document.getElementById('districtSelect').value;
+      var county = document.getElementById('countySelect').value;
+      var district = locations.find(loc => loc.county === county).districts.find(dist => dist.name === districtName);
+      var roadSelect = document.getElementById('roadSelect');
+      roadSelect.innerHTML = '';
+      district.roads.forEach(function(road) {
+          roadSelect.add(new Option(road.name, road.name));
+      });
+  }
+</script>
+
+{% endblock %}
