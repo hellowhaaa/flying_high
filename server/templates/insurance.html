@@ -29,20 +29,20 @@
     box-shadow: 0 0 1rem rgba(0, 0, 0, 0.1); /* Soft shadow */
     width: 75%;
     min-height: 400px; /* Ensures that there's enough space for positioning */
-    transform: translateY(50px);
+    transform: translateY(10px);
   }
   .container {
     position: relative; /* Allows absolute positioning inside */
 }
 .insurance-title {
             position: relative;
-            top: -180px;
+            top: -220px;
             left: 0px;
             color: white; 
         }
 .my-insurance {
     position: relative;
-    top: -180px;
+    top: -210px;
     left: 50px;
     color: white;
 }
@@ -82,15 +82,18 @@
             </div>
           <!-- 下拉選單 保險額度 -->
           <div class="dropdown mb-3 col-md-2">
-            <button class="btn btn-secondary dropdown-toggle opacity-75" type="button" id="dropdownMenuButton2" data-bs-toggle="dropdown" aria-expanded="false">
+            <button class="btn btn-secondary dropdown-toggle" type="button" id="insuranceAmountButton" data-bs-toggle="dropdown" aria-expanded="false">
                 保險額度
             </button>
-            <ul class="dropdown-menu" aria-labelledby="insuranceAmountMenu" id="insuranceAmountMenu">
-              
+            <ul class="dropdown-menu" aria-labelledby="insuranceAmountButton" id="insuranceAmountMenu">
+                            <!-- Javascript 動態 -->
+
             </ul>
           </div>
+          
         </div>
     </div>
+    
 <div class="container">
     <!-- 保險開始日期和時間 -->
     <div class="row mb-3">
@@ -123,6 +126,11 @@
             </select>
         </div>
     </div>
+    <div class="row mb-3">
+        <div class="col-12">
+            <p id="insurancePeriod" class="form-text"></p>
+        </div>
+    </div>
 </div>
 
 
@@ -137,53 +145,77 @@
 
 {% endblock %}
 {% block scripts %}
-<!-- 特定页面的 JavaScript -->
+
 
 <script>
+
+// 保險金額 200萬～ 1500萬 -------------------------------------
+
 document.addEventListener('DOMContentLoaded', function () {
-    const menu = document.getElementById('insuranceAmountMenu');
+    const insuranceCompanyDropdown = document.getElementById('insuranceCompanyDropdown');
+    const insuranceCompanyMenu = insuranceCompanyDropdown.nextElementSibling;
+    const planDropdownButton = document.getElementById('planDropdown');
+    const planDropdownMenu = document.getElementById('planMenu');
+
+    const planOptions = {
+        'fubon': ['輕量型', '中型', '安心型'],
+        'shinkong': ['基本型', '全面型', '豪華型'],
+        'cathay': ['經濟型', '標準型', '高級型']
+    };
+
+    // 保險公司下拉選單的點擊事件
+    insuranceCompanyMenu.addEventListener('click', function(event) {
+        if (event.target.tagName === 'A') {
+            const selectedCompany = event.target.textContent;
+            const companyData = event.target.getAttribute('data-company');
+            insuranceCompanyDropdown.textContent = selectedCompany; // 更新保險公司下拉button
+            updatePlanDropdown(planOptions[companyData] || []); // dynamic update plan dropdown
+        }
+    });
+
+    // 更新方案的下拉選單
+    function updatePlanDropdown(selectedPlans) {
+        planDropdownMenu.innerHTML = ''; // 清空原有的選項
+        selectedPlans.forEach(plan => {
+            const li = document.createElement('li');
+            const a = document.createElement('a');
+            a.className = 'dropdown-item';
+            a.href = '#';
+            a.textContent = plan;
+            a.onclick = function() { 
+                planDropdownButton.textContent = plan; // 更新方案的下拉選單文本
+            };
+            li.appendChild(a);
+            planDropdownMenu.appendChild(li);
+        });
+    }
+});
+
+// 保險額度 200萬～ 1500萬 -------------------------------------
+document.addEventListener('DOMContentLoaded', function () {
+    const insuranceAmountMenu = document.getElementById('insuranceAmountMenu');
+    const insuranceAmountButton = document.getElementById('insuranceAmountButton');
+
+    // 動態生成 200萬～ 1500萬 的選項
     for (let amount = 200; amount <= 1500; amount += 100) {
         const li = document.createElement('li');
         const a = document.createElement('a');
         a.className = 'dropdown-item';
-        a.href = '#'; 
+        a.href = '#';  // 保持链接为 #
         a.textContent = `${amount}萬`;
         li.appendChild(a);
-        menu.appendChild(li);
+        insuranceAmountMenu.appendChild(li);
+
+        // 點擊選項時，更新保險額度
+        a.addEventListener('click', function () {
+            insuranceAmountButton.textContent = `${amount}萬`;
+            insuranceAmountButton.setAttribute('data-selected-amount', `${amount}`);
+        });
     }
 });
 
-document.addEventListener('DOMContentLoaded', function() {
-  const insuranceCompanyMenu = document.getElementById('insuranceCompanyDropdown').nextElementSibling;
-  const planMenu = document.getElementById('planMenu');
 
-  // 预定义各保险公司对应的方案
-  const plans = {
-    'fubon': ['輕量型', '中型', '安心型'],
-    'shinkong': ['基本型', '全面型', '豪華型'],
-    'cathay': ['經濟型', '標準型', '高級型']
-  };
-
-  insuranceCompanyMenu.addEventListener('click', function(event) {
-    if (event.target.tagName === 'A') {
-      const company = event.target.getAttribute('data-company');
-      updatePlansDropdown(plans[company] || []);
-    }
-  });
-
-  function updatePlansDropdown(planOptions) {
-    planMenu.innerHTML = ''; // 清空现有的方案
-    planOptions.forEach(plan => {
-      const li = document.createElement('li');
-      const a = document.createElement('a');
-      a.className = 'dropdown-item';
-      a.href = '#';
-      a.textContent = plan;
-      li.appendChild(a);
-      planMenu.appendChild(li);
-    });
-  }
-});
+// 算 給予時間段 -------------------------------------
 
 document.addEventListener('DOMContentLoaded', function () {
     const startTimeSelect = document.getElementById('startTime');
@@ -195,6 +227,38 @@ document.addEventListener('DOMContentLoaded', function () {
             endTimeSelect.options.add(new Option(timeString, timeString));
         }
     }
+});
+
+// 算 旅遊天數 -------------------------------------
+document.addEventListener('DOMContentLoaded', function () {
+    const startDateInput = document.getElementById('startDate');
+    const startTimeSelect = document.getElementById('startTime');
+    const endDateInput = document.getElementById('endDate');
+    const endTimeSelect = document.getElementById('endTime');
+    const insurancePeriodDisplay = document.getElementById('insurancePeriod');
+
+    function updateInsurancePeriod() {
+        const startDate = new Date(startDateInput.value + 'T' + startTimeSelect.value);
+        const endDate = new Date(endDateInput.value + 'T' + endTimeSelect.value);
+        
+        if (startDate && endDate && startDate < endDate) {
+            const diffTime = Math.abs(endDate - startDate);
+            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+            
+            const startDateFormatted = startDate.toLocaleDateString('zh-TW', { year: 'numeric', month: '2-digit', day: '2-digit' }) + ' ' + startTimeSelect.value;
+            const endDateFormatted = endDate.toLocaleDateString('zh-TW', { year: 'numeric', month: '2-digit', day: '2-digit' }) + ' ' + endTimeSelect.value;
+            
+            insurancePeriodDisplay.textContent = `共投保${diffDays}天，保期為 ${startDateFormatted} - ${endDateFormatted}`;
+        } else {
+            insurancePeriodDisplay.textContent = '';
+        }
+    }
+
+    // 當日期或時間改變時，更新保險期間
+    startDateInput.addEventListener('change', updateInsurancePeriod);
+    startTimeSelect.addEventListener('change', updateInsurancePeriod);
+    endDateInput.addEventListener('change', updateInsurancePeriod);
+    endTimeSelect.addEventListener('change', updateInsurancePeriod);
 });
 
 </script>
