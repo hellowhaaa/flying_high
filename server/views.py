@@ -1,8 +1,7 @@
 # views.py
-from flask import request, redirect, url_for, render_template, flash, current_app
+from flask import request, redirect, url_for, render_template, flash, current_app,jsonify
 from models import User, Location
-from select_data_from_mongo import get_arrive_flight_time
-import logging
+from select_data_from_mongo import get_arrive_flight_time, select_insurance_amount
 
 
 def register():
@@ -86,6 +85,26 @@ def arrive_flight_time():
 def insurance():
     return render_template('insurance.html')
 
+
+def fetch_insurance_amount():
+    try:
+        insurance_company = request.form.get('insuranceCompany')
+        plan = request.form.get('plan')  
+        insurance_amount = request.form.get('insuranceAmount')
+        current_app.logger.info(f"get insurance information!")
+    except Exception as e:
+        current_app.logger.error(f"Catch an exception. + {e}", exc_info=True)
+    result = select_insurance_amount(insurance_company, plan, insurance_amount)
+    print(result)
+    price = result['insurance_premium']['price']
+    print('價格:',price)
+    response = {
+            'status': 'success',
+            'data': {
+                'insurance_price': price
+            }
+        }
+    return jsonify(response)
 
 def dashboard():  
     streamlit_url = "http://localhost:8501"

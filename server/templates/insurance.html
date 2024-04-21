@@ -51,10 +51,21 @@
     left: 50px;
     color: white;
   }
+  #result {
+    position: absolute;
+    top: 80%; /* 或其他適合您布局的值 */
+    left: 40%;
+    transform: translateY(-110%);
+    z-index: 2000; /* 確保其在最上層 */
+    color: white; /* 確保文字顯示為白色 */
+    background: rgba(0, 0, 0, 0.5); /* 輕微背景色增加可讀性 */
+    padding: 10px;
+    border-radius: 8px;
+  }
 </style>
 
 <div class="container">
-  <form action="/fetch_insurance_amount" method="POST">
+  <form id="insuranceForm">
     <div class="background-image"></div>
     <div class="outer">
       <h3 class="text-white insurance-title">查看保單</h3>
@@ -79,7 +90,7 @@
                 aria-labelledby="insuranceCompanyDropdown"
               >
                 <li>
-                  <a class="dropdown-item" href="#" data-company="fubon"
+                  <a class="dropdown-item" href="#" data-company="fubung"
                     >富邦人壽</a
                   >
                 </li>
@@ -187,7 +198,11 @@
 
         <div class="row mb-3">
           <div class="col-3">
-            <button type="submit" class="btn btn-secondary opacity-75">
+            <button
+              type="submit"
+              class="btn btn-secondary opacity-75"
+              id="submitBtn"
+            >
               保單試算
             </button>
           </div>
@@ -195,6 +210,7 @@
       </div>
     </div>
   </form>
+  <p id="result">Here will display the result.</p>
 </div>
 
 {% endblock %} {% block scripts %}
@@ -214,7 +230,7 @@
     );
 
     const planOptions = {
-      fubon: ["S方案", "M方案", "L方案", "XL方案"],
+      fubung: ["S方案", "M方案", "L方案", "XL方案"],
       shinkong: ["基本型", "全面型", "豪華型"],
       cathay: ["經濟型", "標準型", "高級型"],
     };
@@ -339,5 +355,34 @@
   //     endDateInput.addEventListener("change", updateInsurancePeriod);
   //     endTimeSelect.addEventListener("change", updateInsurancePeriod);
   //   });
+
+  //  await json information from server
+  document
+    .getElementById("submitBtn")
+    .addEventListener("click", function (event) {
+      event.preventDefault();
+      const formData = new FormData(document.getElementById("insuranceForm"));
+
+      // 使用fetch API 發送 AJAX 請求
+      fetch("/fetch_insurance_amount", {
+        method: "POST",
+        body: formData,
+      })
+        .then((response) => response.json()) // parse response as JSON
+        .then((data) => {
+          console.log(data);
+          if (data.status === "success") {
+            document.getElementById(
+              "result"
+            ).textContent = `預估保費：${data.data.insurance_price}`;
+          } else {
+            alert("沒有找到數據");
+          }
+        })
+        .catch((error) => {
+          console.error("Error:", error);
+          alert("請求失敗");
+        });
+    });
 </script>
 {% endblock %}
