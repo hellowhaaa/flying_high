@@ -127,7 +127,7 @@
                 aria-labelledby="planDropdown"
                 id="planMenu"
               >
-                <!-- Javascript 動態 -->
+                <!-- Javascript 動態生成 -->
               </ul>
               <input type="hidden" id="selectedPlan" name="plan" />
             </div>
@@ -147,7 +147,7 @@
                 aria-labelledby="insuranceAmountButton"
                 id="insuranceAmountMenu"
               >
-                <!-- Javascript 動態 -->
+                <!-- Javascript 動態生成 -->
               </ul>
               <input
                 type="hidden"
@@ -172,7 +172,7 @@
         <div class="col-md-6">
           <label for="startTime" class="form-label">旅遊開始時間:</label>
           <select class="form-control" id="startTime" name="startTime"> -->
-        <!-- Javascript 動態 -->
+        <!-- Javascript 動態生成 -->
         <!-- </select>
         </div>
       </div> -->
@@ -185,7 +185,7 @@
         <div class="col-md-6">
           <label for="endTime" class="form-label">旅遊結束時間:</label>
           <select class="form-control" id="endTime" name="endTime"> -->
-        <!-- Javascript 動態 -->
+        <!-- Javascript 動態生成 -->
         <!-- </select>
         </div>
       </div>
@@ -231,8 +231,13 @@
 
     const planOptions = {
       fubung: ["S方案", "M方案", "L方案", "XL方案"],
-      shinkong: ["基本型", "全面型", "豪華型"],
-      cathay: ["經濟型", "標準型", "高級型"],
+      // shinkong: ["基本型", "全面型", "豪華型"],
+      cathay: [
+        "海外輕鬆型(T2)",
+        "海外安心型(T2)",
+        "賞櫻限定型(Z)",
+        "早鳥豪華型(U2)",
+      ],
     };
 
     // 保險公司下拉選單的點擊事件
