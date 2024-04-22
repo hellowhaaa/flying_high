@@ -1,104 +1,138 @@
 {% extends "layout.html" %} {% block content %}
-<div class="my-3">
-  <form method="post">
-    <div class="form-group my-3">
-      <label for="username">Username</label>
-      <input
-        type="text"
-        class="form-control"
-        id="username"
-        name="username"
-        placeholder="Enter username"
-        required
-      />
+<div class="container py-4">
+  <div class="row justify-content-center">
+    <div class="col-lg-10">
+      <div class="card shadow-lg">
+        <div class="row g-0">
+          <h2
+            class="text-center mt-3 justify-content-center align-items-center"
+          >
+            Sign up
+          </h2>
+          <!-- Left side - Form -->
+          <div class="col-md-6">
+            <div class="card-body p-5">
+              <form method="post">
+                <!-- Name Input -->
+                <div class="mb-3">
+                  <label for="username" class="form-label">Your Name</label>
+                  <input
+                    type="text"
+                    class="form-control"
+                    id="username"
+                    name="username"
+                    required
+                  />
+                </div>
+
+                <!-- Email Input -->
+                <div class="mb-3">
+                  <label for="email" class="form-label">Your Email</label>
+                  <input
+                    type="email"
+                    class="form-control"
+                    id="email"
+                    name="email"
+                    required
+                  />
+                </div>
+
+                <!-- Password Input -->
+                <div class="mb-3">
+                  <label for="password" class="form-label">Password</label>
+                  <input
+                    type="password"
+                    class="form-control"
+                    id="password"
+                    name="password"
+                    required
+                  />
+                </div>
+
+                <!-- Repeat Password Input -->
+                <div class="mb-4">
+                  <label for="repeat-password" class="form-label"
+                    >Repeat your password</label
+                  >
+                  <input
+                    type="password"
+                    class="form-control"
+                    id="repeat-password"
+                    required
+                  />
+                </div>
+
+                <!-- Terms of Service Checkbox -->
+                <div class="mb-4 form-check">
+                  <input
+                    type="checkbox"
+                    class="form-check-input"
+                    id="termsOfService"
+                  />
+                  <label class="form-check-label" for="termsOfService"
+                    >I agree all statements in
+                    <a href="#">Terms of service</a></label
+                  >
+                </div>
+
+                <!-- Register Button -->
+                <div class="d-grid">
+                  <button type="submit" class="btn btn-primary">
+                    Register
+                  </button>
+                </div>
+                <!-- Already Member Link -->
+                <div class="mt-4 text-center">
+                  <a href="#" class="text-decoration-none"
+                    >I am already member</a
+                  >
+                </div>
+              </form>
+            </div>
+          </div>
+          <!-- Right side - Image -->
+          <div
+            class="col-md-6 d-none d-md-flex align-items-center justify-content-center"
+          >
+            <img
+              src="{{ url_for('static', filename='images/signup-image.jpg') }}"
+              alt="Signup"
+              class="img-fluid"
+            />
+          </div>
+        </div>
+      </div>
     </div>
 
-    <div class="form-group my-3">
-      <label for="password">Password</label>
-      <input
-        type="password"
-        class="form-control"
-        id="password"
-        name="password"
-        placeholder="Password"
-        required
-      />
-    </div>
-    <div class="form-group my-3">
-      <label for="email">Email</label>
-      <input
-        type="email"
-        class="form-control"
-        id="email"
-        name="email"
-        placeholder="email"
-        required
-      />
-    </div>
-    <div class="form-group">
-      <label for="countySelect">縣市</label>
-      <select
-        name="county"
-        id="countySelect"
-        class="form-control"
-        onchange="updateDistricts()"
-      >
-        {% for loc in locations %}
-        <option value="{{ loc.county }}">{{ loc.county }}</option>
-        {% endfor %}
-      </select>
-    </div>
+    <!-- JavaScript -->
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.2/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    <script>
+      var locations = {{ locations|tojson }};
+      function updateDistricts() {
+          var county = document.getElementById('countySelect').value;
+          var districts = locations.find(loc => loc.county === county).districts;
+          var districtSelect = document.getElementById('districtSelect');
+          districtSelect.innerHTML = '';
+          districts.forEach(function(dist) {
+              districtSelect.add(new Option(dist.name, dist.name));
+          });
+          updateRoads();  // 更新路段选择
+      }
 
-    <div class="form-group">
-      <label for="districtSelect">區</label>
-      <select
-        name="district"
-        id="districtSelect"
-        class="form-control"
-        onchange="updateRoads()"
-      >
-        <!-- 区的选项将通过 JavaScript 动态填充 -->
-      </select>
-    </div>
+      function updateRoads() {
+          var districtName = document.getElementById('districtSelect').value;
+          var county = document.getElementById('countySelect').value;
+          var district = locations.find(loc => loc.county === county).districts.find(dist => dist.name === districtName);
+          var roadSelect = document.getElementById('roadSelect');
+          roadSelect.innerHTML = '';
+          district.roads.forEach(function(road) {
+              roadSelect.add(new Option(road.name, road.name));
+          });
+      }
+    </script>
 
-    <div class="form-group">
-      <label for="roadSelect">路段</label>
-      <select name="road" id="roadSelect" class="form-control">
-        <!-- 路段的选项将通过 JavaScript 动态填充 -->
-      </select>
-    </div>
-
-    <button type="submit" class="btn btn-primary">Submit</button>
-  </form>
+    {% endblock %}
+  </div>
 </div>
-
-<!-- JavaScript -->
-<script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.2/dist/umd/popper.min.js"></script>
-<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
-<script>
-  var locations = {{ locations|tojson }};
-  function updateDistricts() {
-      var county = document.getElementById('countySelect').value;
-      var districts = locations.find(loc => loc.county === county).districts;
-      var districtSelect = document.getElementById('districtSelect');
-      districtSelect.innerHTML = '';
-      districts.forEach(function(dist) {
-          districtSelect.add(new Option(dist.name, dist.name));
-      });
-      updateRoads();  // 更新路段选择
-  }
-
-  function updateRoads() {
-      var districtName = document.getElementById('districtSelect').value;
-      var county = document.getElementById('countySelect').value;
-      var district = locations.find(loc => loc.county === county).districts.find(dist => dist.name === districtName);
-      var roadSelect = document.getElementById('roadSelect');
-      roadSelect.innerHTML = '';
-      district.roads.forEach(function(road) {
-          roadSelect.add(new Option(road.name, road.name));
-      });
-  }
-</script>
-
-{% endblock %}
