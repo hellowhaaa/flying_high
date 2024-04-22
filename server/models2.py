@@ -18,6 +18,8 @@ class RegisterForm(FlaskForm):
     def set_password(self, password):
         self.password_hash = generate_password_hash(password)
     
+    
+    
     # def check_password(self, password):
     #     return check_password_hash(self.password_hash, password)
     
@@ -32,3 +34,14 @@ def create_user(username,password,email,address):
         "updated_at": datetime.datetime.utcnow()
     }
     return body
+
+def same_username(collection, username):
+    filter = {
+        'username': username
+    }
+    user = collection.find_one(filter = filter)
+    if user:
+        return True
+    else:
+        return False
+

@@ -1,6 +1,6 @@
 # views.py
 from flask import request, redirect, url_for, render_template, flash, current_app,jsonify
-from models2 import RegisterForm, create_user
+from models2 import RegisterForm, create_user, same_username
 from select_data_from_mongo import get_arrive_flight_time, select_insurance_amount
 import os
 from pymongo import MongoClient
@@ -22,6 +22,10 @@ def sign_up():
             password = form.password.data
             form.set_password(password)  # Hashes the password and stores it in the form
             user = create_user(username, form.password_hash, email, address)
+            if same_username(collection, username):
+                print('same user!!!!')
+                flash('Username already exists')
+                return redirect(url_for('sign_up'))
             try:
                 collection.insert_one(user)
                 current_app.logger.info(f"User saved: {user['username']}")
@@ -29,7 +33,6 @@ def sign_up():
                 current_app.logger.error(f"Error saving user: {e}", exc_info=True)
             return redirect(url_for('search_flight'))
         else:
-            
             for fieldName, errorMessages in form.errors.items():
                 for err in errorMessages:
                     current_app.logger.error(f"Error in {fieldName}: {err}")
