@@ -1,7 +1,7 @@
 # views.py
 from flask import request, redirect, url_for, render_template, flash, current_app,jsonify
 from models import User, Location
-from select_data_from_mongo import get_arrive_flight_time, select_insurance_amount_fubung,select_insurance_amount_guotai
+from select_data_from_mongo import get_arrive_flight_time, select_insurance_amount
 
 
 def register():
@@ -96,10 +96,7 @@ def fetch_insurance_amount():
         print(insurance_company, plan, insurance_amount, insurance_days)
     except Exception as e:
         current_app.logger.error(f"Catch an exception. + {e}", exc_info=True)
-    if insurance_company == 'fubung':
-        result = select_insurance_amount_fubung(plan, insurance_amount)
-    elif insurance_company == 'guotai':
-        result = select_insurance_amount_guotai(plan, insurance_amount)
+    result = select_insurance_amount(plan, insurance_amount,insurance_company)
     print(result)
     price = result['insurance_premium']['price']
     print('價格:',price)

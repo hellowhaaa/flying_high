@@ -41,32 +41,20 @@ def get_arrive_flight_time(flight):  # airline_code 是 JL96 的組合\l
     )
     return result
 
-def select_insurance_amount_fubung(plan, insurance_amount):
+
+
+def select_insurance_amount(plan, insurance_amount,insurance_company):
     url = os.getenv("MONGODB_URI_FLY")
     client = MongoClient(url)
     insurance_amount = int(insurance_amount+ '0000')
+    print(insurance_amount)
     filter={
     'insured_amount.price': insurance_amount, 
     'plan.plan_name': plan
     }
 
-    result = client['flying_high']['insurance_fubung'].find_one(
+    result = client['flying_high']['insurance_'+insurance_company].find_one(
         filter = filter
     )  
-    return result
-
-
-def select_insurance_amount_guotai(plan,insurance_amount):
-    url = os.getenv("MONGODB_URI_FLY")
-    client = MongoClient(url)
-    insurance_amount = int(insurance_amount+ '0000')
-    print(insurance_amount, plan)
-    filter={
-    'insured_amount.price': insurance_amount, 
-    'plan.plan_name': plan
-    }
-    result = client['flying_high']['insurance_guotai'].find_one(
-    filter=filter
-    )
     print(result)
     return result
