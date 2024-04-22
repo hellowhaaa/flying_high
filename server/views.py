@@ -1,5 +1,6 @@
 # views.py
-from flask import request, redirect, url_for, render_template, flash, current_app,jsonify, abort
+from flask import (request, redirect, url_for, render_template, flash, 
+                    current_app,jsonify, abort, session)
 from models2 import RegisterForm, create_user, same_username, check_user_credentials
 from select_data_from_mongo import get_arrive_flight_time, select_insurance_amount
 import os
@@ -97,9 +98,14 @@ def login():
         if user:
             user_id_str = str(user['_id'])
             token = encode_auth_token(user_id_str, username)
-            return jsonify({'token': token})
+            # Storing the token in session or cookie
+            session['user_token'] = token
+            # Redirect to homepage after successful login
+            flash('You have been logged in!', 'success')
+            return redirect(url_for('search_flight'))
         else:
-            return jsonify({'message': 'Invalid credentials'}), 401          
+            flash('Invalid credentials', 'danger')
+            return redirect(url_for('login'))
     return render_template('login.html')
 
 @token_required
