@@ -1,9 +1,53 @@
 # views.py
-from flask import request, redirect, url_for, render_template, flash, current_app,jsonify
-from models2 import RegisterForm, create_user, same_username
+from flask import request, redirect, url_for, render_template, flash, current_app,jsonify, abort
+from models2 import RegisterForm, create_user, same_username, check_user_credentials
 from select_data_from_mongo import get_arrive_flight_time, select_insurance_amount
 import os
 from pymongo import MongoClient
+from functools import wraps
+import jwt
+from datetime import datetime, timedelta
+
+def encode_auth_token(user_id, username):
+    """ 生成認證Token """
+    try:
+        payload = {
+            'exp': datetime.utcnow() + timedelta(days=1),  # Token的過期時間
+            'iat': datetime.utcnow(),  # Token的發行時間
+            'sub': user_id,  # 訂閱識別
+            'username': username  # 使用者名稱
+        }
+        return jwt.encode(
+            payload,
+            current_app.config.get('SECRET_KEY'),
+            algorithm='HS256'
+        )
+    except Exception as e:
+        return e
+
+def token_required(f):
+    @wraps(f)
+    def decorated(*args, **kwargs):
+        token = None
+        
+        # 確認是否有 token
+        if 'Authorization' in request.headers:
+            token = request.headers["Authorization"].split(" ")[1]
+        if not token:
+            return jsonify({'message': 'Token is missing'}), 401
+        
+        # 確認是否為有效的 token
+        try:
+            data = jwt.decode(token, current_app.config['SECRET_KEY'])
+            current_user = data['username']
+        except:
+            return jsonify({'message': 'Token is invalid'}), 401
+        return f(current_user, *args, **kwargs)
+    return decorated
+
+
+
+
 
 def sign_up():
     # Mongodb Init
@@ -38,14 +82,29 @@ def sign_up():
                     current_app.logger.error(f"Error in {fieldName}: {err}")
     return render_template('sign_up.html', form=form)
 
+
 def login():
     if request.method == 'POST':
+        url = os.getenv("MONGODB_URI_FLY")
+        client = MongoClient(url)
+        collection = client['flying_high']['user']
         username = request.form.get('username')
         password = request.form.get('password')
+        print(username, password)
+
+        user = check_user_credentials(collection,username, password)
+        print("user-->", user)
+        if user:
+            user_id_str = str(user['_id'])
+            token = encode_auth_token(user_id_str, username)
+            return jsonify({'token': token})
+        else:
+            return jsonify({'message': 'Invalid credentials'}), 401          
     return render_template('login.html')
 
+@token_required
 def success():
-    return '登录成功!'
+    return '登錄成功!'
 
 def index():
     return render_template('homepage.html')

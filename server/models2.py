@@ -45,3 +45,12 @@ def same_username(collection, username):
     else:
         return False
 
+def check_user_credentials(collection,username, password):
+    filter = {
+        'username': username
+    }
+    user = collection.find_one(filter = filter)
+    if user and check_password_hash(user['password'], password):
+        return user
+    else:
+        return None

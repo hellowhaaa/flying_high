@@ -28,7 +28,7 @@ if not app.debug:
 app.add_url_rule('/search_flight', view_func=search_flight, methods=['GET', 'POST'])
 app.add_url_rule('/insurance', view_func=insurance, methods=['GET', 'POST'])
 app.add_url_rule('/dashboard', view_func=dashboard, methods=['GET', 'POST'])
-app.add_url_rule('/user/login', view_func=login, methods=['GET', 'POST'])
+app.add_url_rule('/user/log_in', view_func=login, methods=['GET', 'POST'])
 app.add_url_rule('/success', view_func=success, methods=['GET', 'POST'])
 app.add_url_rule('/user/sign_up', view_func=sign_up, methods=['GET', 'POST'])
 app.add_url_rule('/arrive_flight_time', view_func=arrive_flight_time, methods=['POST','GET'])
