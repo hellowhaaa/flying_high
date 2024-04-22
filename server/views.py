@@ -91,20 +91,23 @@ def fetch_insurance_amount():
         insurance_company = request.form.get('insuranceCompany')
         plan = request.form.get('plan')  
         insurance_amount = request.form.get('insuranceAmount')
+        insurance_days = request.form.get('insuranceDays')
         current_app.logger.info(f"get insurance information!")
+        print(insurance_company, plan, insurance_amount, insurance_days)
     except Exception as e:
         current_app.logger.error(f"Catch an exception. + {e}", exc_info=True)
-    result = select_insurance_amount(insurance_company, plan, insurance_amount)
-    print(result)
-    price = result['insurance_premium']['price']
-    print('價格:',price)
-    response = {
-            'status': 'success',
-            'data': {
-                'insurance_price': price
-            }
-        }
-    return jsonify(response)
+    # result = select_insurance_amount(insurance_company, plan, insurance_amount)
+    # print(result)
+    # price = result['insurance_premium']['price']
+    # print('價格:',price)
+    # response = {
+    #         'status': 'success',
+    #         'data': {
+    #             'insurance_price': price
+    #         }
+    #     }
+    # return jsonify(response)
+    return 'hi'
 
 def dashboard():  
     streamlit_url = "http://localhost:8501"

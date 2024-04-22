@@ -158,44 +158,56 @@
           </div>
         </div>
 
-        <!-- 保險開始日期和時間 -->
-        <!-- <div class="row mb-3">
-        <div class="col-md-6">
-          <label for="startDate" class="form-label">旅遊開始日期:</label>
-          <input
-            type="date"
-            class="form-control"
-            id="startDate"
-            name="startDate"
-          />
+        <!-- ---------------保險開始日期和時間 ----------- -->
+        <div class="row mb-3">
+          <div class="col-md-6">
+            <label for="startDate" class="form-label">旅遊開始日期:</label>
+            <input
+              type="date"
+              class="form-control"
+              id="startDate"
+              name="startDate"
+            />
+          </div>
+          <div class="col-md-6">
+            <label for="startTime" class="form-label">旅遊開始時間:</label>
+            <select class="form-control" id="startTime" name="startTime">
+              <!-- Javascript 動態生成 -->
+            </select>
+          </div>
         </div>
-        <div class="col-md-6">
-          <label for="startTime" class="form-label">旅遊開始時間:</label>
-          <select class="form-control" id="startTime" name="startTime"> -->
-        <!-- Javascript 動態生成 -->
-        <!-- </select>
-        </div>
-      </div> -->
         <!-- 保險結束日期和時間 -->
-        <!-- <div class="row mb-3">
-        <div class="col-md-6">
-          <label for="endDate" class="form-label">旅遊結束日期:</label>
-          <input type="date" class="form-control" id="endDate" name="endDate" />
+        <div class="row mb-3">
+          <div class="col-md-6">
+            <label for="endDate" class="form-label">旅遊結束日期:</label>
+            <input
+              type="date"
+              class="form-control"
+              id="endDate"
+              name="endDate"
+            />
+          </div>
+          <div class="col-md-6">
+            <label for="endTime" class="form-label">旅遊結束時間:</label>
+            <select class="form-control" id="endTime" name="endTime">
+              <!-- Javascript 動態生成 -->
+            </select>
+          </div>
         </div>
-        <div class="col-md-6">
-          <label for="endTime" class="form-label">旅遊結束時間:</label>
-          <select class="form-control" id="endTime" name="endTime"> -->
-        <!-- Javascript 動態生成 -->
-        <!-- </select>
-        </div>
-      </div>
 
-      <div class="row mb-3">
-        <div class="col-12">
-          <p id="insurancePeriod" class="form-text"></p>
+        <div class="row mb-3">
+          <div class="col-12">
+            <p id="insurancePeriod" class="form-text"></p>
+            <input
+              type="hidden"
+              id="insuranceDays"
+              name="insuranceDays"
+              value=""
+            />
+            <!-- 這邊出現 天數  -->
+          </div>
         </div>
-      </div>  -->
-
+        <!----------------- 保單試算  button  start----------------- -->
         <div class="row mb-3">
           <div class="col-3">
             <button
@@ -214,6 +226,7 @@
 </div>
 
 {% endblock %} {% block scripts %}
+<!----------------- 保單試算  button end----------------- -->
 
 <script>
   // 保險金額 200萬～ 1500萬 -------------------------------------
@@ -297,69 +310,70 @@
     }
   });
 
-  //   // 算 給予時間段 -------------------------------------
+  //   // 算 給予時間段 00:00 ~ 23:30 -------------------------------------
 
-  //   document.addEventListener("DOMContentLoaded", function () {
-  //     const startTimeSelect = document.getElementById("startTime");
-  //     const endTimeSelect = document.getElementById("endTime");
-  //     for (let hour = 0; hour < 24; hour++) {
-  //       for (let minute = 0; minute < 60; minute += 30) {
-  //         const timeString = `${hour.toString().padStart(2, "0")}:${minute
-  //           .toString()
-  //           .padStart(2, "0")}`;
-  //         startTimeSelect.options.add(new Option(timeString, timeString));
-  //         endTimeSelect.options.add(new Option(timeString, timeString));
-  //       }
-  //     }
-  //   });
+  document.addEventListener("DOMContentLoaded", function () {
+    const startTimeSelect = document.getElementById("startTime");
+    const endTimeSelect = document.getElementById("endTime");
+    for (let hour = 0; hour < 24; hour++) {
+      for (let minute = 0; minute < 60; minute += 30) {
+        const timeString = `${hour.toString().padStart(2, "0")}:${minute
+          .toString()
+          .padStart(2, "0")}`;
+        startTimeSelect.options.add(new Option(timeString, timeString));
+        endTimeSelect.options.add(new Option(timeString, timeString));
+      }
+    }
+  });
 
-  //   // 算 旅遊天數 -------------------------------------
-  //   document.addEventListener("DOMContentLoaded", function () {
-  //     const startDateInput = document.getElementById("startDate");
-  //     const startTimeSelect = document.getElementById("startTime");
-  //     const endDateInput = document.getElementById("endDate");
-  //     const endTimeSelect = document.getElementById("endTime");
-  //     const insurancePeriodDisplay = document.getElementById("insurancePeriod");
+  //   // 動態生成 算 旅遊天數 -------------------------------------
+  document.addEventListener("DOMContentLoaded", function () {
+    const startDateInput = document.getElementById("startDate");
+    const startTimeSelect = document.getElementById("startTime");
+    const endDateInput = document.getElementById("endDate");
+    const endTimeSelect = document.getElementById("endTime");
+    const insurancePeriodDisplay = document.getElementById("insurancePeriod");
 
-  //     function updateInsurancePeriod() {
-  //       const startDate = new Date(
-  //         startDateInput.value + "T" + startTimeSelect.value
-  //       );
-  //       const endDate = new Date(endDateInput.value + "T" + endTimeSelect.value);
+    function updateInsurancePeriod() {
+      const startDate = new Date(
+        startDateInput.value + "T" + startTimeSelect.value
+      );
+      const endDate = new Date(endDateInput.value + "T" + endTimeSelect.value);
 
-  //       if (startDate && endDate && startDate < endDate) {
-  //         const diffTime = Math.abs(endDate - startDate);
-  //         const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+      if (startDate && endDate && startDate < endDate) {
+        const diffTime = Math.abs(endDate - startDate);
+        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
 
-  //         const startDateFormatted =
-  //           startDate.toLocaleDateString("zh-TW", {
-  //             year: "numeric",
-  //             month: "2-digit",
-  //             day: "2-digit",
-  //           }) +
-  //           " " +
-  //           startTimeSelect.value;
-  //         const endDateFormatted =
-  //           endDate.toLocaleDateString("zh-TW", {
-  //             year: "numeric",
-  //             month: "2-digit",
-  //             day: "2-digit",
-  //           }) +
-  //           " " +
-  //           endTimeSelect.value;
+        const startDateFormatted =
+          startDate.toLocaleDateString("zh-TW", {
+            year: "numeric",
+            month: "2-digit",
+            day: "2-digit",
+          }) +
+          " " +
+          startTimeSelect.value;
+        const endDateFormatted =
+          endDate.toLocaleDateString("zh-TW", {
+            year: "numeric",
+            month: "2-digit",
+            day: "2-digit",
+          }) +
+          " " +
+          endTimeSelect.value;
 
-  //         insurancePeriodDisplay.textContent = `共投保${diffDays}天，保期為 ${startDateFormatted} - ${endDateFormatted}`;
-  //       } else {
-  //         insurancePeriodDisplay.textContent = "";
-  //       }
-  //     }
+        insurancePeriodDisplay.textContent = `共投保${diffDays}天，保期為 ${startDateFormatted} - ${endDateFormatted}`;
+        document.getElementById("insuranceDays").value = diffDays; // 將計算的天數賦值給隱藏輸入
+      } else {
+        insurancePeriodDisplay.textContent = "";
+      }
+    }
 
-  //     // 當日期或時間改變時，更新保險期間
-  //     startDateInput.addEventListener("change", updateInsurancePeriod);
-  //     startTimeSelect.addEventListener("change", updateInsurancePeriod);
-  //     endDateInput.addEventListener("change", updateInsurancePeriod);
-  //     endTimeSelect.addEventListener("change", updateInsurancePeriod);
-  //   });
+    //     // 當日期或時間改變時，更新保險期間
+    startDateInput.addEventListener("change", updateInsurancePeriod);
+    startTimeSelect.addEventListener("change", updateInsurancePeriod);
+    endDateInput.addEventListener("change", updateInsurancePeriod);
+    endTimeSelect.addEventListener("change", updateInsurancePeriod);
+  });
 
   //  await json information from server
   document
