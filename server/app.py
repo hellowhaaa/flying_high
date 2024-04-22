@@ -1,7 +1,7 @@
 # app.py
 from flask import Flask
 # from models2 import db
-from views import (sign_up, login, success, dashboard, insurance,search_flight,
+from views import (sign_up, login, logout,success, dashboard, insurance,search_flight,
                     index,arrive_flight_time,fetch_insurance_amount)
 import logging
 from logging.handlers import RotatingFileHandler
@@ -31,6 +31,7 @@ app.add_url_rule('/dashboard', view_func=dashboard, methods=['GET', 'POST'])
 app.add_url_rule('/user/log_in', view_func=login, methods=['GET', 'POST'])
 app.add_url_rule('/success', view_func=success, methods=['GET', 'POST'])
 app.add_url_rule('/user/sign_up', view_func=sign_up, methods=['GET', 'POST'])
+app.add_url_rule('/user/log_out', view_func=logout, methods=['GET', 'POST'])
 app.add_url_rule('/arrive_flight_time', view_func=arrive_flight_time, methods=['POST','GET'])
 app.add_url_rule('/fetch_insurance_amount', view_func=fetch_insurance_amount, methods=['POST','GET'])
 app.add_url_rule('/', view_func=index, methods=['GET', 'POST'])

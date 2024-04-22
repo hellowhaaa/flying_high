@@ -13,7 +13,7 @@ class RegisterForm(FlaskForm):
     password = PasswordField('Password', validators=[InputRequired()], render_kw={"placeholder": "Password"})
     email = EmailField('Email', validators=[InputRequired()],render_kw={"placeholder": "Email"})
     address = StringField('Address', validators=[InputRequired()], render_kw={"placeholder": "Address"})
-    submit = SubmitField('Submit')
+    submit = SubmitField('Register')
     
     def set_password(self, password):
         self.password_hash = generate_password_hash(password)
