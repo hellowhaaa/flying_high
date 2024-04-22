@@ -1,7 +1,7 @@
 # app.py
 from flask import Flask
 from models import db
-from views import (register, login, success, dashboard, insurance,search_flight,
+from views import (sign_up, login, success, dashboard, insurance,search_flight,
                     index,arrive_flight_time,fetch_insurance_amount)
 import logging
 from logging.handlers import RotatingFileHandler
@@ -39,12 +39,12 @@ app.logger.info(app.config['MONGODB_SETTINGS'])
 app.add_url_rule('/search_flight', view_func=search_flight, methods=['GET', 'POST'])
 app.add_url_rule('/insurance', view_func=insurance, methods=['GET', 'POST'])
 app.add_url_rule('/dashboard', view_func=dashboard, methods=['GET', 'POST'])
-app.add_url_rule('/login', view_func=login, methods=['GET', 'POST'])
+app.add_url_rule('/user/login', view_func=login, methods=['GET', 'POST'])
 app.add_url_rule('/success', view_func=success, methods=['GET', 'POST'])
-app.add_url_rule('/register', view_func=register, methods=['GET', 'POST'])
+app.add_url_rule('/user/sign_up', view_func=sign_up, methods=['GET', 'POST'])
 app.add_url_rule('/arrive_flight_time', view_func=arrive_flight_time, methods=['POST','GET'])
 app.add_url_rule('/fetch_insurance_amount', view_func=fetch_insurance_amount, methods=['POST','GET'])
 app.add_url_rule('/', view_func=index, methods=['GET', 'POST'])
 if __name__ == '__main__':
-    app.secret_key = os.getenv("SE  RET_KEY")
+    app.secret_key = os.getenv("SECRET_KEY")
     app.run(debug=True)

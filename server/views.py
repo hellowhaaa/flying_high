@@ -1,32 +1,44 @@
 # views.py
 from flask import request, redirect, url_for, render_template, flash, current_app,jsonify
-from models import User, Location
+from models2 import RegisterForm, create_user
 from select_data_from_mongo import get_arrive_flight_time, select_insurance_amount
 
 
-def register():
+def sign_up():
+    print("re:",request.form)
+    form = RegisterForm(request.form)
     if request.method == 'POST':
-        username = request.form.get('username')
-        email = request.form.get('email')
-        password = request.form.get('password')
-        user = User(username=username, email=email, password=password)
-        user.hash_password()
-        user.save()
-        current_app.logger.info(f"User saved: {user.username}")
-        flash('Registration successful, please login.', 'success')
-        return redirect(url_for('login'))
-    locations = Location.objects.all()
-    return render_template('register.html', locations=locations)
+        print("POST request received")
+        if form.validate():
+            print("Form validated")
+            username = form.username.data
+            email = form.email.data
+            address = form.address.data
+            password = form.password.data
+            form.set_password(password)  # Hashes the password and stores it in the form
+            user = create_user(username, form.password_hash, email, address)
+            print('user:', user)
+            # Save the user in the database here
+            # current_app.logger.info(f"User saved: {user['username']}")
+            # flash('Registration successful, please login.', 'success')
+            # return redirect(url_for('login'))
+            return 'hi'
+        else:
+            print("Form not validated")
+            for fieldName, errorMessages in form.errors.items():
+                for err in errorMessages:
+                    print(f"{fieldName}: {err}")
+    return render_template('sign_up.html',form=form)
 
 def login():
     if request.method == 'POST':
         username = request.form.get('username')
         password = request.form.get('password')
-        user = User.objects(username=username).first()
-        if user and user.check_password(password):
-            flash('Logged in successfully!', 'success')
-            return redirect(url_for('profile'))  # Assume there is a profile view
-        flash('Invalid username or password', 'danger')
+        # user = User.objects(username=username).first()
+        # if user and user.check_password(password):
+        #     flash('Logged in successfully!', 'success')
+        #     return redirect(url_for('profile'))  # Assume there is a profile view
+        # flash('Invalid username or password', 'danger')
     return render_template('login.html')
 
 def success():
