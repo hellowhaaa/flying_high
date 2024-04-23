@@ -1,0 +1,22 @@
+.flash-messages {
+  position: fixed;
+  top: 0;
+  right: 0;
+  left: 0;
+  z-index: 1050;
+  display: flex;
+  justify-content: center;
+  align-items: center; /* Add a semi-transparent background */
+}
+
+.flash-messages .alert {
+  pointer-events: auto;
+  margin-top: 10px; /* Added some space from the top */
+  width: auto;
+  max-width: 600px; /* Ensure it doesn't span too wide */
+  padding: 15px; /* More padding for better readability */
+  border-radius: 5px; /* Rounded corners for better look */
+  font-size: 16px; /* Larger text for readability */
+  color: rgb(24, 21, 21); /* Text color */
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* Subtle shadow */
+}
