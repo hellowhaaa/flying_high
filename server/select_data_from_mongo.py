@@ -41,6 +41,32 @@ def get_arrive_flight_time(flight):  # airline_code 是 JL96 的組合\l
     )
     return result
 
+def get_depart_flight_time(flight):
+    url = os.getenv("MONGODB_URI_FLY")
+    client = MongoClient(url)
+    taiwan_tz = pytz.timezone('Asia/Taipei')
+    #  今天凌晨
+    tw_now = datetime.now(taiwan_tz)
+    tw_midnight = taiwan_tz.localize(datetime(tw_now.year, tw_now.month, tw_now.day, 0, 0, 0))
+    utc_midnight = tw_midnight.astimezone(pytz.utc)  # UTC Time
+
+    filter={
+        'airline': {
+            '$elemMatch': {
+                'airline_code': {
+                    '$regex': flight
+                }
+            }
+        },
+        'updated_at': {
+        '$gt': utc_midnight
+    }
+    }
+    result = client['flying_high']['flight_depart2'].find_one(
+    filter=filter
+    )
+    return result
+
 
 
 def select_insurance_amount(plan, insurance_amount,insurance_company, insurance_days):

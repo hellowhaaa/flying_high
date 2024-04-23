@@ -11,3 +11,12 @@ img {
   left: 0;
   z-index: -1;
 }
+.space {
+  height: 160px;
+}
+
+#emphasize {
+  font-size: x-large;
+  color: rgba(224, 69, 69, 0.928);
+  margin: 0 10px;
+}

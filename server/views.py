@@ -2,7 +2,7 @@
 from flask import (request, redirect, url_for, render_template, flash, 
                     current_app,jsonify, abort, session, make_response)
 from models2 import RegisterForm, create_user, same_username, check_user_credentials
-from select_data_from_mongo import get_arrive_flight_time, select_insurance_amount
+from select_data_from_mongo import get_arrive_flight_time, get_depart_flight_time, select_insurance_amount
 import os
 from pymongo import MongoClient
 from functools import wraps
@@ -136,18 +136,56 @@ def search_flight():
 
 # TODO: -------------------------------------------------------------------------
 
-def arrive_flight_time():
+def depart_flight_time():
+    flight_result = None
     try:
-        if request.method == 'POST':
-            airline_code = request.form.get('airline')
-            flight_number = request.form.get('flight_number')
-            flight = airline_code + flight_number
-        else:
-            airline_code = request.args.get('airline_code')
-            flight_number = request.args.get('flight_number')
-            flight = airline_code + flight_number
-            print(flight)
+        airline_code = request.form.get('airline') if request.method == 'POST' else request.args.get('airline_code')
+        flight_number = request.form.get('flight_number') if request.method == 'POST' else request.args.get('flight_number')
+        flight = airline_code + flight_number
+        print(flight)
+        flight_result = get_depart_flight_time(flight)
+        print(flight_result)
+        current_app.logger.info(f"Flight time retrieved for {flight_result}")
+    except Exception:
+        current_app.logger.error("Catch an exception.", exc_info=True)
+    share_code_list = []
+    if flight_result:
+        for each_air in flight_result['airline']:
+            if each_air['airline_code'] == flight:
+                main_code = flight
+                airline_name = each_air['airline_name']
+            else:
+                share_code_list.append(each_air['airline_code'])
+        print("main:",main_code)
+        print("shared",share_code_list)
+        if flight_result['status'] == '':
+            flight_result['status'] = '已排定起飛時間'
+        flight = {
+            "airline_name":airline_name,
+            'main_code': main_code,
+            'share_code': share_code_list, 
+            'destination': flight_result['destination'],
+            'gate': flight_result['gate'],
+            'scheduled_depart_time': flight_result['scheduled_depart_time'],
+            'actual_depart_time': flight_result['actual_depart_time'],
+            'status': flight_result['status'],
+            'terminal': flight_result['terminal']
+        }
+        print(flight)
+        return render_template('arrive_flight_time.html',flight= flight)
+    else:
+        flash('No flight found. Please search another flight.', 'alert-danger')
+        return redirect(url_for('search_flight'))
+
+def arrive_flight_time():
+    flight_result = None
+    try:
+        airline_code = request.form.get('airline') if request.method == 'POST' else request.args.get('airline_code')
+        flight_number = request.form.get('flight_number') if request.method == 'POST' else request.args.get('flight_number')
+        flight = airline_code + flight_number
+        print(flight)
         flight_result = get_arrive_flight_time(flight)
+        print(flight_result)
         current_app.logger.info(f"Flight time retrieved for {flight_result}")
     except Exception:
         current_app.logger.error("Catch an exception.", exc_info=True)
@@ -179,6 +217,8 @@ def arrive_flight_time():
     else:
         flash('No flight found. Please search another flight.', 'alert-danger')
         return redirect(url_for('search_flight'))
+
+
 
 
 def insurance():
