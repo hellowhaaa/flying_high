@@ -9,10 +9,8 @@ import os
 
 from dotenv import load_dotenv
 
-env_path = os.path.join(os.getcwd(), 'server', '.env')
-log_path = os.path.join(os.getcwd(), 'server', 'logs')
-
 def create_app():
+    env_path = os.path.join(os.getcwd(), 'server', '.env')
     load_dotenv(env_path)
     app = Flask(__name__)
     app.secret_key = os.getenv("SECRET_KEY")
@@ -24,15 +22,18 @@ def create_app():
     
     # Setup logger
     if not app.debug:
-        load_dotenv(log_path)
-        file_handler = RotatingFileHandler(log_path+'/app.log', maxBytes=10240, backupCount=3)
+        log_path = os.path.join(os.getcwd(), 'server', 'logs')
+        # Ensure the directory exists
+        os.makedirs(log_path, exist_ok=True)
+        # Initialize logging handler
+        file_handler = RotatingFileHandler(os.path.join(log_path, 'app.log'), maxBytes=10240, backupCount=3)
         file_handler.setFormatter(logging.Formatter(
             '%(asctime)s %(levelname)s: %(message)s [in %(pathname)s:%(lineno)d]'
         ))
         file_handler.setLevel(logging.INFO)
         app.logger.addHandler(file_handler)
         app.logger.setLevel(logging.INFO)
-        app.logger.info(' App startup')
+        app.logger.info('App startup')
         
     # Define routes
     app.add_url_rule('/search_flight', view_func=search_flight, methods=['GET', 'POST'])
