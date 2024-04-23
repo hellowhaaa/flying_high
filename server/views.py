@@ -9,13 +9,13 @@ from functools import wraps
 import jwt
 from datetime import datetime, timedelta
 
-def encode_auth_token(user_id, username):
+def encode_auth_token(username):
     """ 生成認證Token """
     try:
         payload = {
             'exp': datetime.utcnow() + timedelta(days=1),  # Token的過期時間
             'iat': datetime.utcnow(),  # Token的發行時間
-            'sub': user_id,  # 訂閱識別
+            # 'sub': user_id,  # 訂閱識別
             'username': username  # 使用者名稱
         }
         return jwt.encode(
@@ -76,7 +76,15 @@ def sign_up():
                 current_app.logger.info(f"User saved: {user['username']}")
             except Exception as e:
                 current_app.logger.error(f"Error saving user: {e}", exc_info=True)
-            return redirect(url_for('search_flight'))
+                
+            token = encode_auth_token(username)
+            # Storing the token in session or cookie
+            print("token:", token)
+            response = make_response(redirect(url_for('search_flight')))
+            response.set_cookie('access_token', f'Bearer {token}')
+            # Redirect to homepage after successful login
+            flash('You have been logged in!', 'success')
+            return response
         else:
             for fieldName, errorMessages in form.errors.items():
                 for err in errorMessages:
@@ -96,12 +104,12 @@ def login():
         user = check_user_credentials(collection,username, password)
         print("user-->", user)
         if user:
-            user_id_str = str(user['_id'])
-            token = encode_auth_token(user_id_str, username)
+            # user_id_str = str(user['_id'])
+            token = encode_auth_token(username)
             # Storing the token in session or cookie
-            print(token)
+            print("token:", token)
             response = make_response(redirect(url_for('search_flight')))
-            session['user_token'] = token
+            response.set_cookie('access_token', f'Bearer {token}')
             # Redirect to homepage after successful login
             flash('You have been logged in!', 'success')
             return response

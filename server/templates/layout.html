@@ -64,13 +64,13 @@
                 </li>
               </ul>
             </li> -->
-            {% if 'user_token' in session %}
+            {% if 'access_token' in session %}
           <li class="nav-item">
             <a class="nav-link" href="{{ url_for('logout') }}">Log Out</a>
           </li>
         {% else %}
           <li class="nav-item">
-            <a class="nav-link" href="{{ url_for('login') }}">Log In</a>
+            <a class="nav-link" href="{{ url_for('sign_up') }}">Sign up / in</a>
           </li>
         {% endif %}
           </ul>
