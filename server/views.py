@@ -38,7 +38,8 @@ def token_required(f):
             token = request.cookies.get('access_token').split(" ")[1]
         print("token:", token)
         if not token:
-            return jsonify({'message': 'Token is missing'}), 401
+            # return jsonify({'message': 'Token is missing'}), 401
+            return redirect(url_for('sign_up'))  
         
         # 確認是否為有效的 token
         try:
@@ -51,9 +52,6 @@ def token_required(f):
             return jsonify({'message': 'Token is invalid'}), 401
         return f(current_user, *args, **kwargs)
     return decorated
-
-
-
 
 
 def sign_up():
@@ -131,19 +129,20 @@ def logout():
     return response
 
 # TODO: ---------
-
-def user_insurance():
+@token_required
+def user_insurance(current_user):
     return render_template('user_insurance.html')
 
 @token_required
 def user_info(current_user):
-    # 若 token 存在 direct到 user_info.html 的頁面, 
+    # 若 token 存在 direct到 user_info.html 的頁面,
+    return render_template('user_info.html') 
     
     
     
     # 若 token 不存在 則 導向 sign in 頁面
 
-    return render_template('user_info.html')
+    
 
 
 
