@@ -195,17 +195,21 @@ def fetch_insurance_amount():
         print(insurance_company, plan, insurance_amount, insurance_days)
     except Exception as e:
         current_app.logger.error(f"Catch an exception. + {e}", exc_info=True)
-    result = select_insurance_amount(plan, insurance_amount,insurance_company)
+    result = select_insurance_amount(plan, insurance_amount,insurance_company, insurance_days)
     print(result)
-    price = result['insurance_premium']['price']
-    print('價格:',price)
-    response = {
-            'status': 'success',
-            'data': {
-                'insurance_price': price
+    if result:
+        price = result['insurance_premium']['price']
+    else:
+        price = '不在試算範圍內, 請重新輸入'
+        print('價格:',price)
+        response = {
+                'status': 'success',
+                'data': {
+                    'insurance_price': price
+                }
             }
-        }
-    return jsonify(response)
+        return jsonify(response)
+        
 
 def dashboard():  
     streamlit_url = "http://localhost:8501"
