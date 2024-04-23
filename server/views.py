@@ -172,7 +172,7 @@ def depart_flight_time():
             'terminal': flight_result['terminal']
         }
         print(flight)
-        return render_template('arrive_flight_time.html',flight= flight)
+        return render_template('flight_time.html',flight= flight)
     else:
         flash('No flight found. Please search another flight.', 'alert-danger')
         return redirect(url_for('search_flight'))
@@ -213,7 +213,7 @@ def arrive_flight_time():
             'terminal': flight_result['terminal']
         }
         print(flight)
-        return render_template('arrive_flight_time.html',flight= flight)
+        return render_template('flight_time.html',flight= flight)
     else:
         flash('No flight found. Please search another flight.', 'alert-danger')
         return redirect(url_for('search_flight'))

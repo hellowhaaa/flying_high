@@ -81,15 +81,24 @@
             <h6>To: 桃園機場</h6>
           </div>
           <p>Terminal: T1</p>
+          {% if flight.scheduled_arrive_time %}
           <p>Scheduled Arrived Time: {{ flight.scheduled_arrive_time }}</p>
+          {% else %}
+          <p>Scheduled Depart Time: {{ flight.scheduled_depart_time }}</p>
+          {% endif %}
+
           <p>Status: {{ flight.status }}</p>
           {% if flight.status == "取消" %}
           <a href="https://www.skyscanner.com.tw/" class="btn btn-primary">
             <button type="button">查看即時票價</button>
           </a>
+          {% else %} {% if flight.scheduled_arrive_time %}
+          <p>Actual Arrive Time: {{ flight.actual_arrive_time }}</p>
           {% else %}
-          <p>Actual Arrived Time: {{ flight.actual_arrive_time }}</p>
+          <p>Actual Depart Time: {{ flight.actual_depart_time }}</p>
+          {% endif %}
           <p>Gate: {{ flight.gate }}</p>
+
           {% endif %}
           <p>更新時間: 2021-12-01 01:20</p>
           <div class="mt-3">
