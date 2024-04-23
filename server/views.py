@@ -10,7 +10,6 @@ import jwt
 from datetime import datetime, timedelta
 
 def encode_auth_token(username):
-    """ 生成認證Token """
     try:
         payload = {
             'exp': datetime.utcnow() + timedelta(days=1),  # Token的過期時間
@@ -135,7 +134,7 @@ def index():
 def search_flight():
     return render_template('search_flight.html')
 
-
+# TODO: -------------------------------------------------------------------------
 
 def arrive_flight_time():
     try:
@@ -160,23 +159,27 @@ def arrive_flight_time():
                 airline_name = each_air['airline_name']
             else:
                 share_code_list.append(each_air['airline_code'])
-    print("main:",main_code)
-    print("shared",share_code_list)
-    if flight_result['status'] == '':
-        flight_result['status'] = '已排定起飛時間'
-    flight = {
-        "airline_name":airline_name,
-        'main_code': main_code,
-        'share_code': share_code_list, 
-        'destination': flight_result['destination'],
-        'gate': flight_result['gate'],
-        'scheduled_arrive_time': flight_result['scheduled_arrive_time'],
-        'actual_arrive_time': flight_result['actual_arrive_time'],
-        'status': flight_result['status'],
-        'terminal': flight_result['terminal']
-    }
-    print(flight)
-    return render_template('arrive_flight_time.html',flight= flight)
+        print("main:",main_code)
+        print("shared",share_code_list)
+        if flight_result['status'] == '':
+            flight_result['status'] = '已排定起飛時間'
+        flight = {
+            "airline_name":airline_name,
+            'main_code': main_code,
+            'share_code': share_code_list, 
+            'destination': flight_result['destination'],
+            'gate': flight_result['gate'],
+            'scheduled_arrive_time': flight_result['scheduled_arrive_time'],
+            'actual_arrive_time': flight_result['actual_arrive_time'],
+            'status': flight_result['status'],
+            'terminal': flight_result['terminal']
+        }
+        print(flight)
+        return render_template('arrive_flight_time.html',flight= flight)
+    else:
+        flash('No flight found. Please search another flight.', 'alert-danger')
+        return redirect(url_for('search_flight'))
+
 
 def insurance():
     return render_template('insurance.html')
