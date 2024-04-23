@@ -1,0 +1,54 @@
+{% extends "layout.html" %} {% block content %}
+<div class="container-fluid">
+  <div class="row">
+    <!-- Sidebar -->
+    <div class="col-md-2 bg-light sidebar py-5">
+      <ul class="nav flex-column">
+        <li class="nav-item">
+          <a class="nav-link" href="info.html">我的資料</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link active" href="insurance.html">我的保險</a>
+        </li>
+      </ul>
+    </div>
+
+    <!-- Main Content -->
+    <div class="col-md-9">
+      <div class="py-4">
+        <h1>我的資料</h1>
+        <form>
+          <div class="mb-3">
+            <label for="username" class="form-label">Username</label>
+            <input
+              type="text"
+              class="form-control"
+              id="username"
+              placeholder="Username"
+            />
+          </div>
+          <div class="mb-3">
+            <label for="email" class="form-label">Email</label>
+            <input
+              type="email"
+              class="form-control"
+              id="email"
+              placeholder="Email"
+            />
+          </div>
+          <div class="mb-3">
+            <label for="address" class="form-label">Address</label>
+            <input
+              type="text"
+              class="form-control"
+              id="address"
+              placeholder="Address"
+            />
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% endblock %}

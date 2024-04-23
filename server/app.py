@@ -1,8 +1,9 @@
 # app.py
 from flask import Flask, request
 # from models2 import db
-from views import (sign_up, login, logout,success, dashboard, insurance,search_flight,
-                    index,arrive_flight_time,fetch_insurance_amount, depart_flight_time)
+from views import (sign_up, login, logout, dashboard, insurance,search_flight,
+                    index,arrive_flight_time,fetch_insurance_amount, depart_flight_time,
+                    user_insurance, user_info)
 import logging
 from logging.handlers import RotatingFileHandler
 import os
@@ -36,16 +37,24 @@ def create_app():
         app.logger.info('App startup')
         
     # Define routes
-    app.add_url_rule('/search_flight', view_func=search_flight, methods=['GET', 'POST'])
-    app.add_url_rule('/insurance', view_func=insurance, methods=['GET', 'POST'])
-    app.add_url_rule('/dashboard', view_func=dashboard, methods=['GET', 'POST'])
+    # user ----
     app.add_url_rule('/user/log_in', view_func=login, methods=['GET', 'POST'])
-    app.add_url_rule('/success', view_func=success, methods=['GET', 'POST'])
     app.add_url_rule('/user/sign_up', view_func=sign_up, methods=['GET', 'POST'])
     app.add_url_rule('/user/log_out', view_func=logout, methods=['GET', 'POST'])
+    app.add_url_rule('/user/insurance.html', view_func=user_insurance, methods=['GET', 'POST'])
+    app.add_url_rule('/user/info.html', view_func=user_info, methods=['GET', 'POST'])
+    
+    # flight ---
+    app.add_url_rule('/search_flight', view_func=search_flight, methods=['GET', 'POST'])
     app.add_url_rule('/arrive_flight_time', view_func=arrive_flight_time, methods=['POST','GET'])
     app.add_url_rule('/depart_flight_time', view_func=depart_flight_time, methods=['POST','GET'])
+    
+    # insurance
+    app.add_url_rule('/insurance', view_func=insurance, methods=['GET', 'POST'])
     app.add_url_rule('/fetch_insurance_amount', view_func=fetch_insurance_amount, methods=['POST','GET'])
+    
+    # dashboard
+    app.add_url_rule('/dashboard', view_func=dashboard, methods=['GET', 'POST'])
     app.add_url_rule('/', view_func=index, methods=['GET', 'POST'])
     
     return app

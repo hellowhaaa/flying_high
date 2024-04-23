@@ -33,14 +33,21 @@ def token_required(f):
         # 確認是否有 token
         if 'Authorization' in request.headers:
             token = request.headers["Authorization"].split(" ")[1]
+        # If not found, check for token in cookies
+        elif 'access_token' in request.cookies:
+            token = request.cookies.get('access_token').split(" ")[1]
+        print("token:", token)
         if not token:
             return jsonify({'message': 'Token is missing'}), 401
         
         # 確認是否為有效的 token
         try:
-            data = jwt.decode(token, current_app.config['SECRET_KEY'])
+            data = jwt.decode(token, current_app.config['SECRET_KEY'], algorithms="HS256")
             current_user = data['username']
-        except:
+            print("current_user:", current_user)
+        except jwt.ExpiredSignatureError:
+            return jsonify({'message': 'Token has expired'}), 401
+        except jwt.InvalidTokenError:
             return jsonify({'message': 'Token is invalid'}), 401
         return f(current_user, *args, **kwargs)
     return decorated
@@ -123,9 +130,22 @@ def logout():
     flash('You have been logged out.', 'success')
     return response
 
+# TODO: ---------
+
+def user_insurance():
+    return render_template('user_insurance.html')
+
 @token_required
-def success():
-    return '登錄成功!'
+def user_info(current_user):
+    # 若 token 存在 direct到 user_info.html 的頁面, 
+    
+    
+    
+    # 若 token 不存在 則 導向 sign in 頁面
+
+    return render_template('user_info.html')
+
+
 
 def index():
     return render_template('homepage.html')
@@ -134,7 +154,7 @@ def index():
 def search_flight():
     return render_template('search_flight.html')
 
-# TODO: -------------------------------------------------------------------------
+
 
 def depart_flight_time():
     flight_result = None
