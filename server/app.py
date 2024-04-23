@@ -3,7 +3,7 @@ from flask import Flask, request
 # from models2 import db
 from views import (sign_up, login, logout, dashboard, insurance,search_flight,
                     index,arrive_flight_time,fetch_insurance_amount, depart_flight_time,
-                    user_insurance, user_info)
+                    user_insurance, user_info, update_user)
 import logging
 from logging.handlers import RotatingFileHandler
 import os
@@ -43,6 +43,7 @@ def create_app():
     app.add_url_rule('/user/log_out', view_func=logout, methods=['GET', 'POST'])
     app.add_url_rule('/user/insurance.html', view_func=user_insurance, methods=['GET', 'POST'])
     app.add_url_rule('/user/info.html', view_func=user_info, methods=['GET', 'POST'])
+    app.add_url_rule('/user/update_user', view_func=update_user, methods=['GET', 'POST'])
     
     # flight ---
     app.add_url_rule('/search_flight', view_func=search_flight, methods=['GET', 'POST'])

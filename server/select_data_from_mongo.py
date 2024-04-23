@@ -85,3 +85,15 @@ def select_insurance_amount(plan, insurance_amount,insurance_company, insurance_
     )  
     print(result)
     return result
+
+def select_user_information(username):
+    url = os.getenv("MONGODB_URI_FLY")
+    client = MongoClient(url)
+    filter={
+    'username': username
+    }
+    result = client['flying_high']['user'].find_one(
+    filter=filter
+    )
+    print("user", result)
+    return result    

@@ -2,7 +2,8 @@
 from flask import (request, redirect, url_for, render_template, flash, 
                     current_app,jsonify, abort, session, make_response)
 from models2 import RegisterForm, create_user, same_username, check_user_credentials
-from select_data_from_mongo import get_arrive_flight_time, get_depart_flight_time, select_insurance_amount
+from select_data_from_mongo import (get_arrive_flight_time, get_depart_flight_time, select_insurance_amount,
+                                select_user_information)
 import os
 from pymongo import MongoClient
 from functools import wraps
@@ -128,23 +129,27 @@ def logout():
     flash('You have been logged out.', 'success')
     return response
 
-# TODO: ---------
+
 @token_required
 def user_insurance(current_user):
     return render_template('user_insurance.html')
 
 @token_required
 def user_info(current_user):
-    # 若 token 存在 direct到 user_info.html 的頁面,
-    return render_template('user_info.html') 
-    
-    
-    
-    # 若 token 不存在 則 導向 sign in 頁面
+    user_info_dict = select_user_information(current_user) # dict
+    return render_template('user_info.html',user_info_dict=user_info_dict) 
 
-    
-
-
+# TODO: ---------
+def update_user():
+    if request.method == "POST":
+        jsonData = request.get_json()
+        print(jsonData)
+        response = {
+            "status": "success",
+            "data" : jsonData
+        }
+        return jsonify(response)
+    return render_template('index.html')
 
 def index():
     return render_template('homepage.html')
