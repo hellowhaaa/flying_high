@@ -10,7 +10,17 @@
       integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH"
       crossorigin="anonymous"
     />
-    <link rel="stylesheet" href="../static/css/style.css" />
+    {% block css_signup %}
+    
+    {% endblock %}
+
+    {% block css_login %}
+    
+    {% endblock %}
+
+    {% block css_search_flight %}
+    
+    {% endblock %}
   </head>
 
   <body>
@@ -64,7 +74,7 @@
                 </li>
               </ul>
             </li> -->
-            {% if 'access_token' in session %}
+            {% if logged_in %}
           <li class="nav-item">
             <a class="nav-link" href="{{ url_for('logout') }}">Log Out</a>
           </li>
@@ -80,15 +90,17 @@
 
     <div class="container">
       {% with messages = get_flashed_messages() %}
-      {% if messages %}
+    {% if messages %}
+      <div class="flash-messages">
         {% for message in messages %}
-          <div class="alert alert-secondary alert-dismissible fade show alert-fixed-top" role="alert">
+          <div class="alert alert-secondary alert-dismissible fade show" role="alert">
             {{ message }}
             <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
           </div>
         {% endfor %}
-      {% endif %}
-    {% endwith %}
+      </div>
+    {% endif %}
+  {% endwith %}
 
 
       {% block content %}

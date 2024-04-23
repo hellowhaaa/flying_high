@@ -41,8 +41,10 @@ def same_username(collection, username):
     }
     user = collection.find_one(filter = filter)
     if user:
+        print("有",user)
         return True
     else:
+        print('沒有',user)
         return False
 
 def check_user_credentials(collection,username, password):

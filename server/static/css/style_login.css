@@ -1,0 +1,45 @@
+@media (min-width: 992px) {
+  .card::after {
+    content: "";
+    background-image: url("/static/images/signin-image.jpg"); /* This path should be relative to the root of your web server */
+    background-size: cover;
+    background-repeat: no-repeat;
+    background-position: right center;
+    display: block;
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    width: 50%;
+    z-index: -1;
+  }
+
+  .card {
+    position: relative;
+    overflow: hidden;
+  }
+}
+
+.flash-messages {
+  position: fixed;
+  top: 0;
+  right: 0;
+  left: 0;
+  z-index: 1050;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background-color: rgba(0, 0, 0, 0.7); /* Add a semi-transparent background */
+}
+
+.flash-messages .alert {
+  pointer-events: auto;
+  margin-top: 10px; /* Added some space from the top */
+  width: auto;
+  max-width: 600px; /* Ensure it doesn't span too wide */
+  padding: 15px; /* More padding for better readability */
+  border-radius: 5px; /* Rounded corners for better look */
+  font-size: 16px; /* Larger text for readability */
+  color: white; /* Text color */
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* Subtle shadow */
+}

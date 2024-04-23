@@ -1,0 +1,39 @@
+img {
+  /* 使用 Jinja2 模板语法在 CSS 中设置背景图像 */
+  background-image: url("{{ url_for('static', filename='images/airplane.jpg') }}");
+
+  /* 背景图像尽可能地填充屏幕，但要确保图片内容完整显示 */
+  opacity: 0.8;
+  height: 100vh;
+  width: 100vw;
+  background-position: center center; /* 图像居中显示 */
+  background-repeat: no-repeat; /* 不重复图像 */
+  background-size: cover; /* 图像完整地适应容器 */
+  position: fixed; /* 固定位置，使其不随滚动条滚动 */
+  top: 0;
+  left: 0;
+  z-index: -1; /* 确保背景图像在内容之下 */
+}
+
+.flash-messages {
+  position: fixed;
+  top: 0;
+  right: 0;
+  left: 0;
+  z-index: 1050;
+  display: flex;
+  justify-content: center;
+  align-items: center; /* Add a semi-transparent background */
+}
+
+.flash-messages .alert {
+  pointer-events: auto;
+  margin-top: 10px; /* Added some space from the top */
+  width: auto;
+  max-width: 600px; /* Ensure it doesn't span too wide */
+  padding: 15px; /* More padding for better readability */
+  border-radius: 5px; /* Rounded corners for better look */
+  font-size: 16px; /* Larger text for readability */
+  color: rgb(24, 21, 21); /* Text color */
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* Subtle shadow */
+}

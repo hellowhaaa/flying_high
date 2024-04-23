@@ -62,15 +62,15 @@ def sign_up():
         if form.validate():
             print("Form validated")
             username = form.username.data
+            if same_username(collection, username):
+                print('same user!!!!')
+                flash('Username already exists')
+                return redirect(url_for('sign_up'))
             email = form.email.data
             address = form.address.data
             password = form.password.data
             form.set_password(password)  # Hashes the password and stores it in the form
             user = create_user(username, form.password_hash, email, address)
-            if same_username(collection, username):
-                print('same user!!!!')
-                flash('Username already exists')
-                return redirect(url_for('sign_up'))
             try:
                 collection.insert_one(user)
                 current_app.logger.info(f"User saved: {user['username']}")
@@ -92,6 +92,7 @@ def sign_up():
     return render_template('sign_up.html', form=form)
 
 
+
 def login():
     if request.method == 'POST':
         url = os.getenv("MONGODB_URI_FLY")
@@ -110,18 +111,18 @@ def login():
             print("token:", token)
             response = make_response(redirect(url_for('search_flight')))
             response.set_cookie('access_token', f'Bearer {token}')
-            # Redirect to homepage after successful login
             flash('You have been logged in!', 'success')
             return response
         else:
-            flash('Invalid credentials', 'danger')
+            flash('Username or Password is wrong', 'danger')
             return redirect(url_for('login'))
     return render_template('login.html')
 
 def logout():
-    session.pop('user_token', None)  # Remove the token from session
+    response = make_response(redirect(url_for('search_flight')))
+    response.delete_cookie("access_token", path='/')
     flash('You have been logged out.', 'success')
-    return redirect(url_for('login'))
+    return response
 
 @token_required
 def success():
