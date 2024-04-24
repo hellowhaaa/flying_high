@@ -118,12 +118,10 @@
     };
 
     // Use the fetch API to send a POST request to your server endpoint
-    fetch("/update_user", {
+    fetch("/user/update_user", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        // If you're using sessions or a token-based authentication,
-        // you might need to add an 'Authorization' header or CSRF token here
       },
       body: JSON.stringify(data), // Convert the data object to a JSON string
     })
