@@ -4,11 +4,13 @@ from flask import (request, redirect, url_for, render_template, flash,
 from models2 import RegisterForm, create_user, same_username, check_user_credentials
 from select_data_from_mongo import (get_arrive_flight_time, get_depart_flight_time, select_insurance_amount,
                                 select_user_information, select_user_insurance)
+from update_data_to_mongo import update_user_insurance
 import os
 from pymongo import MongoClient
 from functools import wraps
 import jwt
 from datetime import datetime, timedelta
+
 
 def encode_auth_token(username):
     try:
@@ -167,14 +169,23 @@ def update_user():
         return jsonify(response)
     return render_template('homepage.html')
 
-def update_insurance():
+@token_required
+def update_insurance(current_user):
     if request.method == "POST":
         json_data = request.get_json()
         print("json_data:" , json_data)
+        print("current_user", current_user)
+        insurance_company = json_data['insurance_company']
+        plan = json_data["plan"]
+        insured_amount = json_data["insured_amount"]
+        days = json_data["days"]
         response = {
             "status": "success",
             "data": json_data
         }
+        update_info = update_user_insurance(current_user,insurance_company,plan, insured_amount, days)
+        print(update_info)
+        print(response)
         return jsonify(response)
     return render_template('homepage.html')
 
