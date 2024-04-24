@@ -132,7 +132,7 @@ def logout():
     return response
 
 
-# TODO: ---------
+
 @token_required
 def user_insurance(current_user):
     user_insurance = select_user_insurance(current_user)
@@ -144,19 +144,9 @@ def user_info(current_user):
     user_info_dict = select_user_information(current_user) # dict
     return render_template('user_info.html',user_info_dict=user_info_dict) 
 
-
-# ? -- 待使用 --
-# def my_insurance():
-#     username = user_insurance["username"]
-#     insurance_company = user_insurance["insurance_company"]
-#     plan = user_insurance["plan"]
-#     insured_amount = user_insurance["insured_amount"]
-#     days = user_insurance["days"]
-#     insurance_content = select_insurance_amount(plan, insured_amount,insurance_company, days)
-#     insurance_content["insurance_company"] = insurance_company
-#     print("insurance_content print from route: ", insurance_content)
-#     return "my_insurance"
-
+@token_required
+def user_notify(current_user):
+    return render_template('user_notify.html')
 
 def update_user():
     if request.method == "POST":
@@ -279,6 +269,20 @@ def arrive_flight_time():
     else:
         flash('No flight found. Please search another flight.', 'alert-danger')
         return redirect(url_for('search_flight'))
+
+
+# TODO: ---------
+@token_required
+def my_insurance(current_user):
+    user_insurance = select_user_insurance(current_user)
+    insurance_company = user_insurance["insurance_company"]
+    plan = user_insurance["plan"]
+    insured_amount = user_insurance["insured_amount"]
+    days = user_insurance["days"]
+    insurance_content = select_insurance_amount(plan, insured_amount,insurance_company, days)
+    insurance_content["insurance_company"] = insurance_company
+    print("insurance_content print from route: ", insurance_content)
+    return render_template('my_insurance.html', user_insurance = user_insurance, insurance_content= insurance_content)
 
 
 

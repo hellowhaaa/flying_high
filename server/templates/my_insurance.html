@@ -1,0 +1,69 @@
+{% extends "layout.html" %} {% block content %}
+<style>
+  .background-image {
+    /* 使用 Jinja2 模板語法 */
+    background-image: url("{{ url_for('static', filename='images/cabin_dark.jpg') }}");
+    opacity: 0.8;
+    height: 100vh;
+    width: 100vw;
+    background-position: center center;
+    background-repeat: no-repeat;
+    background-size: cover; /* 圖像適應 container */
+    position: fixed; /* 不滾動 */
+    top: 0;
+    left: 0;
+    z-index: -1; /* 確保圖像在內容之下 */
+  }
+  .outer {
+    position: relative;
+    min-height: 90vh;
+    display: flex;
+    justify-content: center;
+    /* align-items: center;  */
+  }
+  .insurance-info {
+    position: absolute; /* Allows absolute positioning inside */
+    top: 80px;
+    background: rgba(
+      255,
+      255,
+      255,
+      0.879
+    ); /* Semi-transparent white background */
+
+    padding: 2rem;
+    border-radius: 1rem; /* Rounded corners */
+    box-shadow: 0 0 1rem rgba(0, 0, 0, 0.1); /* Soft shadow */
+    width: 75%;
+    min-height: 400px;
+    transform: translateY(10px);
+  }
+  .container {
+    position: relative; /* Allows absolute positioning inside */
+  }
+  .insurance-title {
+    position: relative;
+    top: -220px;
+    left: 0px;
+    color: white;
+  }
+  .my-insurance {
+    position: relative;
+    top: -210px;
+    left: 50px;
+    color: white;
+  }
+</style>
+
+<div class="container">
+  <div class="background-image"></div>
+  <div class="outer">
+    <h3 class="text-white insurance-title">查看保單</h3>
+    <div class="insurance-info">{{user_insurance}} {{insurance_content}}</div>
+  </div>
+</div>
+
+{% endblock %} {% block scripts %}
+<!----------------- 保單試算  button end----------------- -->
+
+{% endblock %}
