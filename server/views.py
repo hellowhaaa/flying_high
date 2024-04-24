@@ -304,13 +304,13 @@ def fetch_insurance_amount():
     else:
         price = '不在試算範圍內, 請重新輸入'
         print('價格:',price)
-        response = {
-                'status': 'success',
-                'data': {
-                    'insurance_price': price
-                }
+    response = {
+            'status': 'success',
+            'data': {
+                'insurance_price': price
             }
-        return jsonify(response)
+        }
+    return jsonify(response)
         
 
 def dashboard():  
