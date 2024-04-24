@@ -18,6 +18,10 @@ document.addEventListener("DOMContentLoaded", function () {
     if (event.target.tagName === "A") {
       const selectedCompany = event.target.textContent;
       const companyData = event.target.getAttribute("data-company");
+      // Update the button text with the selected company name
+      document.getElementById("insuranceCompanyDropdown").textContent =
+        selectedCompany;
+
       planDropdownButton.textContent = "選擇方案"; // Reset
       updatePlanDropdown(planOptions[companyData] || []);
       document.getElementById("insurance-company-edit").value = companyData;
@@ -78,20 +82,53 @@ document.addEventListener("DOMContentLoaded", function () {
   }
 });
 
-//   // 算 給予時間段 00:00 ~ 23:30 -------------------------------------
+function toggleEdit(editMode) {
+  const displayInfo = document.querySelector(".static-info");
+  const editInfo = document.querySelector(".editable-info");
 
-document.addEventListener("DOMContentLoaded", function () {
-  const startTimeSelect = document.getElementById("startTime");
-  const endTimeSelect = document.getElementById("endTime");
-  for (let hour = 0; hour < 24; hour++) {
-    for (let minute = 0; minute < 60; minute += 30) {
-      // 當只有一個數字時, 前面會加上０, 確保會有兩個 digit
-      // Combine hours and minutes
-      const timeString = `${hour.toString().padStart(2, "0")}:${minute
-        .toString()
-        .padStart(2, "0")}`;
-      startTimeSelect.options.add(new Option(timeString, timeString));
-      endTimeSelect.options.add(new Option(timeString, timeString));
-    }
+  if (editMode) {
+    displayInfo.style.display = "none";
+    editInfo.style.display = "block";
+  } else {
+    displayInfo.style.display = "block";
+    editInfo.style.display = "none";
   }
-});
+}
+
+function submitChanges() {
+  const insuranceCompany = document.getElementById(
+    "insurance-company-edit"
+  ).value;
+  const plan = document.getElementById("plan-edit").value;
+  const insuredAmount = document.getElementById("insured-amount-edit").value;
+  const days = document.getElementById("days-edit").value;
+
+  const data = {
+    insurance_company: insuranceCompany,
+    plan: plan,
+    insured_amount: insuredAmount,
+    days: days,
+  };
+
+  fetch("/user/update_insurance", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(data),
+  })
+    .then((response) => response.json())
+    .then((data) => {
+      console.log("Success:", data);
+      document.getElementById("insurance-company-edit").textContent =
+        insuranceCompany;
+      document.getElementById("plan-edit").textContent = plan;
+      document.getElementById("insured-amount-edit").textContent =
+        insuredAmount;
+      document.getElementById("days-edit").textContent = days;
+      toggleEdit(false);
+    })
+    .catch((error) => {
+      console.error("Error:", error);
+    });
+}

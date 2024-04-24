@@ -158,14 +158,25 @@ def user_info(current_user):
 
 def update_user():
     if request.method == "POST":
-        jsonData = request.get_json()
-        print(jsonData)
+        json_data = request.get_json()
+        print(json_data)
         response = {
             "status": "success",
-            "data" : jsonData
+            "data" : json_data
         }
         return jsonify(response)
-    return render_template('index.html')
+    return render_template('homepage.html')
+
+def update_insurance():
+    if request.method == "POST":
+        json_data = request.get_json()
+        print("json_data:" , json_data)
+        response = {
+            "status": "success",
+            "data": json_data
+        }
+        return jsonify(response)
+    return render_template('homepage.html')
 
 def index():
     return render_template('homepage.html')
