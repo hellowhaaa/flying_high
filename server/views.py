@@ -3,7 +3,7 @@ from flask import (request, redirect, url_for, render_template, flash,
                     current_app,jsonify, abort, session, make_response)
 from models2 import RegisterForm, create_user, same_username, check_user_credentials
 from select_data_from_mongo import (get_arrive_flight_time, get_depart_flight_time, select_insurance_amount,
-                                select_user_information)
+                                select_user_information, select_user_insurance)
 import os
 from pymongo import MongoClient
 from functools import wraps
@@ -130,16 +130,32 @@ def logout():
     return response
 
 
+# TODO: ---------
 @token_required
 def user_insurance(current_user):
-    return render_template('user_insurance.html')
+    user_insurance = select_user_insurance(current_user)
+    print("user_insurance print from route: ", user_insurance)
+    return render_template('user_insurance.html', user_info_dict=user_insurance)
 
 @token_required
 def user_info(current_user):
     user_info_dict = select_user_information(current_user) # dict
     return render_template('user_info.html',user_info_dict=user_info_dict) 
 
-# TODO: ---------
+
+# ? -- 待使用 --
+# def my_insurance():
+#     username = user_insurance["username"]
+#     insurance_company = user_insurance["insurance_company"]
+#     plan = user_insurance["plan"]
+#     insured_amount = user_insurance["insured_amount"]
+#     days = user_insurance["days"]
+#     insurance_content = select_insurance_amount(plan, insured_amount,insurance_company, days)
+#     insurance_content["insurance_company"] = insurance_company
+#     print("insurance_content print from route: ", insurance_content)
+#     return "my_insurance"
+
+
 def update_user():
     if request.method == "POST":
         jsonData = request.get_json()

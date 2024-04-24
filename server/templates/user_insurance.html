@@ -52,198 +52,145 @@
         </li>
       </ul>
     </div>
-    
 
-          <!-- Main Content -->
-          <div class="col-md-9">
-            <div class="py-4">
-              <h1>我的保險</h1>
-              <div class="background-image"></div>
-              <div class="outer">
-                <div class="insurance-info">
-                  <div class="container">
-                    <div class="row">
-                      <!-- 下拉選單 保險公司 -->
-                      <div class="dropdown mb-3 col-md-3">
-                        <button
-                          class="btn btn-secondary dropdown-toggle opacity-75"
-                          type="button"
-                          id="insuranceCompanyDropdown"
-                          data-bs-toggle="dropdown"
-                          aria-expanded="false"
-                        >
-                          保險公司
-                        </button>
-                        <ul
-                          class="dropdown-menu"
-                          aria-labelledby="insuranceCompanyDropdown"
-                        >
-                          <li>
-                            <a
-                              class="dropdown-item"
-                              href="#"
-                              data-company="fubung"
-                              >富邦人壽</a
-                            >
-                          </li>
-                          <li>
-                            <a
-                              class="dropdown-item"
-                              href="#"
-                              data-company="shinkong"
-                              >新光人壽</a
-                            >
-                          </li>
-                          <li>
-                            <a
-                              class="dropdown-item"
-                              href="#"
-                              data-company="guotai"
-                              >國泰人壽</a
-                            >
-                          </li>
-                        </ul>
-                        <input
-                          type="hidden"
-                          id="selectedInsuranceCompany"
-                          name="insuranceCompany"
-                        />
-                      </div>
-                      <!-- 下拉選單 方案 -->
-                      <div class="dropdown mb-3 col-md-3">
-                        <button
-                          class="btn btn-secondary dropdown-toggle opacity-75"
-                          type="button"
-                          id="planDropdown"
-                          data-bs-toggle="dropdown"
-                          aria-expanded="false"
-                        >
-                          方案
-                        </button>
-                        <ul
-                          class="dropdown-menu"
-                          aria-labelledby="planDropdown"
-                          id="planMenu"
-                        >
-                          <!-- Javascript 動態生成 -->
-                        </ul>
-                        <input type="hidden" id="selectedPlan" name="plan" />
-                      </div>
-                      <!-- 下拉選單 保險額度 -->
-                      <div class="dropdown mb-3 col-md-3">
-                        <button
-                          class="btn btn-secondary dropdown-toggle opacity-75"
-                          type="button"
-                          id="insuranceAmountButton"
-                          data-bs-toggle="dropdown"
-                          aria-expanded="false"
-                        >
-                          保險額度
-                        </button>
-                        <ul
-                          class="dropdown-menu"
-                          aria-labelledby="insuranceAmountButton"
-                          id="insuranceAmountMenu"
-                        >
-                          <!-- Javascript 動態生成 -->
-                        </ul>
-                        <input
-                          type="hidden"
-                          id="selectedInsuranceAmount"
-                          name="insuranceAmount"
-                        />
-                      </div>
-                    </div>
-                  </div>
-
-                  <!-- ---------------保險開始日期和時間 ----------- -->
-                  <div class="row mb-3">
-                    <div class="col-md-6">
-                      <label for="startDate" class="form-label"
-                        >旅遊開始日期:</label
-                      >
-                      <input
-                        type="date"
-                        class="form-control"
-                        id="startDate"
-                        name="startDate"
-                      />
-                    </div>
-                    <div class="col-md-6">
-                      <label for="startTime" class="form-label"
-                        >旅遊開始時間:</label
-                      >
-                      <select
-                        class="form-control"
-                        id="startTime"
-                        name="startTime"
-                      >
-                        <!-- Javascript 動態生成 -->
-                      </select>
-                    </div>
-                  </div>
-                  <!-- 保險結束日期和時間 -->
-                  <div class="row mb-3">
-                    <div class="col-md-6">
-                      <label for="endDate" class="form-label"
-                        >旅遊結束日期:</label
-                      >
-                      <input
-                        type="date"
-                        class="form-control"
-                        id="endDate"
-                        name="endDate"
-                      />
-                    </div>
-                    <div class="col-md-6">
-                      <label for="endTime" class="form-label"
-                        >旅遊結束時間:</label
-                      >
-                      <select class="form-control" id="endTime" name="endTime">
-                        <!-- Javascript 動態生成 -->
-                      </select>
-                    </div>
-                  </div>
-
-                  <div class="row mb-3">
-                    <div class="col-12">
-                      <p id="insurancePeriod" class="form-text"></p>
-                      <input
-                        type="hidden"
-                        id="insuranceDays"
-                        name="insuranceDays"
-                        value=""
-                      />
-                      <!-- 這邊出現 天數  -->
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              <form id="userInfoForm">
-                <div class="d-grid gap-2 d-md-flex justify-content-md-end">
-                  <button class="btn btn-primary" type="submit">儲存</button>
-                  <button
-                    class="btn btn-secondary"
-                    type="button"
-                    id="cancelBtn"
-                  >
-                    取消
-                  </button>
-                </div>
-              </form>
-            </div>
-          </div>
-        </div>
+    <!-- 靜態資料呈現 -->
+    <!-- Main Content -->
+<div class="col-md-10">
+  <div class="py-4 px-md-5">
+    <h1 class="mb-4">我的保險</h1>
+    <div class="user-info">
+      <!-- Static display state from MongoDB fetched data -->
+      <div class="static-info mb-3">
+        <p class="mb-2">
+          投保公司:
+          <span id="insurance-company-display">{{ user_info_dict['insurance_company'] }}</span>
+        </p>
+        <p class="mb-2">
+          投保方案:
+          <span id="plan-display">{{ user_info_dict['plan'] }}</span>
+        </p>
+        <p class="mb-2">
+          投保額度:
+          <span id="insured-amount-display">{{ user_info_dict['insured_amount'] }}</span>
+        </p>
+        <p class="mb-2">
+          投保天數:
+          <span id="days-display">{{ user_info_dict['days'] }}</span>
+        </p>
+        <button class="btn btn-secondary mt-3" onclick="toggleEdit(true)">
+          編輯
+        </button>
       </div>
 
-      
-    {% block user_insurance_script %}
-    <script src="../static/js/user_insurance.js"></script>
-    {% endblock %}
+      <!-- Editable input state -->
+      <div class="editable-info" style="display: none">
+        <div class="mb-3">
+          <label for="insurance-company-edit" class="form-label">投保公司:</label>
+          <input
+            type="text"
+            class="form-control"
+            id="insurance-company-edit"
+            name="insurance_company"
+            value="{{ user_info_dict['insurance_company'] }}"
+            autocomplete="off"
+          />
+        </div>
+        <div class="mb-3">
+          <label for="plan-edit" class="form-label">投保方案:</label>
+          <input
+            type="text"
+            class="form-control"
+            id="plan-edit"
+            name="plan"
+            value="{{ user_info_dict['plan'] }}"
+            autocomplete="off"
+          />
+        </div>
+        <div class="mb-3">
+          <label for="insured-amount-edit" class="form-label">投保額度:</label>
+          <input
+            type="text"
+            class="form-control"
+            id="insured-amount-edit"
+            name="insured_amount"
+            value="{{ user_info_dict['insured_amount'] }}"
+            autocomplete="off"
+          />
+        </div>
+        <div class="mb-3">
+          <label for="days-edit" class="form-label">投保天數:</label>
+          <input
+            type="number"
+            class="form-control"
+            id="days-edit"
+            name="days"
+            value="{{ user_info_dict['days'] }}"
+            autocomplete="off"
+          />
+        </div>
+        <button type="button" class="btn btn-success" onclick="submitChanges()">
+          儲存
+        </button>
+        <button class="btn btn-secondary ms-2" onclick="toggleEdit(false)">
+          取消
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
 
+<script>
+  function toggleEdit(editMode) {
+    const displayInfo = document.querySelector(".static-info");
+    const editInfo = document.querySelector(".editable-info");
 
-      {% endblock %}
+    if (editMode) {
+      displayInfo.style.display = "none";
+      editInfo.style.display = "block";
+    } else {
+      displayInfo.style.display = "block";
+      editInfo.style.display = "none";
+    }
+  }
+
+  function submitChanges() {
+    const insuranceCompany = document.getElementById("insurance-company-edit").value;
+    const plan = document.getElementById("plan-edit").value;
+    const insuredAmount = document.getElementById("insured-amount-edit").value;
+    const days = document.getElementById("days-edit").value;
+
+    const data = {
+      insurance_company: insuranceCompany,
+      plan: plan,
+      insured_amount: insuredAmount,
+      days: days
+    };
+
+    fetch("/insurance/update_insurance", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(data)
+    })
+    .then(response => response.json())
+    .then(data => {
+      console.log("Success:", data);
+      document.getElementById("insurance-company-display").textContent = insuranceCompany;
+      document.getElementById("plan-display").textContent = plan;
+      document.getElementById("insured-amount-display").textContent = insuredAmount;
+      document.getElementById("days-display").textContent = days;
+      toggleEdit(false);
+    })
+    .catch(error => {
+      console.error("Error:", error);
+    });
+  }
+</script>
+
+      {% block user_insurance_script %}
+      <script src="../static/js/user_insurance.js"></script>
+      {% endblock %} {% endblock %}
     </div>
   </div>
 </div>

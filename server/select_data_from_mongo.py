@@ -72,7 +72,7 @@ def get_depart_flight_time(flight):
 def select_insurance_amount(plan, insurance_amount,insurance_company, insurance_days):
     url = os.getenv("MONGODB_URI_FLY")
     client = MongoClient(url)
-    insurance_amount = int(insurance_amount+ '0000')
+    insurance_amount = insurance_amount * 10000 if insurance_amount < 3000 else insurance_amount
     print(insurance_amount)
     filter={
     'insured_amount.price': insurance_amount, 
@@ -96,4 +96,17 @@ def select_user_information(username):
     filter=filter
     )
     print("user", result)
-    return result    
+    return result
+
+def select_user_insurance(username):
+    url = os.getenv("MONGODB_URI_FLY")
+    client = MongoClient(url)
+    filter={
+    'username': username
+    }
+    result = client['flying_high']['user_insurance'].find_one(
+    filter=filter
+    )
+    print("user_insurance", result)
+    return result
+    
