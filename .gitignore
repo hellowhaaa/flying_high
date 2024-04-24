@@ -31,9 +31,11 @@ insurance/.env
 
 # server folder
 server/__pycache__/
+server/logs/
 
 # streamlit folder
 .streamlit/
 
-# logs folder
-server/logs/
+# script
+.scp.sh
+
