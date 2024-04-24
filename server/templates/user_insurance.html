@@ -1,0 +1,139 @@
+{% extends "layout.html" %} {% block content %}
+<style>
+  .outer {
+    position: relative;
+    min-height: 60vh; /* Set to the height of the viewport */
+    display: flex;
+    justify-content: center; /* Center horizontally */
+    align-items: center; /* Center vertically */
+  }
+  .insurance-info {
+    position: absolute; /* Allows absolute positioning inside */
+    background: rgba(
+      255,
+      255,
+      255,
+      0.879
+    ); /* Semi-transparent white background */
+    padding: 2rem;
+    border-radius: 1rem; /* Rounded corners */
+    box-shadow: 0 0 1rem rgba(0, 0, 0, 0.1); /* Soft shadow */
+    width: 75%;
+    min-height: 400px; /* Ensures that there's enough space for positioning */
+    transform: translateY(10px);
+  }
+  .container {
+    position: relative; /* Allows absolute positioning inside */
+  }
+  .insurance-title {
+    position: relative;
+    top: -220px;
+    left: 0px;
+    color: white;
+  }
+  .my-insurance {
+    position: relative;
+    top: -210px;
+    left: 50px;
+    color: white;
+  }
+</style>
+
+<div class="container-fluid">
+  <div class="row">
+    <!-- Sidebar -->
+    <div class="col-md-2 bg-light sidebar py-5">
+      <ul class="nav flex-column">
+        <li class="nav-item">
+          <a class="nav-link" href="info.html">我的資料</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link active" href="insurance.html">我的保險</a>
+        </li>
+      </ul>
+    </div>
+
+    <!-- Main Content -->
+    <div class="col-md-10">
+      <div class="py-4 px-md-5">
+        <h1 class="mb-4">我的保險</h1>
+        <div class="user-info">
+          <!-- Static display state from MongoDB fetched data -->
+          <div class="static-info mb-3">
+            <p class="mb-2">
+              投保公司: <span id="insurance-company-display">{{ user_info_dict['insurance_company'] }}</span>
+            </p>
+            <p class="mb-2">
+              投保方案: <span id="plan-display">{{ user_info_dict['plan'] }}</span>
+            </p>
+            <p class="mb-2">
+              投保額度: <span id="insured-amount-display"> {{ user_info_dict['insured_amount'] }}</span>
+            </p>
+            <p class="mb-2">
+              投保天數: <span id="days-display">{{ user_info_dict['days'] }}</span>
+            </p>
+            <button class="btn btn-secondary mt-3" onclick="toggleEdit(true)">編輯</button>
+          </div>
+
+          <!-- Editable input state -->
+          <div class="editable-info" style="display: none">
+            <div class="mb-3">
+              <label for="insurance-company-edit" class="form-label">投保公司:</label>
+              <button class="btn btn-secondary opacity-50 dropdown-toggle" type="button" id="insuranceCompanyDropdown" data-bs-toggle="dropdown" aria-expanded="false">選擇保險公司</button>
+              <ul class="dropdown-menu" aria-labelledby="insuranceCompanyDropdown" id="insuranceCompanyMenu">
+                <li><a class="dropdown-item" href="#" data-company="fubung">富邦</a></li>
+                <li><a class="dropdown-item" href="#" data-company="guotai">國泰</a></li>
+              </ul>
+              <input type="hidden" id="insurance-company-edit" name="insurance_company" value="{{ user_info_dict['insurance_company'] }}"
+              autocomplete="insurance_company">
+            </div>
+
+            <div class="mb-3">
+              <label for="plan-edit" class="form-label">投保方案:</label>
+              <button class="btn btn-secondary opacity-50 dropdown-toggle" type="button" id="planDropdown" data-bs-toggle="dropdown" aria-expanded="false">選擇方案</button>
+              <ul class="dropdown-menu" aria-labelledby="planDropdown" id="planMenu">
+                <!-- Filled dynamically -->
+              </ul>
+              <input type="hidden" id="plan-edit" name="plan">
+            </div>
+
+            <div class="mb-3">
+              <label for="insured-amount-edit" class="form-label">投保額度:</label>
+              <button class="btn btn-secondary opacity-50 dropdown-toggle" type="button" id="insuranceAmountDropdown" data-bs-toggle="dropdown" aria-expanded="false">選擇額度</button>
+              <ul class="dropdown-menu" aria-labelledby="insuranceAmountDropdown" id="insuranceAmountMenu">
+                <!-- Filled dynamically -->
+              </ul>
+              <input type="hidden" id="insured-amount-edit" name="insured_amount">
+            </div>
+
+            <div class="mb-3">
+              <label for="days-edit" class="form-label">投保天數:</label>
+              <button class="btn btn-secondary opacity-50 dropdown-toggle" type="button" id="daysDropdown" data-bs-toggle="dropdown" aria-expanded="false">選擇天數</button>
+              <ul class="dropdown-menu" aria-labelledby="daysDropdown" id="daysMenu">
+                <!-- Filled dynamically -->
+              </ul>
+              <input type="hidden" id="days-edit" name="days">
+            </div>
+            <button
+              type="button"
+              class="btn btn-success"
+              onclick="submitChanges()"
+            >
+              儲存
+            </button>
+            <button class="btn btn-secondary opacity-50 ms-2" onclick="toggleEdit(false)">
+              取消
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+      {% block user_insurance_script %}
+      <script src="../static/js/user_insurance.js"></script>
+      {% endblock %} {% endblock %}
+    </div>
+  </div>
+</div>

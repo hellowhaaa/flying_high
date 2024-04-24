@@ -1,0 +1,78 @@
+{% extends "layout.html" %} {% block css_signup %}
+<link rel="stylesheet" href="../static/css/style_sign_up.css" />
+{% endblock %} {% block content %}
+<div class="container py-4">
+  <div class="row justify-content-center">
+    <div class="col-lg-10">
+      <div class="card shadow-lg">
+        <div class="row g-0">
+          <h2
+            class="text-center mt-3 justify-content-center align-items-center"
+          >
+            Sign up
+          </h2>
+          <!-- Left side - Form -->
+          <div class="col-md-6">
+            <div class="card-body p-5">
+              <!-------  form start----- -->
+              <form method="post" action="{{url_for('sign_up')}}">
+                {{ form.hidden_tag() }}
+                <!-- Name Input -->
+                <div class="mb-3">
+                  {{ form.username.label(class="form-label") }} {{
+                  form.username(class="form-control", size=32) }}
+                </div>
+
+                <!-- Email Input -->
+                <div class="mb-3">
+                  {{ form.email.label(class="form-label") }} {{
+                  form.email(class="form-control", size=32) }}
+                </div>
+
+                <!-- Password Input -->
+                <div class="mb-3">
+                  {{ form.password.label(class="form-label") }} {{
+                  form.password(class="form-control", size=32) }}
+                </div>
+
+                <!-- Address Input -->
+                <div class="mb-4">
+                  {{ form.address.label(class="form-label") }} {{
+                  form.address(class="form-control", size=32) }}
+                </div>
+
+                <!-- Register Button -->
+                <div class="d-grid">
+                  {{ form.submit(class="btn btn-primary") }}
+                </div>
+                <!-- Already Member Link -->
+                <div class="mt-4 text-center">
+                  <a href="/user/log_in" class="text-decoration-none"
+                    >I am already member</a
+                  >
+                </div>
+              </form>
+            </div>
+          </div>
+          <!-- Right side - Image -->
+          <div
+            class="col-md-6 d-none d-md-flex align-items-center justify-content-center"
+          >
+            <img
+              src="{{ url_for('static', filename='images/signup-image.jpg') }}"
+              alt="Signup"
+              class="img-fluid"
+            />
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- JavaScript -->
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.2/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+
+    {% endblock %}
+  </div>
+</div>

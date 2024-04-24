@@ -1,0 +1,407 @@
+{% extends "layout.html" %} {% block content %}
+<style>
+  .background-image {
+    /* 使用 Jinja2 模板語法 */
+    background-image: url("{{ url_for('static', filename='images/cabin_dark.jpg') }}");
+    opacity: 0.8;
+    height: 100vh;
+    width: 100vw;
+    background-position: center center;
+    background-repeat: no-repeat;
+    background-size: cover; /* 圖像適應 container */
+    position: fixed; /* 不滾動 */
+    top: 0;
+    left: 0;
+    z-index: -1; /* 確保圖像在內容之下 */
+  }
+  .outer {
+    position: relative;
+    min-height: 90vh; /* Set to the height of the viewport */
+    display: flex;
+    justify-content: center; /* Center horizontally */
+    align-items: center; /* Center vertically */
+  }
+  .insurance-info {
+    position: absolute; /* Allows absolute positioning inside */
+    background: rgba(
+      255,
+      255,
+      255,
+      0.879
+    ); /* Semi-transparent white background */
+    padding: 2rem;
+    border-radius: 1rem; /* Rounded corners */
+    box-shadow: 0 0 1rem rgba(0, 0, 0, 0.1); /* Soft shadow */
+    width: 75%;
+    min-height: 400px; /* Ensures that there's enough space for positioning */
+    transform: translateY(10px);
+  }
+  .container {
+    position: relative; /* Allows absolute positioning inside */
+  }
+  .insurance-title {
+    position: relative;
+    top: -220px;
+    left: 0px;
+    color: white;
+  }
+  .my-insurance {
+    position: relative;
+    top: -210px;
+    left: 50px;
+    color: white;
+  }
+  #result {
+    position: absolute;
+    top: 80%; /* 或其他適合您布局的值 */
+    left: 40%;
+    transform: translateY(-110%);
+    z-index: 2000; /* 確保其在最上層 */
+    color: white; /* 確保文字顯示為白色 */
+    background: rgba(0, 0, 0, 0.5); /* 輕微背景色增加可讀性 */
+    padding: 10px;
+    border-radius: 8px;
+  }
+</style>
+
+<div class="container">
+  <form id="insuranceForm">
+    <div class="background-image"></div>
+    <div class="outer">
+      <h3 class="text-white insurance-title">查看保單</h3>
+      <a href="#"><p class="text-white my-insurance">我的保單</p></a>
+
+      <div class="insurance-info">
+        <div class="container">
+          <div class="row">
+            <!-- 下拉選單 保險公司 -->
+            <div class="dropdown mb-3 col-md-2">
+              <button
+                class="btn btn-secondary dropdown-toggle opacity-75"
+                type="button"
+                id="insuranceCompanyDropdown"
+                data-bs-toggle="dropdown"
+                aria-expanded="false"
+              >
+                保險公司
+              </button>
+              <ul
+                class="dropdown-menu"
+                aria-labelledby="insuranceCompanyDropdown"
+              >
+                <li>
+                  <a class="dropdown-item" href="#" data-company="fubung"
+                    >富邦人壽</a
+                  >
+                </li>
+                <li>
+                  <a class="dropdown-item" href="#" data-company="shinkong"
+                    >新光人壽</a
+                  >
+                </li>
+                <li>
+                  <a class="dropdown-item" href="#" data-company="guotai"
+                    >國泰人壽</a
+                  >
+                </li>
+              </ul>
+              <input
+                type="hidden"
+                id="selectedInsuranceCompany"
+                name="insuranceCompany"
+              />
+            </div>
+            <!-- 下拉選單 方案 -->
+            <div class="dropdown mb-3 col-md-2">
+              <button
+                class="btn btn-secondary dropdown-toggle opacity-75"
+                type="button"
+                id="planDropdown"
+                data-bs-toggle="dropdown"
+                aria-expanded="false"
+              >
+                方案
+              </button>
+              <ul
+                class="dropdown-menu"
+                aria-labelledby="planDropdown"
+                id="planMenu"
+              >
+                <!-- Javascript 動態生成 -->
+              </ul>
+              <input type="hidden" id="selectedPlan" name="plan" />
+            </div>
+            <!-- 下拉選單 保險額度 -->
+            <div class="dropdown mb-3 col-md-2">
+              <button
+                class="btn btn-secondary dropdown-toggle opacity-75"
+                type="button"
+                id="insuranceAmountButton"
+                data-bs-toggle="dropdown"
+                aria-expanded="false"
+              >
+                保險額度
+              </button>
+              <ul
+                class="dropdown-menu"
+                aria-labelledby="insuranceAmountButton"
+                id="insuranceAmountMenu"
+              >
+                <!-- Javascript 動態生成 -->
+              </ul>
+              <input
+                type="hidden"
+                id="selectedInsuranceAmount"
+                name="insuranceAmount"
+              />
+            </div>
+          </div>
+        </div>
+
+        <!-- ---------------保險開始日期和時間 ----------- -->
+        <div class="row mb-3">
+          <div class="col-md-6">
+            <label for="startDate" class="form-label">旅遊開始日期:</label>
+            <input
+              type="date"
+              class="form-control"
+              id="startDate"
+              name="startDate"
+            />
+          </div>
+          <div class="col-md-6">
+            <label for="startTime" class="form-label">旅遊開始時間:</label>
+            <select class="form-control" id="startTime" name="startTime">
+              <!-- Javascript 動態生成 -->
+            </select>
+          </div>
+        </div>
+        <!-- 保險結束日期和時間 -->
+        <div class="row mb-3">
+          <div class="col-md-6">
+            <label for="endDate" class="form-label">旅遊結束日期:</label>
+            <input
+              type="date"
+              class="form-control"
+              id="endDate"
+              name="endDate"
+            />
+          </div>
+          <div class="col-md-6">
+            <label for="endTime" class="form-label">旅遊結束時間:</label>
+            <select class="form-control" id="endTime" name="endTime">
+              <!-- Javascript 動態生成 -->
+            </select>
+          </div>
+        </div>
+
+        <div class="row mb-3">
+          <div class="col-12">
+            <p id="insurancePeriod" class="form-text"></p>
+            <input
+              type="hidden"
+              id="insuranceDays"
+              name="insuranceDays"
+              value=""
+            />
+            <!-- 這邊出現 天數  -->
+          </div>
+        </div>
+        <!----------------- 保單試算  button  start----------------- -->
+        <div class="row mb-3">
+          <div class="col-3">
+            <button
+              type="submit"
+              class="btn btn-secondary opacity-75"
+              id="submitBtn"
+            >
+              保單試算
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </form>
+  <p id="result">Here will display the result.</p>
+</div>
+
+{% endblock %} {% block scripts %}
+<!----------------- 保單試算  button end----------------- -->
+
+<script>
+  //  --------------方案 -------------------------
+
+  document.addEventListener("DOMContentLoaded", function () {
+    const insuranceCompanyDropdown = document.getElementById(
+      "insuranceCompanyDropdown"
+    );
+    const insuranceCompanyMenu = insuranceCompanyDropdown.nextElementSibling;
+    const planDropdownButton = document.getElementById("planDropdown");
+    const planDropdownMenu = document.getElementById("planMenu");
+    const selectedInsuranceCompany = document.getElementById(
+      "selectedInsuranceCompany"
+    );
+
+    const planOptions = {
+      fubung: ["S方案", "M方案", "L方案", "XL方案"],
+      // shinkong: ["基本型", "全面型", "豪華型"],
+      guotai: [
+        "海外輕鬆型(T2)",
+        "海外安心型(T2)",
+        "賞櫻限定型(Z)",
+        "早鳥豪華型(U2)",
+      ],
+    };
+
+    // 保險公司下拉選單的點擊事件
+    insuranceCompanyMenu.addEventListener("click", function (event) {
+      if (event.target.tagName === "A") {
+        const selectedCompany = event.target.textContent;
+        const companyData = event.target.getAttribute("data-company");
+        insuranceCompanyDropdown.textContent = selectedCompany; // 更新保險公司下拉button
+        updatePlanDropdown(planOptions[companyData] || []); // dynamic update plan dropdown
+        selectedInsuranceCompany.value =
+          event.target.getAttribute("data-company"); // 更新隐藏字段
+      }
+    });
+
+    // 更新方案的下拉選單
+    function updatePlanDropdown(selectedPlans) {
+      planDropdownMenu.innerHTML = ""; // 清空原有的選項
+      selectedPlans.forEach((plan) => {
+        const li = document.createElement("li");
+        const a = document.createElement("a");
+        a.className = "dropdown-item";
+        a.href = "#";
+        a.textContent = plan;
+        a.onclick = function () {
+          planDropdownButton.textContent = plan; // 更新方案的下拉選單文本
+          document.getElementById("selectedPlan").value = plan; // 更新隐藏输入的值
+        };
+        li.appendChild(a);
+        planDropdownMenu.appendChild(li);
+      });
+    }
+  });
+
+  // 保險額度 200萬～ 1500萬 -------------------------------------
+  document.addEventListener("DOMContentLoaded", function () {
+    const insuranceAmountMenu = document.getElementById("insuranceAmountMenu");
+    const insuranceAmountButton = document.getElementById(
+      "insuranceAmountButton"
+    );
+
+    // 動態生成 200萬～ 1500萬 的選項
+    for (let amount = 200; amount <= 1500; amount += 100) {
+      const li = document.createElement("li");
+      const a = document.createElement("a");
+      a.className = "dropdown-item";
+      a.href = "#"; // 保持链接为 #
+      a.textContent = `${amount}萬`;
+      li.appendChild(a);
+      insuranceAmountMenu.appendChild(li);
+
+      // 點擊選項時，更新保險額度
+      a.addEventListener("click", function () {
+        insuranceAmountButton.textContent = `${amount}萬`;
+        insuranceAmountButton.setAttribute("data-selected-amount", `${amount}`);
+        document.getElementById("selectedInsuranceAmount").value = `${amount}`; // 更新隐藏输入的值
+      });
+    }
+  });
+
+  //   // 算 給予時間段 00:00 ~ 23:30 -------------------------------------
+
+  document.addEventListener("DOMContentLoaded", function () {
+    const startTimeSelect = document.getElementById("startTime");
+    const endTimeSelect = document.getElementById("endTime");
+    for (let hour = 0; hour < 24; hour++) {
+      for (let minute = 0; minute < 60; minute += 30) {
+        const timeString = `${hour.toString().padStart(2, "0")}:${minute
+          .toString()
+          .padStart(2, "0")}`;
+        startTimeSelect.options.add(new Option(timeString, timeString));
+        endTimeSelect.options.add(new Option(timeString, timeString));
+      }
+    }
+  });
+
+  //   // 動態生成 算 旅遊天數 -------------------------------------
+  document.addEventListener("DOMContentLoaded", function () {
+    const startDateInput = document.getElementById("startDate");
+    const startTimeSelect = document.getElementById("startTime");
+    const endDateInput = document.getElementById("endDate");
+    const endTimeSelect = document.getElementById("endTime");
+    const insurancePeriodDisplay = document.getElementById("insurancePeriod");
+
+    function updateInsurancePeriod() {
+      const startDate = new Date(
+        startDateInput.value + "T" + startTimeSelect.value
+      );
+      const endDate = new Date(endDateInput.value + "T" + endTimeSelect.value);
+
+      if (startDate && endDate && startDate < endDate) {
+        const diffTime = Math.abs(endDate - startDate);
+        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+        const startDateFormatted =
+          startDate.toLocaleDateString("zh-TW", {
+            year: "numeric",
+            month: "2-digit",
+            day: "2-digit",
+          }) +
+          " " +
+          startTimeSelect.value;
+        const endDateFormatted =
+          endDate.toLocaleDateString("zh-TW", {
+            year: "numeric",
+            month: "2-digit",
+            day: "2-digit",
+          }) +
+          " " +
+          endTimeSelect.value;
+
+        insurancePeriodDisplay.textContent = `共投保${diffDays}天，保期為 ${startDateFormatted} - ${endDateFormatted}`;
+        document.getElementById("insuranceDays").value = diffDays; // 將計算的天數賦值給隱藏輸入
+      } else {
+        insurancePeriodDisplay.textContent = "";
+      }
+    }
+
+    //     // 當日期或時間改變時，更新保險期間
+    startDateInput.addEventListener("change", updateInsurancePeriod);
+    startTimeSelect.addEventListener("change", updateInsurancePeriod);
+    endDateInput.addEventListener("change", updateInsurancePeriod);
+    endTimeSelect.addEventListener("change", updateInsurancePeriod);
+  });
+
+  //  await json information from server
+  document
+    .getElementById("submitBtn")
+    .addEventListener("click", function (event) {
+      event.preventDefault();
+      const formData = new FormData(document.getElementById("insuranceForm"));
+
+      // 使用fetch API 發送 AJAX 請求
+      fetch("/fetch_insurance_amount", {
+        method: "POST",
+        body: formData,
+      })
+        .then((response) => response.json()) // parse response as JSON
+        .then((data) => {
+          console.log(data);
+          if (data.status === "success") {
+            document.getElementById(
+              "result"
+            ).textContent = `預估保費：${data.data.insurance_price}`;
+          } else {
+            alert("沒有找到數據");
+          }
+        })
+        .catch((error) => {
+          console.error("Error:", error);
+          alert("請求失敗");
+        });
+    });
+</script>
+{% endblock %}

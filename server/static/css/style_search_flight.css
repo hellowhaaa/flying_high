@@ -1,0 +1,22 @@
+img {
+  background-image: url("{{ url_for('static', filename='images/airplane.jpg') }}");
+  opacity: 0.8;
+  height: 100vh;
+  width: 100vw;
+  background-position: center center;
+  background-repeat: no-repeat;
+  background-size: cover;
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: -1;
+}
+.space {
+  height: 160px;
+}
+
+#emphasize {
+  font-size: x-large;
+  color: rgba(224, 69, 69, 0.928);
+  margin: 0 10px;
+}

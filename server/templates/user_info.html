@@ -1,0 +1,150 @@
+{% extends "layout.html" %} {% block content %}
+<div class="container-fluid">
+  <div class="row">
+    <!-- Sidebar -->
+    <div class="col-md-2 bg-light sidebar py-5">
+      <ul class="nav flex-column">
+        <li class="nav-item mb-2">
+          <a class="nav-link" href="info.html">我的資料</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link active" href="insurance.html">我的保險</a>
+        </li>
+      </ul>
+    </div>
+
+    <!-- Main Content -->
+    <div class="col-md-10">
+      <div class="py-4 px-md-5">
+        <h1 class="mb-4">我的資料</h1>
+        <div class="user-info">
+          <!-- Static display state 從  Mongodb 撈出來的資料顯示 -->
+          <div class="static-info mb-3">
+            <p class="mb-2">
+              Username:
+              <span id="username-display"
+                >{{ user_info_dict['username'] }}</span
+              >
+            </p>
+            <p class="mb-2">
+              Email:
+              <span id="email-display">{{ user_info_dict['email'] }}</span>
+            </p>
+            <p class="mb-2">
+              Address:
+              <span id="address-display">{{ user_info_dict['address'] }}</span>
+            </p>
+            <button class="btn btn-secondary mt-3" onclick="toggleEdit(true)">
+              編輯
+            </button>
+          </div>
+
+          <!-- Editable input state -->
+          <div class="editable-info" style="display: none">
+            <div class="mb-3">
+              <label for="username-edit" class="form-label">Username:</label>
+              <!-- value  就是原本顯示在 尚未編輯 block 的值-->
+              <!-- 同時因為要將 原本的值顯示在編輯欄中, 所以要 autocomplete -->
+              <input
+                type="text"
+                class="form-control"
+                id="username-edit"
+                name="username"
+                value="{{ user_info_dict['username'] }}"
+                autocomplete="username"
+              />
+            </div>
+            <div class="mb-3">
+              <label for="email-edit" class="form-label">Email:</label>
+              <!-- value  就是原本顯示在 尚未編輯 block 的值-->
+              <input
+                type="email"
+                class="form-control"
+                id="email-edit"
+                name="email"
+                value="{{ user_info_dict['email'] }}"
+                autocomplete="email"
+              />
+            </div>
+            <div class="mb-3">
+              <label for="address-edit" class="form-label">Address:</label>
+              <!-- value  就是原本顯示在 尚未編輯 block 的值-->
+              <input
+                type="text"
+                class="form-control"
+                id="address-edit"
+                name="address"
+                value="{{ user_info_dict['address'] }}"
+                autocomplete="address-line1"
+              />
+            </div>
+            <button
+              type="button"
+              class="btn btn-success"
+              onclick="submitChanges()"
+            >
+              儲存
+            </button>
+            <button class="btn btn-secondary ms-2" onclick="toggleEdit(false)">
+              取消
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  //  editMode 為 True 也就是點選 " 編輯 " 時
+  function toggleEdit(editMode) {
+    const displayInfo = document.querySelector(".static-info");
+    const editInfo = document.querySelector(".editable-info");
+
+    if (editMode) {
+      displayInfo.style.display = "none";
+      editInfo.style.display = "block";
+    } else {
+      displayInfo.style.display = "block";
+      editInfo.style.display = "none";
+    }
+  }
+
+  function submitChanges() {
+    const username = document.getElementById("username-edit").value;
+    const email = document.getElementById("email-edit").value;
+    const address = document.getElementById("address-edit").value;
+
+    // Create a data object to send in the POST request
+    const data = {
+      username: username,
+      email: email,
+      address: address,
+    };
+
+    // Use the fetch API to send a POST request to your server endpoint
+    fetch("/user/update_user", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(data), // Convert the data object to a JSON string
+    })
+      .then((response) => response.json()) // Parse the JSON response
+      .then((data) => {
+        // Handle success
+        console.log("Success:", data);
+        // Update the display values and toggle back
+        document.getElementById("username-display").textContent = username;
+        document.getElementById("email-display").textContent = email;
+        document.getElementById("address-display").textContent = address;
+        toggleEdit(false);
+      })
+      .catch((error) => {
+        // Handle errors
+        console.error("Error:", error);
+      });
+  }
+</script>
+
+{% endblock %}
