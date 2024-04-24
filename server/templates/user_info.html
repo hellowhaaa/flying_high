@@ -18,7 +18,7 @@
       <div class="py-4 px-md-5">
         <h1 class="mb-4">我的資料</h1>
         <div class="user-info">
-          <!-- Static display state -->
+          <!-- Static display state 從  Mongodb 撈出來的資料顯示 -->
           <div class="static-info mb-3">
             <p class="mb-2">
               Username:
@@ -34,7 +34,7 @@
               Address:
               <span id="address-display">{{ user_info_dict['address'] }}</span>
             </p>
-            <button class="btn btn-primary" onclick="toggleEdit(true)">
+            <button class="btn btn-secondary mt-3" onclick="toggleEdit(true)">
               編輯
             </button>
           </div>
@@ -43,6 +43,8 @@
           <div class="editable-info" style="display: none">
             <div class="mb-3">
               <label for="username-edit" class="form-label">Username:</label>
+              <!-- value  就是原本顯示在 尚未編輯 block 的值-->
+              <!-- 同時因為要將 原本的值顯示在編輯欄中, 所以要 autocomplete -->
               <input
                 type="text"
                 class="form-control"
@@ -54,6 +56,7 @@
             </div>
             <div class="mb-3">
               <label for="email-edit" class="form-label">Email:</label>
+              <!-- value  就是原本顯示在 尚未編輯 block 的值-->
               <input
                 type="email"
                 class="form-control"
@@ -65,6 +68,7 @@
             </div>
             <div class="mb-3">
               <label for="address-edit" class="form-label">Address:</label>
+              <!-- value  就是原本顯示在 尚未編輯 block 的值-->
               <input
                 type="text"
                 class="form-control"
@@ -79,7 +83,7 @@
               class="btn btn-success"
               onclick="submitChanges()"
             >
-              提交
+              儲存
             </button>
             <button class="btn btn-secondary ms-2" onclick="toggleEdit(false)">
               取消
@@ -92,6 +96,7 @@
 </div>
 
 <script>
+  //  editMode 為 True 也就是點選 " 編輯 " 時
   function toggleEdit(editMode) {
     const displayInfo = document.querySelector(".static-info");
     const editInfo = document.querySelector(".editable-info");
