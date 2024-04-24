@@ -211,7 +211,7 @@ def depart_flight_time():
     except Exception:
         current_app.logger.error("Catch an exception.", exc_info=True)
     share_code_list = []
-    if flight_result:
+    if flight_result is not None:
         for each_air in flight_result['airline']:
             if each_air['airline_code'] == flight:
                 main_code = flight
@@ -252,7 +252,7 @@ def arrive_flight_time():
     except Exception:
         current_app.logger.error("Catch an exception.", exc_info=True)
     share_code_list = []
-    if flight_result:
+    if flight_result is not None:
         for each_air in flight_result['airline']:
             if each_air['airline_code'] == flight:
                 main_code = flight

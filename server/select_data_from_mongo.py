@@ -27,9 +27,7 @@ def get_arrive_flight_time(flight):  # airline_code 是 JL96 的組合\l
     filter={
         'airline': {
             '$elemMatch': {
-                'airline_code': {
-                    '$regex': flight
-                }
+                'airline_code': flight
             }
         },
         'updated_at': {
@@ -53,9 +51,7 @@ def get_depart_flight_time(flight):
     filter={
         'airline': {
             '$elemMatch': {
-                'airline_code': {
-                    '$regex': flight
-                }
+                'airline_code': flight
             }
         },
         'updated_at': {
