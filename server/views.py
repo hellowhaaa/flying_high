@@ -377,22 +377,21 @@ def split_alpha_numeric(s):
 
 # TODO: ---------        
 def fetch_flight_code():
-    return_code_dic = {} 
-    result = select_today_depart_flight_code() 
-    # print(result)
+    return_code_dic = {}
+    result = select_today_depart_flight_code()
     for each in result:
-        airlines = each['airline']  
+        airlines = each['airline']
         for airline in airlines:
             airline_code = airline['airline_code']
-            print(airline_code)
-            split_code = split_alpha_numeric(airline_code)  
-            print(split_code)
-            if len(split_code) == 2:  
+            split_code = split_alpha_numeric(airline_code)
+            if len(split_code) == 2:
                 letter_part, number_part = split_code
-                if letter_part in return_code_dic:
-                    return_code_dic[letter_part].append(number_part)
+                key = f"{letter_part} {airline['airline_name']}"
+                if key in return_code_dic:
+                    if number_part not in return_code_dic[key]:
+                        return_code_dic[key].append(number_part) 
                 else:
-                    return_code_dic[letter_part] = [number_part]
+                    return_code_dic[key] = [number_part] 
 
     print("dic--->", return_code_dic)
     return return_code_dic
