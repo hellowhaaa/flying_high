@@ -148,6 +148,10 @@ def user_info(current_user):
 def user_notify(current_user):
     return render_template('user_notify.html')
 
+@token_required
+def user_flight(current_user):
+    return render_template('user_flight.html')
+
 def update_user():
     if request.method == "POST":
         json_data = request.get_json()
