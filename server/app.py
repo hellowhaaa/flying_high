@@ -1,5 +1,6 @@
 # app.py
 from flask import Flask, request
+from flask_wtf import CSRFProtect
 # from models2 import db
 from views import (sign_up, login, logout, dashboard, insurance,search_flight,
                     index,arrive_flight_time,fetch_insurance_amount, depart_flight_time,
@@ -17,6 +18,7 @@ def create_app():
     load_dotenv(env_path)
     app = Flask(__name__)
     app.secret_key = os.getenv("SECRET_KEY")
+    csrf = CSRFProtect(app)
     
     @app.context_processor
     def inject_user():
