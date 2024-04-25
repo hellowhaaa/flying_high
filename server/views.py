@@ -339,13 +339,33 @@ def fetch_insurance_content():
             }
         }
         return jsonify(response)
-        
-    
     return render_template("homepage.html")
-    # if inconvenience_insurance:
-    #     return jsonify(status="success", data={"insurance_price": insurance_price})
-    # else:
-    #     return jsonify(status="error", message="Invalid insurance option"), 400
+
+def fetch_travel_insurance_content():
+    if request.method == "POST":
+        selected_insurance = request.form.get("travelInsuranceOption")
+        plan = request.form.get("plan")
+        days = request.form.get("days")
+        insured_amount = request.form.get("insuredAmount")
+        insurance_company = request.form.get("insuranceCompany")
+        print("plan, insured_amount,insurance_company, days, selected_insurance", (plan, insured_amount,insurance_company, days, selected_insurance))
+        # result = select_insurance_amount(plan, insured_amount,insurance_company, days)
+        # content = result['travel_insurance']['content'][0][selected_insurance]
+        # print("content------->",content)
+        # response = {
+        #     'status': 'success',
+        #     'data': {
+        #         'pay_type': content['pay_type'],
+        #         'price': content['price'],
+        #         'name': content['name'],
+        #         'count': content['count'],
+        #         'description':content['description'],
+        #         'explain': content['explain'],
+        #         'necessities':content['necessities']
+        #     }
+        # }
+        # return jsonify(response)
+    return render_template("homepage.html")
         
       
 
