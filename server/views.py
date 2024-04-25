@@ -318,8 +318,28 @@ def fetch_insurance_amount():
 
 def fetch_insurance_content():
     if request.method == "POST":
-        inconvenience_insurance = request.form.get("convenienceOption")
-        print("不便險：",inconvenience_insurance)
+        selected_inconvenience_insurance = request.form.get("convenienceOption")
+        plan = request.form.get("plan")
+        days = request.form.get("days")
+        insured_amount = request.form.get("insuredAmount")
+        insurance_company = request.form.get("insuranceCompany")
+        result = select_insurance_amount(plan, insured_amount,insurance_company, days)
+        content = result['travel_inconvenience_insurance']['content'][0][selected_inconvenience_insurance]
+        print("content------->",content)
+        response = {
+            'status': 'success',
+            'data': {
+                'pay_type': content['pay_type'],
+                'price': content['price'],
+                'name': content['name'],
+                'count': content['count'],
+                'description':content['description'],
+                'explain': content['explain'],
+                'necessities':content['necessities']
+            }
+        }
+        return jsonify(response)
+        
     
     return render_template("homepage.html")
     # if inconvenience_insurance:

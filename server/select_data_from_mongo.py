@@ -65,6 +65,7 @@ def get_depart_flight_time(flight):
 
 
 
+
 def select_insurance_amount(plan, insurance_amount,insurance_company, insurance_days):
     url = os.getenv("MONGODB_URI_FLY")
     client = MongoClient(url)
@@ -105,4 +106,7 @@ def select_user_insurance(username):
     )
     print("user_insurance", result)
     return result
+    
+    
+    
     
