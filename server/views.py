@@ -3,7 +3,8 @@ from flask import (request, redirect, url_for, render_template, flash,
                     current_app,jsonify, abort, session, make_response)
 from models2 import RegisterForm, create_user, same_username, check_user_credentials
 from select_data_from_mongo import (get_arrive_flight_time, get_depart_flight_time, select_insurance_amount,
-                                select_user_information, select_user_insurance, select_today_depart_flight_code)
+                                select_user_information, select_user_insurance, select_today_depart_flight_code,
+                                select_today_arrive_flight_code)
 from update_data_to_mongo import update_user_insurance
 import os
 from pymongo import MongoClient
@@ -375,8 +376,8 @@ def split_alpha_numeric(s):
     parts = re.findall(r'[A-Za-z]+|\d+', s)
     return parts
 
-# TODO: ---------        
-def fetch_flight_code():
+  
+def fetch_depart_flight_code():
     return_code_dic = {}
     result = select_today_depart_flight_code()
     for each in result:
@@ -395,6 +396,28 @@ def fetch_flight_code():
 
     print("dic--->", return_code_dic)
     return return_code_dic
+# TODO: ---------      
+def fetch_arrive_flight_code():
+    return_code_dic = {}
+    result = select_today_arrive_flight_code()
+    for each in result:
+        airlines = each['airline']
+        for airline in airlines:
+            airline_code = airline['airline_code']
+            split_code = split_alpha_numeric(airline_code)
+            if len(split_code) == 2:
+                letter_part, number_part = split_code
+                key = f"{letter_part} {airline['airline_name']}"
+                if key in return_code_dic:
+                    if number_part not in return_code_dic[key]:
+                        return_code_dic[key].append(number_part) 
+                else:
+                    return_code_dic[key] = [number_part] 
+
+    print("dic--->", return_code_dic)
+    return return_code_dic
+
+select_today_arrive_flight_code
 
 def dashboard():  
     streamlit_url = "http://localhost:8501"

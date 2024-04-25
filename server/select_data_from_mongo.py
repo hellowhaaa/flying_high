@@ -81,6 +81,24 @@ def select_today_depart_flight_code():
     )
     return list(result)
 
+def select_today_arrive_flight_code():
+    url = os.getenv("MONGODB_URI_FLY")
+    client = MongoClient(url)
+    taiwan_tz = pytz.timezone('Asia/Taipei')
+    tw_now = datetime.now(taiwan_tz)
+    tw_midnight = taiwan_tz.localize(datetime(tw_now.year, tw_now.month, tw_now.day, 0, 0, 0))
+    utc_midnight = tw_midnight.astimezone(pytz.utc)
+    print("midnight--->", utc_midnight)
+    filter={
+        'updated_at': {
+        '$gt': utc_midnight
+    }
+    }
+    result = client['flying_high']['flight_arrive2'].find(
+    filter=filter
+    )
+    return list(result)
+
 
 
 def select_insurance_amount(plan, insurance_amount,insurance_company, insurance_days):

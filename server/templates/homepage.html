@@ -29,18 +29,50 @@
 
 <script type="text/javascript">
   $(document).ready(function () {
-    fetch("http://127.0.0.1:5000/fetch_flight_code")
+    fetch("/fetch_depart_flight_code")
       .then((response) => response.json())
       .then((data) => {
-        var country = Object.keys(data);
-        $("#country").select2({
-          data: country.map(function (key) {
-            return { id: key, text: key };
-          }),
+        $("#depart_airlines").select2({
+          data: Object.keys(data).map((key) => ({ id: key, text: key })),
+        });
+
+        $("#depart_airlines").on("change", function () {
+          var selectedAirline = $(this).val();
+          var flightCodes = data[selectedAirline] || [];
+          $("#depart_flightCodes")
+            .empty()
+            .select2({
+              data: flightCodes.map((code) => ({ id: code, text: code })),
+            });
         });
       })
       .catch((error) =>
-        console.error("Error fetching the country list:", error)
+        console.error("Error fetching the airline data:", error)
+      );
+  });
+</script>
+
+<script type="text/javascript">
+  $(document).ready(function () {
+    fetch("/fetch_arrive_flight_code")
+      .then((response) => response.json())
+      .then((data) => {
+        $("#arrive_airlines").select2({
+          data: Object.keys(data).map((key) => ({ id: key, text: key })),
+        });
+
+        $("#arrive_airlines").on("change", function () {
+          var selectedAirline = $(this).val();
+          var flightCodes = data[selectedAirline] || [];
+          $("#arrive_flightCodes")
+            .empty()
+            .select2({
+              data: flightCodes.map((code) => ({ id: code, text: code })),
+            });
+        });
+      })
+      .catch((error) =>
+        console.error("Error fetching the airline data:", error)
       );
   });
 </script>
@@ -49,7 +81,18 @@
 <h1>主頁</h1>
 <h1>DropDown with Search using jQuery</h1>
 <div>
-  <select id="country" style="width: 300px">
+  <select id="depart_airlines" style="width: 300px">
+    <!-- Dropdown List Option -->
+  </select>
+  <select id="depart_flightCodes" style="width: 300px">
+    <!-- Dropdown List Option -->
+  </select>
+</div>
+<div>
+  <select id="arrive_airlines" style="width: 300px">
+    <!-- Dropdown List Option -->
+  </select>
+  <select id="arrive_flightCodes" style="width: 300px">
     <!-- Dropdown List Option -->
   </select>
 </div>
