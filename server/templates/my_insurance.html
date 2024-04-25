@@ -59,10 +59,148 @@
   <div class="background-image"></div>
   <div class="outer">
     <h3 class="text-white insurance-title">查看保單</h3>
-    <div class="insurance-info">{{user_insurance}} {{insurance_content}}</div>
+    <div class="insurance-info">
+      <div class="container">
+        <form id="insuranceForm">
+          <!-- 投保公司 -->
+          <input
+            type="hidden"
+            name="insuranceCompany"
+            value="{{ user_insurance.insurance_company }}"
+          />
+          <!-- 方案 -->
+          <input type="hidden" name="plan" value="{{ user_insurance.plan }}" />
+          <!-- 投保额度 -->
+          <input
+            type="hidden"
+            name="insuredAmount"
+            value="{{ user_insurance.insured_amount }}"
+          />
+          <!-- 投保天数 -->
+          <input type="hidden" name="days" value="{{ user_insurance.days }}" />
+
+          <h4>投保資訊：</h4>
+          <p>投保公司: {{ user_insurance.insurance_company }}</p>
+          <p>方案: {{ user_insurance.plan }}</p>
+          <p>投保额度: {{ user_insurance.insured_amount }}</p>
+          <p>投保天数: {{ user_insurance.days }}</p>
+
+          <div class="dropdown mb-3 col-md-4">
+            <button
+              class="btn btn-secondary dropdown-toggle"
+              type="button"
+              id="convenienceDropdown"
+              data-bs-toggle="dropdown"
+              aria-expanded="false"
+            >
+              不便險
+            </button>
+            <ul class="dropdown-menu" aria-labelledby="convenienceDropdown">
+              <!-- Option items here -->
+              <li>
+                <button
+                  type="button"
+                  class="dropdown-item"
+                  data-option="tripCancellation"
+                >
+                  旅程取消
+                </button>
+              </li>
+              <li>
+                <button
+                  type="button"
+                  class="dropdown-item"
+                  data-option="flightDelay"
+                >
+                  班機延誤
+                </button>
+              </li>
+              <li>
+                <button
+                  type="button"
+                  class="dropdown-item"
+                  data-option="tripModification"
+                >
+                  旅程更改
+                </button>
+              </li>
+              <li>
+                <button
+                  type="button"
+                  class="dropdown-item"
+                  data-option="luggageDelay"
+                >
+                  行李延誤
+                </button>
+              </li>
+              <li>
+                <button
+                  type="button"
+                  class="dropdown-item"
+                  data-option="luggageLoss"
+                >
+                  行李損失
+                </button>
+              </li>
+              <li>
+                <button
+                  type="button"
+                  class="dropdown-item"
+                  data-option="travelDocumentLoss"
+                >
+                  旅行文件損失
+                </button>
+              </li>
+            </ul>
+            <input type="hidden" id="selectedOption" name="convenienceOption" />
+          </div>
+          <!-- 提交按鈕 -->
+          <button type="submit" class="btn btn-primary" id="submitBtn">
+            提交
+          </button>
+        </form>
+      </div>
+      <h3>旅平險</h3>
+      <div>{{insurance_content}}</div>
+    </div>
   </div>
 </div>
 
+<script>
+  document.querySelectorAll(".dropdown-item").forEach((item) => {
+    item.addEventListener("click", function () {
+      const optionText = this.textContent;
+      const optionValue = this.getAttribute("data-option");
+      document.getElementById("convenienceDropdown").textContent = optionText;
+      document.getElementById("selectedOption").value = optionValue;
+    });
+  });
+
+  document
+    .getElementById("submitBtn")
+    .addEventListener("click", function (event) {
+      event.preventDefault();
+      const formData = new FormData(document.getElementById("insuranceForm"));
+
+      fetch("/fetch_insurance_content", {
+        method: "POST",
+        body: formData,
+      })
+        .then((response) => response.json())
+        .then((data) => {
+          console.log(data);
+          if (data.status === "success") {
+            alert(`方案內容：${data.data.insurance_content}`);
+          } else {
+            alert("沒有找到數據");
+          }
+        })
+        .catch((error) => {
+          console.error("Error:", error);
+          alert("請求失敗");
+        });
+    });
+</script>
 {% endblock %} {% block scripts %}
 <!----------------- 保單試算  button end----------------- -->
 

@@ -315,7 +315,19 @@ def fetch_insurance_amount():
             }
         }
     return jsonify(response)
+
+def fetch_insurance_content():
+    if request.method == "POST":
+        inconvenience_insurance = request.form.get("convenienceOption")
+        print("不便險：",inconvenience_insurance)
+    
+    return render_template("homepage.html")
+    # if inconvenience_insurance:
+    #     return jsonify(status="success", data={"insurance_price": insurance_price})
+    # else:
+    #     return jsonify(status="error", message="Invalid insurance option"), 400
         
+      
 
 def dashboard():  
     streamlit_url = "http://localhost:8501"
