@@ -61,22 +61,11 @@
     <h3 class="text-white insurance-title">查看保單</h3>
     <div class="insurance-info">
       <div class="container">
-        <form id="insuranceForm">
-          <!-- 投保公司 -->
-          <input
-            type="hidden"
-            name="insuranceCompany"
-            value="{{ user_insurance.insurance_company }}"
-          />
-          <!-- 方案 -->
+        <form id="convenienceForm">
+          <!-- 投保信息 -->
+          <input type="hidden" name="insuranceCompany" value="{{ user_insurance.insurance_company }}" />
           <input type="hidden" name="plan" value="{{ user_insurance.plan }}" />
-          <!-- 投保額度 -->
-          <input
-            type="hidden"
-            name="insuredAmount"
-            value="{{ user_insurance.insured_amount }}"
-          />
-          <!-- 投保天數 -->
+          <input type="hidden" name="insuredAmount" value="{{ user_insurance.insured_amount }}" />
           <input type="hidden" name="days" value="{{ user_insurance.days }}" />
 
           <h4>投保資訊：</h4>
@@ -86,13 +75,7 @@
           <p>投保天數: {{ user_insurance.days }}</p>
           <h3>不便險</h3>
           <div class="dropdown mb-3 col-md-4">
-            <button
-              class="btn btn-secondary dropdown-toggle"
-              type="button"
-              id="convenienceDropdown"
-              data-bs-toggle="dropdown"
-              aria-expanded="false"
-            >
+            <button class="btn btn-secondary dropdown-toggle" type="button" id="convenienceDropdown" data-bs-toggle="dropdown" aria-expanded="false">
               不便險
             </button>
             <ul class="dropdown-menu" aria-labelledby="convenienceDropdown">
@@ -152,10 +135,9 @@
                 </button>
               </li>
             </ul>
-            <input type="hidden" id="selectedOption" name="convenienceOption" />
-          </div>
+            <input type="hidden" id="selectedConvenienceOption" name="convenienceOption" />
           <!-- 提交 -->
-          <button type="submit" class="btn btn-primary" id="submitBtn">
+          <button type="submit" class="btn btn-primary" id="submitConvenienceBtn">
             提交
           </button>
         </form>
@@ -168,27 +150,73 @@
       <p id="explain"></p>
       <p id="necessities"></p>
 
-      <h3>旅平險</h3>
-      <div></div>
+      <div>
+        <form id="travelInsuranceForm">
+          <h3>旅平險</h3>
+          <div class="dropdown mb-3 col-md-4">
+            <button class="btn btn-secondary dropdown-toggle" type="button" id="travelInsuranceDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+              旅平險
+            </button>
+            <ul class="dropdown-menu" aria-labelledby="travelInsuranceDropdown">
+              <li>
+                <button
+                  type="button"
+                  class="dropdown-item"
+                  data-option="overseas_emergency"
+                >
+                  海外突發疾病健康
+                </button>
+              </li>
+              <li>
+                <button
+                  type="button"
+                  class="dropdown-item"
+                  data-option="injury_medical"
+                >
+                  傷害醫療費用
+                </button>
+              </li>
+              <li>
+                <button
+                  type="button"
+                  class="dropdown-item"
+                  data-option="travel_safety"
+                >
+                  旅行平安保險
+                </button>
+              </li>
+            </ul>
+            <input type="hidden" id="selectedTravelOption" name="travelInsuranceOption" />
+          </div>
+          <!-- 提交按钮 -->
+          <button type="submit" class="btn btn-primary" id="submitTravelInsuranceBtn">
+            提交
+          </button>
+        </form>
+      </div>
     </div>
   </div>
 </div>
 
 <script>
   document.querySelectorAll(".dropdown-item").forEach((item) => {
-    item.addEventListener("click", function () {
-      const optionText = this.textContent;
-      const optionValue = this.getAttribute("data-option");
-      document.getElementById("convenienceDropdown").textContent = optionText;
-      document.getElementById("selectedOption").value = optionValue;
-    });
+  item.addEventListener("click", function () {
+    const parentDropdown = this.closest('.dropdown');
+    const dropdownButtonId = parentDropdown.querySelector('button[data-bs-toggle="dropdown"]').id;
+    const optionText = this.textContent;
+    const optionValue = this.getAttribute("data-option");
+    const hiddenInputId = parentDropdown.querySelector('input[type="hidden"]').id;
+    
+    document.getElementById(dropdownButtonId).textContent = optionText;  // 更新按钮显示文本
+    document.getElementById(hiddenInputId).value = optionValue;  // 更新隐藏输入的值
   });
+});
 
   document
-    .getElementById("submitBtn")
+    .getElementById("submitConvenienceBtn")
     .addEventListener("click", function (event) {
       event.preventDefault();
-      const formData = new FormData(document.getElementById("insuranceForm"));
+      const formData = new FormData(document.getElementById("convenienceForm"));
 
       fetch("/fetch_insurance_content", {
         method: "POST",
