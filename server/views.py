@@ -3,13 +3,14 @@ from flask import (request, redirect, url_for, render_template, flash,
                     current_app,jsonify, abort, session, make_response)
 from models2 import RegisterForm, create_user, same_username, check_user_credentials
 from select_data_from_mongo import (get_arrive_flight_time, get_depart_flight_time, select_insurance_amount,
-                                select_user_information, select_user_insurance)
+                                select_user_information, select_user_insurance, select_today_depart_flight_code)
 from update_data_to_mongo import update_user_insurance
 import os
 from pymongo import MongoClient
 from functools import wraps
 import jwt
 from datetime import datetime, timedelta
+import re
 
 
 def encode_auth_token(username):
@@ -275,7 +276,7 @@ def arrive_flight_time():
         return redirect(url_for('search_flight'))
 
 
-# TODO: ---------
+
 @token_required
 def my_insurance(current_user):
     user_insurance = select_user_insurance(current_user)
@@ -369,9 +370,34 @@ def fetch_travel_insurance_content():
         }
         return jsonify(response)
     return render_template("homepage.html")
-        
-      
+
+def split_alpha_numeric(s):
+    parts = re.findall(r'[A-Za-z]+|\d+', s)
+    return parts
+
+# TODO: ---------        
+def fetch_flight_code():
+    return_code_dic = {} 
+    result = select_today_depart_flight_code() 
+    # print(result)
+    for each in result:
+        airlines = each['airline']  
+        for airline in airlines:
+            airline_code = airline['airline_code']
+            print(airline_code)
+            split_code = split_alpha_numeric(airline_code)  
+            print(split_code)
+            if len(split_code) == 2:  
+                letter_part, number_part = split_code
+                if letter_part in return_code_dic:
+                    return_code_dic[letter_part].append(number_part)
+                else:
+                    return_code_dic[letter_part] = [number_part]
+
+    print("dic--->", return_code_dic)
+    return return_code_dic
 
 def dashboard():  
     streamlit_url = "http://localhost:8501"
     return render_template('dashboard.html', streamlit_url=streamlit_url)
+
