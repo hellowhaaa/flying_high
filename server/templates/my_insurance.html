@@ -62,6 +62,8 @@
     <div class="insurance-info">
       <div class="container">
         <form id="convenienceForm">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+          
           <!-- 投保信息 -->
           <input type="hidden" name="insuranceCompany" value="{{ user_insurance.insurance_company }}" />
           <input type="hidden" name="plan" value="{{ user_insurance.plan }}" />
@@ -152,6 +154,8 @@
 
       <div>
         <form id="travelInsuranceForm">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+    
           <input type="hidden" name="insuranceCompany" value="{{ user_insurance.insurance_company }}" />
           <input type="hidden" name="plan" value="{{ user_insurance.plan }}" />
           <input type="hidden" name="insuredAmount" value="{{ user_insurance.insured_amount }}" />
@@ -228,11 +232,16 @@
     .addEventListener("click", function (event) {
       event.preventDefault();
       const formData = new FormData(document.getElementById("convenienceForm"));
+      var csrftoken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
 
       fetch("/fetch_insurance_content", {
         method: "POST",
         body: formData,
-      })
+        headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-Token': csrftoken
+            },
+      },)
         .then((response) => response.json())
         .then((data) => {
           console.log(data);

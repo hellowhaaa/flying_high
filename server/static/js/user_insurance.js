@@ -113,7 +113,10 @@ function submitChanges() {
   fetch("/user/update_insurance", {
     method: "POST",
     headers: {
-      "Content-Type": "application/json",
+      Accept: "application/json",
+      "X-CSRFToken": document
+        .querySelector('meta[name="csrf-token"]')
+        .getAttribute("content"), // Add CSRF token here from the meta tag
     },
     body: JSON.stringify(data),
   })

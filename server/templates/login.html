@@ -18,6 +18,11 @@
             <div class="card-body p-5">
               <!-------  form start----- -->
               <form method="post" action="{{url_for('login')}}">
+                <input
+                  type="hidden"
+                  name="csrf_token"
+                  value="{{ csrf_token() }}"
+                />
                 <div class="form-group my-3">
                   <label for="username">Username</label>
                   <input
