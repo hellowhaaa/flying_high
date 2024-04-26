@@ -64,7 +64,9 @@ def transform_result():
                     print("status-->", status)
                     data = {'email': email,
                             'scheduled_depart_time':scheduled_depart_time,
-                            'status':status
+                            'status':status,
+                            'airline_code':airline_code,
+                            'username':username
                         }
                     r = requests.post(url=API_ENDPOINT, data=data)
                     response = r.text

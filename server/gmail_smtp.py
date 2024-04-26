@@ -32,14 +32,18 @@ def send_email():
         email = request.form.get('email')
         scheduled_depart_time = request.form.get('scheduled_depart_time')
         status = request.form.get('status')
+        airline_code = request.form.get('airline_code')
+        username = request.form.get('username')
         print("data", (email, scheduled_depart_time, status))
         print("x")
         msg = Message(subject="Hello",
                     sender=app.config.get("MAIL_USERNAME"),
-                    recipients=[test_recipients], # replace with your email for testing
-                    body="This is a test email I sent with Gmail and Python!222")
+                    recipients=[email], # replace with your email for testing
+                    body=f"Hi! {username}  your flight {airline_code} 's time has been changed. Your flight's scheduled_depart_time {scheduled_depart_time} which status is now {status}. ")
         mail.send(msg)
-        return 'hi'
+        response_data = {
+            "status": "Success"}
+        return response_data
     except Exception as e:
         print('3')
         print(str(e))
