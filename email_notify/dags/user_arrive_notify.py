@@ -11,16 +11,16 @@ import requests
 
 API_ENDPOINT  = 'http://127.0.0.1:5000/send_email'
 
-def get_depart_flight_time():
+def get_arrive_flight_time():
     load_dotenv()
     url = os.getenv("MONGODB_URI_FLY")
+    print(url)
     client = MongoClient(url)
     taiwan_tz = pytz.timezone('Asia/Taipei')
     #  今天凌晨
     tw_now = datetime.now(taiwan_tz)
     tw_midnight = taiwan_tz.localize(datetime(tw_now.year, tw_now.month, tw_now.day, 0, 0, 0))
     utc_midnight = tw_midnight.astimezone(pytz.utc)  # UTC Time
-    
     filter={
         'status': {
         '$in': [
@@ -31,18 +31,18 @@ def get_depart_flight_time():
         '$gt': utc_midnight
     }
     }
-    result = client['flying_high']['flight_depart2'].find(
+    result = client['flying_high']['flight_arrive2'].find(
     filter=filter
     )
     return list(result)
 
 def transform_result():
-    result_ls = get_depart_flight_time()
+    result_ls = get_arrive_flight_time()
     for collection in result_ls:
-        # print(collection)
+        print(collection)
         print("-------")
         airlines = collection['airline']
-        scheduled_depart_time = collection['scheduled_depart_time']
+        scheduled_arrive_time = collection['scheduled_arrive_time']
         status = collection['status']
         for airline in airlines:
             airline_code = airline['airline_code']
@@ -53,10 +53,10 @@ def transform_result():
                 if user_info is not None:
                     email = user_info['email']
                     print("email", email)
-                    print("scheduled_depart_time->", scheduled_depart_time)
+                    print("scheduled_arrive_time->", scheduled_arrive_time)
                     print("status-->", status)
                     data = {'email': email,
-                            'scheduled_depart_time':scheduled_depart_time,
+                            'scheduled_arrive_time':scheduled_arrive_time,
                             'status':status,
                             'airline_code':airline_code,
                             'username':username
@@ -69,8 +69,8 @@ def transform_result():
                     print("no no email")
             else:
                 print("no no username")
-                
-            
+
+
 def select_user_email(username):
     try:
         load_dotenv()
@@ -85,14 +85,14 @@ def select_user_email(username):
         return result # dict      
     except Exception as e:
         print(str(e))
-            
-
+        
+        
 def select_user_flight(airline_code):
     try:
         load_dotenv()
         url = os.getenv("MONGODB_URI_FLY")
         client = MongoClient(url)
-        filter={'flight_depart_taoyuan': airline_code}
+        filter={'flight_arrive_taoyuan': airline_code}
         result = client['flying_high']['user_flight'].find(
         filter=filter)
         result = list(result)
@@ -111,15 +111,8 @@ def select_user_flight(airline_code):
                 return send_email #dict
     except Exception as e:
         print(str(e))
-            
-        
-
-
-
 
 transform_result()
-# print("arrive->: ", get_arrive_flight_time())
-# print("depart->", get_depart_flight_time())
 
 # default_args = {
 #     'owner': 'airflow',
@@ -148,10 +141,15 @@ transform_result()
 #     dag=dag
 #     )
     
+#     task_depart_flight_change = PythonOperator(
+#         task_id = "depart_flight_change",
+#         python_callable=get_depart_flight_time,
+#         dag = dag  
+#     )
 #     task_arrive_flight_change = PythonOperator(
 #         task_id = "arrive_flight_change",
 #         python_callable=get_arrive_flight_time,
 #         dag = dag  
 #     )
     
-# (task_start >> task_arrive_flight_change >> task_end)
+# (task_start >> [task_depart_flight_change, task_arrive_flight_change] >> task_end)
