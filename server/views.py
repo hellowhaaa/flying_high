@@ -5,7 +5,7 @@ from models2 import RegisterForm, create_user, same_username, check_user_credent
 from select_data_from_mongo import (get_arrive_flight_time, get_depart_flight_time, select_insurance_amount,
                                 select_user_information, select_user_insurance, select_today_depart_flight_code,
                                 select_today_arrive_flight_code)
-from update_data_to_mongo import update_user_insurance, update_user_flight_info
+from update_data_to_mongo import update_user_insurance, update_user_flight_info, update_user_notify
 import os
 from pymongo import MongoClient
 from functools import wraps
@@ -186,7 +186,7 @@ def update_insurance(current_user):
         return jsonify(response)
     return render_template('homepage.html')
 
-# TODO: ---------   
+ 
 @token_required
 def update_flight_info(current_user):
     print("token---->",request.headers.get('X-CSRFToken'))
@@ -209,6 +209,20 @@ def update_flight_info(current_user):
         return jsonify(response)
     return render_template('homepage.html')
 
+# TODO: ---------  
+@token_required
+def update_notify(current_user):
+    print("token---->",request.headers.get('X-CSRFToken'))
+    if request.method == "POST":
+        flight_change = request.form.get('flight_change') == '1' # return False or True
+        flight_delay = request.form.get('flight_delay') == '1' # return False or True
+        print("flight_result", (flight_change,flight_delay))
+        result = update_user_notify(current_user,flight_change,flight_delay)
+        print("result",result)
+        
+        return jsonify({"success": True, "message": "Flight information updated successfully."})
+    return render_template("homepage.html")
+        
 
 
 def index():

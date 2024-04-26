@@ -69,3 +69,27 @@ def update_user_flight_info(username,start_date,end_date,depart_flight, depart_f
         "upserted_id": result.upserted_id
     }
 
+def update_user_notify(username,flight_change,flight_delay):
+    url = os.getenv("MONGODB_URI_FLY")
+    client = MongoClient(url)
+    filter = {"username": username}
+    
+    update = {
+        "$set": {
+            "flight_change": flight_change,
+            "flight_delay": flight_delay,
+            "updated_at": datetime.utcnow()
+        },
+        "$setOnInsert": {
+            "created_at": datetime.utcnow()  # Only set this field on insert (upsert)
+        }
+    }
+    result = client['flying_high']['user_notify'].update_many(
+    filter=filter,
+    update = update,
+    upsert = True)
+    return {
+        "matched_count": result.matched_count,
+        "modified_count": result.modified_count,
+        "upserted_id": result.upserted_id
+    }
