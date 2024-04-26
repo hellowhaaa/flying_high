@@ -1,17 +1,18 @@
 # app.py
 from flask import Flask, request
 from flask_wtf import CSRFProtect
+
 # from models2 import db
 from views import (sign_up, login, logout, dashboard, insurance,search_flight,
                     index,arrive_flight_time,fetch_insurance_amount, depart_flight_time,
                     user_insurance, user_info, update_user, update_insurance, my_insurance,
                     user_notify, fetch_insurance_content, fetch_travel_insurance_content,
                     user_flight, fetch_depart_flight_code, fetch_arrive_flight_code,
-                    update_flight_info, update_notify)
+                    update_flight_info, update_notify, setup_routes)
 import logging
 from logging.handlers import RotatingFileHandler
 import os
-
+from flask_mail import Mail
 from dotenv import load_dotenv
 
 def create_app():
@@ -20,6 +21,18 @@ def create_app():
     app = Flask(__name__)
     app.secret_key = os.getenv("SECRET_KEY")
     csrf = CSRFProtect(app)
+    setup_routes(app, csrf)
+    # Setup Flask-Mail
+    mail_settings = {
+        "MAIL_SERVER": 'smtp.gmail.com',
+        "MAIL_PORT": 465,
+        "MAIL_USE_TLS": False,
+        "MAIL_USE_SSL": True,
+        "MAIL_USERNAME": os.getenv("MAIL_USERNAME"),
+        "MAIL_PASSWORD": os.getenv("MAIL_PASSWORD")
+    }
+    app.config.update(mail_settings)
+    mail = Mail(app)
     
     @app.context_processor
     def inject_user():
@@ -46,16 +59,19 @@ def create_app():
     app.add_url_rule('/user/log_in', view_func=login, methods=['GET', 'POST'])
     app.add_url_rule('/user/sign_up', view_func=sign_up, methods=['GET', 'POST'])
     app.add_url_rule('/user/log_out', view_func=logout, methods=['GET', 'POST'])
+    
     app.add_url_rule('/user/insurance.html', view_func=user_insurance, methods=['GET', 'POST'])
     app.add_url_rule('/user/info.html', view_func=user_info, methods=['GET', 'POST'])
+    app.add_url_rule('/user/notify.html', view_func=user_notify, methods=['GET', 'POST'])
+    app.add_url_rule('/user/flight.html', view_func=user_flight, methods=['GET', 'POST'])
+    
     app.add_url_rule('/user/update_user', view_func=update_user, methods=['GET', 'POST'])
     app.add_url_rule('/user/update_insurance', view_func=update_insurance, methods=['GET', 'POST'])
     app.add_url_rule('/user/update_flight_info', view_func=update_flight_info, methods=['GET', 'POST'])
     app.add_url_rule('/user/update_notify', view_func=update_notify, methods=['GET', 'POST'])
     
     
-    app.add_url_rule('/user/notify.html', view_func=user_notify, methods=['GET', 'POST'])
-    app.add_url_rule('/user/flight.html', view_func=user_flight, methods=['GET', 'POST'])
+    
     
     # flight ---
     app.add_url_rule('/search_flight', view_func=search_flight, methods=['GET', 'POST'])

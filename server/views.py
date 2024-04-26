@@ -12,6 +12,8 @@ from functools import wraps
 import jwt
 from datetime import datetime, timedelta
 import re
+from flask_mail import Mail, Message
+
 
 
 def encode_auth_token(username):
@@ -209,7 +211,7 @@ def update_flight_info(current_user):
         return jsonify(response)
     return render_template('homepage.html')
 
-# TODO: ---------  
+ 
 @token_required
 def update_notify(current_user):
     print("token---->",request.headers.get('X-CSRFToken'))
@@ -231,6 +233,40 @@ def index():
 
 def search_flight():
     return render_template('search_flight.html')
+
+
+def setup_routes(app, csrf):
+    # Other routes setup
+    @app.route('/send_depart_email', methods=['GET', 'POST'])
+    @csrf.exempt
+    def send_depart_email():
+        print("1")
+        try:
+            email = request.form.get('email')
+            scheduled_depart_time = request.form.get('scheduled_depart_time')
+            status = request.form.get('status')
+            airline_code = request.form.get('airline_code')
+            username = request.form.get('username')
+            print("data", (email, scheduled_depart_time, status))
+            print("x")
+            print("current_app_MAIL_USERNAME",current_app.config.get("MAIL_USERNAME"))
+            mail = current_app.extensions['mail']
+            msg = Message(subject="Hello",
+                        sender=current_app.config.get("MAIL_USERNAME"),
+                        recipients=[email], # replace with your email for testing
+                        body=f"Hi! {username}  your flight {airline_code} 's time has been changed. Your flight's scheduled_depart_time {scheduled_depart_time} which status is now {status}. ")
+            mail.send(msg)
+            response_data = {
+                "status": "Success"}
+            return response_data
+        except Exception as e:
+            print('3')
+            print(str(e))
+
+# TODO: --------- 
+
+
+
 
 
 
