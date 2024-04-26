@@ -6,7 +6,8 @@ from views import (sign_up, login, logout, dashboard, insurance,search_flight,
                     index,arrive_flight_time,fetch_insurance_amount, depart_flight_time,
                     user_insurance, user_info, update_user, update_insurance, my_insurance,
                     user_notify, fetch_insurance_content, fetch_travel_insurance_content,
-                    user_flight, fetch_depart_flight_code, fetch_arrive_flight_code)
+                    user_flight, fetch_depart_flight_code, fetch_arrive_flight_code,
+                    update_flight_info)
 import logging
 from logging.handlers import RotatingFileHandler
 import os
@@ -49,6 +50,8 @@ def create_app():
     app.add_url_rule('/user/info.html', view_func=user_info, methods=['GET', 'POST'])
     app.add_url_rule('/user/update_user', view_func=update_user, methods=['GET', 'POST'])
     app.add_url_rule('/user/update_insurance', view_func=update_insurance, methods=['GET', 'POST'])
+    app.add_url_rule('/user/update_flight_info', view_func=update_flight_info, methods=['GET', 'POST'])
+    
     app.add_url_rule('/user/notify.html', view_func=user_notify, methods=['GET', 'POST'])
     app.add_url_rule('/user/flight.html', view_func=user_flight, methods=['GET', 'POST'])
     

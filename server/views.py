@@ -5,7 +5,7 @@ from models2 import RegisterForm, create_user, same_username, check_user_credent
 from select_data_from_mongo import (get_arrive_flight_time, get_depart_flight_time, select_insurance_amount,
                                 select_user_information, select_user_insurance, select_today_depart_flight_code,
                                 select_today_arrive_flight_code)
-from update_data_to_mongo import update_user_insurance
+from update_data_to_mongo import update_user_insurance, update_user_flight_info
 import os
 from pymongo import MongoClient
 from functools import wraps
@@ -154,6 +154,7 @@ def user_notify(current_user):
 def user_flight(current_user):
     return render_template('user_flight.html')
 
+
 def update_user():
     if request.method == "POST":
         json_data = request.get_json()
@@ -182,6 +183,29 @@ def update_insurance(current_user):
         update_info = update_user_insurance(current_user,insurance_company,plan, insured_amount, days)
         print(update_info)
         print(response)
+        return jsonify(response)
+    return render_template('homepage.html')
+
+# TODO: ---------   
+@token_required
+def update_flight_info(current_user):
+    print("token---->",request.headers.get('X-CSRFToken'))
+    if request.method == "POST":
+        start_date = request.form.get("startDate")
+        end_date = request.form.get("endDate")
+        depart_flight = request.form.get("departFlight") 
+        depart_fight_number = request.form.get("departFlightNumber") 
+        arrive_flight = request.form.get("arriveFlight")
+        arrive_fight_number = request.form.get("arriveFlightNumber")
+        print(start_date,end_date,depart_flight, depart_fight_number, arrive_flight, arrive_fight_number)
+        update_info = update_user_flight_info(current_user,start_date,end_date,depart_flight, depart_fight_number, arrive_flight, arrive_fight_number)
+        print(update_info)
+        json_data = "hi"
+        response = {
+            "status": "success",
+            "data": json_data
+        }
+        
         return jsonify(response)
     return render_template('homepage.html')
 
@@ -396,7 +420,7 @@ def fetch_depart_flight_code():
 
     print("dic--->", return_code_dic)
     return return_code_dic
-# TODO: ---------      
+   
 def fetch_arrive_flight_code():
     return_code_dic = {}
     result = select_today_arrive_flight_code()

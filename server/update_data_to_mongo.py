@@ -31,5 +31,41 @@ def update_user_insurance(username,insurance_company,plan, insured_amount, days)
         "upserted_id": result.upserted_id
     }
     
-
+def update_user_flight_info(username,start_date,end_date,depart_flight, depart_fight_number, arrive_flight, arrive_fight_number):
+    url = os.getenv("MONGODB_URI_FLY")
+    client = MongoClient(url)
+    taiwan_tz = pytz.timezone('Asia/Taipei')
+    start_date_obj = datetime.strptime(start_date, '%Y-%m-%d')
+    
+    start_date_tw_midnight = taiwan_tz.localize(datetime(start_date_obj.year, start_date_obj.month, start_date_obj.day, 0, 0, 0))
+    start_date_utc_midnight = start_date_tw_midnight.astimezone(pytz.utc)
+    
+    end_date_obj = datetime.strptime(end_date, '%Y-%m-%d')
+    end_date_tw_midnight = taiwan_tz.localize(datetime(end_date_obj.year, end_date_obj.month, end_date_obj.day, 0, 0, 0))
+    end_date_utc_midnight = end_date_tw_midnight.astimezone(pytz.utc)
+    
+    filter = {"username": username}
+    update = {
+        "$set": {
+            "start_date_utc": start_date_utc_midnight,
+            "end_date_utc": end_date_utc_midnight,
+            "depart_flight": depart_flight,
+            "depart_fight_number": depart_fight_number,
+            "arrive_flight": arrive_flight,
+            "arrive_fight_number": arrive_fight_number,
+            "updated_at": datetime.utcnow()
+        },
+        "$setOnInsert": {
+            "created_at": datetime.utcnow()  # Only set this field on insert (upsert)
+        }
+    }
+    result = client['flying_high']['user_flight'].update_many(
+    filter=filter,
+    update = update,
+    upsert = True)
+    return {
+        "matched_count": result.matched_count,
+        "modified_count": result.modified_count,
+        "upserted_id": result.upserted_id
+    }
 

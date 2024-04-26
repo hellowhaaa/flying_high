@@ -155,7 +155,7 @@
       function submitFlightInfo() {
         const formData = new FormData(document.getElementById("flightForm"));
 
-        fetch("/api/submit_flight_info", {
+        fetch("/user/update_flight_info", {
           method: "POST",
           body: formData,
           headers: {
