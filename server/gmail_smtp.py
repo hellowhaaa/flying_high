@@ -25,10 +25,14 @@ app.config.update(mail_settings)
 mail = Mail(app)
 
 
-@app.route('/send', methods=['POST'])
+@app.route('/send_email', methods=['POST'])
 def send_email():
     print("1")
     try:
+        email = request.form.get('email')
+        scheduled_depart_time = request.form.get('scheduled_depart_time')
+        status = request.form.get('status')
+        print("data", (email, scheduled_depart_time, status))
         print("x")
         msg = Message(subject="Hello",
                     sender=app.config.get("MAIL_USERNAME"),
@@ -42,6 +46,6 @@ def send_email():
         
 
 if __name__ == '__main__':
-    app.run(debug=True, port=9000)
+    app.run(debug=True)
 
 

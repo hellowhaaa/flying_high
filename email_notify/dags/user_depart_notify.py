@@ -7,6 +7,9 @@ from pymongo import MongoClient
 import os
 from datetime import datetime, tzinfo, timezone, timedelta
 import pytz
+import requests
+
+API_ENDPOINT  = 'http://127.0.0.1:5000/send_email'
 
 
 
@@ -46,12 +49,49 @@ def transform_result():
         # print(collection)
         print("-------")
         airlines = collection['airline']
+        scheduled_depart_time = collection['scheduled_depart_time']
+        status = collection['status']
         for airline in airlines:
             airline_code = airline['airline_code']
-            email_dic = select_user_flight(airline_code)
-            print(email_dic)
+            send_email_dic = select_user_flight(airline_code)
+            if send_email_dic is not None:
+                username = send_email_dic['username']
+                user_info = select_user_email(username)
+                if user_info is not None:
+                    email = user_info['email']
+                    print("email", email)
+                    print("scheduled_depart_time->", scheduled_depart_time)
+                    print("status-->", status)
+                    data = {'email': email,
+                            'scheduled_depart_time':scheduled_depart_time,
+                            'status':status
+                        }
+                    r = requests.post(url=API_ENDPOINT, data=data)
+                    response = r.text
+                    print(response)
+                    
+                else:
+                    print("no no email")
+            else:
+                print("no no username")
+                
+            
             
 
+def select_user_email(username):
+    try:
+        load_dotenv()
+        url = os.getenv("MONGODB_URI_FLY")
+        client = MongoClient(url)
+        filter={
+        'username': 'Lily'
+        }
+        result = client['flying_high']['user'].find_one(
+        filter=filter
+        )   
+        return result # dict      
+    except Exception as e:
+        print(str(e))
             
 
 def select_user_flight(airline_code):
