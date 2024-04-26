@@ -19,7 +19,73 @@
         </li>
       </ul>
     </div>
-    <div>通知設定</div>
+    <!-- Content -->
+    <div class="col-md-10">
+      <h3>通知設定</h3>
+      <form id="flightForm">
+        <div class="row mb-3">
+          <div class="col-md-6">
+            <input
+              class="form-check-input"
+              type="checkbox"
+              value="1"
+              id="flight_change"
+              name="flight_change"
+            />
+            <label class="form-check-label" for="flight_change">
+              當起飛, 抵達航班改變是否收到email 通知
+            </label>
+          </div>
+        </div>
+        <div class="row mb-3">
+          <div class="col-md-6">
+            <input
+              class="form-check-input"
+              type="checkbox"
+              value="1"
+              id="flight_delay"
+              name="flight_delay"
+            />
+            <label class="form-check-label" for="flight_delay">
+              當回國航班delay是否email 通知提醒訂車票, 飯店
+            </label>
+          </div>
+        </div>
+        <button
+          type="button"
+          class="btn btn-success"
+          onclick="submitFlightInfo()"
+        >
+          Save Changes
+        </button>
+      </form>
+    </div>
     {% endblock %}
+
+    <script>
+      function submitFlightInfo() {
+        const formData = new FormData(document.getElementById("flightForm"));
+
+        fetch("/user/update_notify", {
+          method: "POST",
+          body: formData,
+          headers: {
+            Accept: "application/json",
+            "X-CSRFToken": document
+              .querySelector('meta[name="csrf-token"]')
+              .getAttribute("content"), // Add CSRF token here from the meta tag
+          },
+        })
+          .then((response) => response.json())
+          .then((data) => {
+            console.log("Success:", data);
+            alert("Flight information saved successfully!");
+          })
+          .catch((error) => {
+            console.error("Error:", error);
+            alert("Failed to save flight information.");
+          });
+      }
+    </script>
   </div>
 </div>

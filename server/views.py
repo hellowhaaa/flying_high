@@ -209,6 +209,8 @@ def update_flight_info(current_user):
         return jsonify(response)
     return render_template('homepage.html')
 
+
+
 def index():
     return render_template('homepage.html')
 
@@ -305,14 +307,18 @@ def arrive_flight_time():
 @token_required
 def my_insurance(current_user):
     user_insurance = select_user_insurance(current_user)
-    insurance_company = user_insurance["insurance_company"]
-    plan = user_insurance["plan"]
-    insured_amount = user_insurance["insured_amount"]
-    days = user_insurance["days"]
-    insurance_content = select_insurance_amount(plan, insured_amount,insurance_company, days)
-    insurance_content["insurance_company"] = insurance_company
-    print("insurance_content print from route: ", insurance_content)
-    return render_template('my_insurance.html', user_insurance = user_insurance, insurance_content= insurance_content)
+    if user_insurance is not None:
+        print("user_insurance",user_insurance)
+        insurance_company = user_insurance["insurance_company"]
+        plan = user_insurance["plan"]
+        insured_amount = user_insurance["insured_amount"]
+        days = user_insurance["days"]
+        insurance_content = select_insurance_amount(plan, insured_amount,insurance_company, days)
+        insurance_content["insurance_company"] = insurance_company
+        print("insurance_content print from route: ", insurance_content)
+        return render_template('my_insurance.html', user_insurance = user_insurance, insurance_content= insurance_content)
+    else:
+        return redirect(url_for('user_insurance'))
 
 
 
@@ -441,7 +447,7 @@ def fetch_arrive_flight_code():
     print("dic--->", return_code_dic)
     return return_code_dic
 
-select_today_arrive_flight_code
+
 
 def dashboard():  
     streamlit_url = "http://localhost:8501"
