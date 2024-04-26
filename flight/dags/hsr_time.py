@@ -98,7 +98,7 @@ def insert_hsr_time():
 
 def insert_mongodb_atlas():
     load_dotenv()
-    uri = os.getenv("MONGODB_URI")
+    uri = os.getenv("MONGODB_URI_FLY")
     conn = MongoClient(uri)
     try:
         conn.admin.command('ping')
