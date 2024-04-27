@@ -6,7 +6,7 @@ from select_data_from_mongo import (get_arrive_flight_time, get_depart_flight_ti
                                 select_user_information, select_user_insurance, select_today_depart_flight_code,
                                 select_today_arrive_flight_code)
 from update_data_to_mongo import (update_user_insurance, update_user_flight_info, update_user_notify, 
-                                update_send_email)
+                                update_depart_email_send, update_arrive_email_send)
 import os
 from pymongo import MongoClient
 from functools import wraps
@@ -250,7 +250,6 @@ def setup_routes(app, csrf):
             username = request.form.get('username')
             print("data", (email, scheduled_depart_time, status))
             print("x")
-            # 若底下的 depart_email_send 為 false 才送出 email
             print("current_app_MAIL_USERNAME",current_app.config.get("MAIL_USERNAME"))
             mail = current_app.extensions['mail']
             msg = Message(subject="Hello",
@@ -261,17 +260,14 @@ def setup_routes(app, csrf):
                             For more detail, please click the link to trace your flight!")
             # ! -- 這邊再提供 search flight URL ---
             mail.send(msg)
-            update = update_send_email(username)
+            update = update_depart_email_send(username)
             print("update_success", update)
-            return jsonify({"status": "Success", "message": "Email sent successfully."})
+            return jsonify({"status": "Success", "message": "Depart email sent successfully."})
         except Exception as e:
             print('Error occurred:', str(e))
             return jsonify({"status": "Failed", "error": str(e)}), 500
         
-        
-        
-    
-            
+
     @app.route('/send_arrive_email', methods=['GET', 'POST'])
     @csrf.exempt
     def send_arrive_email():
@@ -289,14 +285,16 @@ def setup_routes(app, csrf):
             msg = Message(subject="Hello",
                         sender=current_app.config.get("MAIL_USERNAME"),
                         recipients=[email], # replace with your email for testing
-                        body=f"Hi! {username}  your flight {airline_code} 's time has been changed. Your flight's scheduled arrive time {scheduled_arrive_time} which status is now {status}. ")
+                        body=f"Hi! {username}  your flight {airline_code} 's time has been changed.\
+                            Your flight's scheduled depart time {scheduled_arrive_time} which status is now {status}. \
+                            For more detail, please click the link to trace your flight!")
             mail.send(msg)
-            response_data = {
-                "status": "Success"}
-            return response_data
+            update = update_arrive_email_send(username)
+            print("update_success", update)
+            return jsonify({"status": "Success", "message": " Arrive email sent successfully."})
         except Exception as e:
-            print('3')
-            print(str(e))
+            print('Error occurred:', str(e))
+            return jsonify({"status": "Failed", "error": str(e)}), 500
             
             
     

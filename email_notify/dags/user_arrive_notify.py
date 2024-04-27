@@ -46,6 +46,7 @@ def transform_result():
         status = collection['status']
         for airline in airlines:
             airline_code = airline['airline_code']
+            # 找出需要發送 email的 user
             send_email_dic = select_user_flight(airline_code)
             if send_email_dic is not None:
                 username = send_email_dic['username']
@@ -61,9 +62,9 @@ def transform_result():
                             'airline_code':airline_code,
                             'username':username
                         }
-                    r = requests.post(url=API_ENDPOINT, data=data)
-                    response = r.text
-                    print(response)
+                    response = requests.post(url=API_ENDPOINT, data=data)
+                    response_text = response.text
+                    print(response_text)        
                     
                 else:
                     print("no no email")
@@ -99,9 +100,11 @@ def select_user_flight(airline_code):
         
         for user_flight_col in result:
             username = user_flight_col['username']
+            # 找出 需要寄送通知, 但是還沒有寄送過的人 
             filter={
                 'username': username, 
-                'flight_change': True
+                'flight_change': True,
+                'arrive_email_send':False
                     }
             send_email = client['flying_high']['user_notify'].find_one(
             filter=filter

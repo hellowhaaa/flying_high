@@ -96,13 +96,31 @@ def update_user_notify(username,flight_change,flight_delay):
         "upserted_id": result.upserted_id
     }
     
-def update_send_email(username):
+def update_depart_email_send(username):
     url = os.getenv("MONGODB_URI_FLY")
     client = MongoClient(url)
     filter = {"username": username}
     update = {
         "$set": {
             "depart_email_send": True
+            }
+        }
+    result = client['flying_high']['user_notify'].update_one(
+    filter=filter,
+    update = update
+    )
+    return {
+        "matched_count": result.matched_count,
+        "modified_count": result.modified_count
+    }
+    
+def update_arrive_email_send(username):
+    url = os.getenv("MONGODB_URI_FLY")
+    client = MongoClient(url)
+    filter = {"username": username}
+    update = {
+        "$set": {
+            "arrive_email_send": True
             }
         }
     result = client['flying_high']['user_notify'].update_one(
