@@ -97,10 +97,17 @@ def select_user_flight(airline_code):
         #  今天凌晨
         tw_now = datetime.now(taiwan_tz)
         tw_midnight = taiwan_tz.localize(datetime(tw_now.year, tw_now.month, tw_now.day, 0, 0, 0))
-        filter={'flight_arrive_taoyuan': airline_code}
+        # 轉換成 UTC 時間
+        utc_midnight = tw_midnight.astimezone(pytz.utc)
+        print("使用者的utc---->", utc_midnight)
         
-        
-        
+        # 找出有登記 此飛機 且出發日期為今天 （utc時間）的 user
+        filter = {
+            'flight_arrive_taoyuan': airline_code,
+            'arrive_taiwan_date': {
+                '$eq': utc_midnight
+            }
+        } 
         result = client['flying_high']['user_flight'].find(
         filter=filter)
         result = list(result)
