@@ -20,7 +20,7 @@ def get_depart_flight_time():
     tw_now = datetime.now(taiwan_tz)
     tw_midnight = taiwan_tz.localize(datetime(tw_now.year, tw_now.month, tw_now.day, 0, 0, 0))
     utc_midnight = tw_midnight.astimezone(pytz.utc)  # UTC Time
-    
+    print("utc_midnigh--------------->",utc_midnight)
     filter={
         'status': {
         '$in': [
@@ -92,11 +92,25 @@ def select_user_flight(airline_code):
         load_dotenv()
         url = os.getenv("MONGODB_URI_FLY")
         client = MongoClient(url)
-        filter={'flight_depart_taoyuan': airline_code}
+        taiwan_tz = pytz.timezone('Asia/Taipei')
+        #  今天凌晨
+        tw_now = datetime.now(taiwan_tz)
+        tw_midnight = taiwan_tz.localize(datetime(tw_now.year, tw_now.month, tw_now.day, 0, 0, 0))
+        # 轉換成 UTC 時間
+        utc_midnight = tw_midnight.astimezone(pytz.utc)
+        print("使用者的utc---->", utc_midnight)
+        
+        # 找出有登記 此飛機 且出發日期為今天 （utc時間）的 user
+        filter = {
+            'flight_depart_taoyuan': airline_code,
+            'depart_taiwan_date': {
+                '$eq': utc_midnight
+            }
+        }
         result = client['flying_high']['user_flight'].find(
         filter=filter)
         result = list(result)
-        
+        print("result--->",result)
         for user_flight_col in result:
             username = user_flight_col['username']
             # 找出 需要寄送通知, 但是還沒有寄送過的人 
