@@ -30,29 +30,27 @@ def update_user_insurance(username,insurance_company,plan, insured_amount, days)
         "modified_count": result.modified_count,
         "upserted_id": result.upserted_id
     }
-    
-def update_user_flight_info(username,start_date,end_date,depart_flight, depart_fight_number, arrive_flight, arrive_fight_number):
+
+def update_user_flight_info(username,depart_taiwan_date,arrive_taiwan_date,flight_depart_taoyuan,flight_arrive_taoyuan):
     url = os.getenv("MONGODB_URI_FLY")
     client = MongoClient(url)
     taiwan_tz = pytz.timezone('Asia/Taipei')
-    start_date_obj = datetime.strptime(start_date, '%Y-%m-%d')
-    
+    # 桃園機場出發的班機 算出當天的 utc時間
+    start_date_obj = datetime.strptime(depart_taiwan_date, '%Y-%m-%d')
     start_date_tw_midnight = taiwan_tz.localize(datetime(start_date_obj.year, start_date_obj.month, start_date_obj.day, 0, 0, 0))
     start_date_utc_midnight = start_date_tw_midnight.astimezone(pytz.utc)
-    
-    end_date_obj = datetime.strptime(end_date, '%Y-%m-%d')
+    # 抵達桃園機場的班機 算出當天的 utc時間
+    end_date_obj = datetime.strptime(arrive_taiwan_date, '%Y-%m-%d')
     end_date_tw_midnight = taiwan_tz.localize(datetime(end_date_obj.year, end_date_obj.month, end_date_obj.day, 0, 0, 0))
     end_date_utc_midnight = end_date_tw_midnight.astimezone(pytz.utc)
     
     filter = {"username": username}
     update = {
         "$set": {
-            "start_date_utc": start_date_utc_midnight,
-            "end_date_utc": end_date_utc_midnight,
-            "depart_flight": depart_flight,
-            "depart_fight_number": depart_fight_number,
-            "arrive_flight": arrive_flight,
-            "arrive_fight_number": arrive_fight_number,
+            "depart_taiwan_date": start_date_utc_midnight,
+            "arrive_taiwan_date": end_date_utc_midnight,
+            "flight_depart_taoyuan":flight_depart_taoyuan,
+            "flight_arrive_taoyuan":flight_arrive_taoyuan,
             "updated_at": datetime.utcnow()
         },
         "$setOnInsert": {

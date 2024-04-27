@@ -194,14 +194,21 @@ def update_insurance(current_user):
 def update_flight_info(current_user):
     print("token---->",request.headers.get('X-CSRFToken'))
     if request.method == "POST":
-        start_date = request.form.get("startDate")
-        end_date = request.form.get("endDate")
+        depart_taiwan_date = request.form.get("startDate")
+        arrive_taiwan_date = request.form.get("endDate")
+        # 出發班機
         depart_flight = request.form.get("departFlight") 
-        depart_fight_number = request.form.get("departFlightNumber") 
+        depart_fight_number = request.form.get("departFlightNumber")
+        flight_depart_taoyuan = depart_flight+depart_fight_number
+        
+        # 抵達班機
         arrive_flight = request.form.get("arriveFlight")
         arrive_fight_number = request.form.get("arriveFlightNumber")
-        print(start_date,end_date,depart_flight, depart_fight_number, arrive_flight, arrive_fight_number)
-        update_info = update_user_flight_info(current_user,start_date,end_date,depart_flight, depart_fight_number, arrive_flight, arrive_fight_number)
+        flight_arrive_taoyuan = arrive_flight+arrive_fight_number
+        
+        
+        print(depart_taiwan_date,arrive_taiwan_date,flight_depart_taoyuan,flight_arrive_taoyuan)
+        update_info = update_user_flight_info(current_user,depart_taiwan_date,arrive_taiwan_date,flight_depart_taoyuan,flight_arrive_taoyuan)
         print(update_info)
         json_data = "hi"
         response = {
