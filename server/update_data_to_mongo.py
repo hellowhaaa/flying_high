@@ -81,6 +81,7 @@ def update_user_notify(username,flight_change,flight_delay):
             "updated_at": datetime.utcnow()
         },
         "$setOnInsert": {
+            "email_send":False,
             "created_at": datetime.utcnow()  # Only set this field on insert (upsert)
         }
     }
@@ -92,4 +93,22 @@ def update_user_notify(username,flight_change,flight_delay):
         "matched_count": result.matched_count,
         "modified_count": result.modified_count,
         "upserted_id": result.upserted_id
+    }
+    
+def update_send_email(username):
+    url = os.getenv("MONGODB_URI_FLY")
+    client = MongoClient(url)
+    filter = {"username": username}
+    update = {
+        "$set": {
+            "email_send": True
+            }
+        }
+    result = client['flying_high']['user_notify'].update_one(
+    filter=filter,
+    update = update
+    )
+    return {
+        "matched_count": result.matched_count,
+        "modified_count": result.modified_count
     }

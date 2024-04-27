@@ -5,7 +5,8 @@ from models2 import RegisterForm, create_user, same_username, check_user_credent
 from select_data_from_mongo import (get_arrive_flight_time, get_depart_flight_time, select_insurance_amount,
                                 select_user_information, select_user_insurance, select_today_depart_flight_code,
                                 select_today_arrive_flight_code)
-from update_data_to_mongo import update_user_insurance, update_user_flight_info, update_user_notify
+from update_data_to_mongo import (update_user_insurance, update_user_flight_info, update_user_notify, 
+                                update_send_email)
 import os
 from pymongo import MongoClient
 from functools import wraps
@@ -234,7 +235,7 @@ def index():
 def search_flight():
     return render_template('search_flight.html')
 
-
+# TODO: ---------     
 def setup_routes(app, csrf):
     # Other routes setup
     @app.route('/send_depart_email', methods=['GET', 'POST'])
@@ -249,6 +250,7 @@ def setup_routes(app, csrf):
             username = request.form.get('username')
             print("data", (email, scheduled_depart_time, status))
             print("x")
+            # 若底下的 email_send 為 false 才送出 email
             print("current_app_MAIL_USERNAME",current_app.config.get("MAIL_USERNAME"))
             mail = current_app.extensions['mail']
             msg = Message(subject="Hello",
@@ -259,12 +261,16 @@ def setup_routes(app, csrf):
                             For more detail, please click the link to trace your flight!")
             # ! -- 這邊再提供 search flight URL ---
             mail.send(msg)
-            response_data = {
-                "status": "Success"}
-            return response_data
+            update = update_send_email(username)
+            print("update_success", update)
+            return jsonify({"status": "Success", "message": "Email sent successfully."})
         except Exception as e:
-            print('3')
-            print(str(e))
+            print('Error occurred:', str(e))
+            return jsonify({"status": "Failed", "error": str(e)}), 500
+        
+        
+        
+    
             
     @app.route('/send_arrive_email', methods=['GET', 'POST'])
     @csrf.exempt
@@ -295,7 +301,7 @@ def setup_routes(app, csrf):
             
     
 
-# TODO: --------- 
+
 
 
 
