@@ -81,7 +81,8 @@ def update_user_notify(username,flight_change,flight_delay):
             "updated_at": datetime.utcnow()
         },
         "$setOnInsert": {
-            "email_send":False,
+            "depart_email_send":False,
+            "arrive_email_send":False,
             "created_at": datetime.utcnow()  # Only set this field on insert (upsert)
         }
     }
@@ -101,7 +102,7 @@ def update_send_email(username):
     filter = {"username": username}
     update = {
         "$set": {
-            "email_send": True
+            "depart_email_send": True
             }
         }
     result = client['flying_high']['user_notify'].update_one(

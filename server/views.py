@@ -250,7 +250,7 @@ def setup_routes(app, csrf):
             username = request.form.get('username')
             print("data", (email, scheduled_depart_time, status))
             print("x")
-            # 若底下的 email_send 為 false 才送出 email
+            # 若底下的 depart_email_send 為 false 才送出 email
             print("current_app_MAIL_USERNAME",current_app.config.get("MAIL_USERNAME"))
             mail = current_app.extensions['mail']
             msg = Message(subject="Hello",

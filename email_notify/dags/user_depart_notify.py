@@ -103,7 +103,7 @@ def select_user_flight(airline_code):
             filter={
                 'username': username, 
                 'flight_change': True,
-                'email_send':False
+                'depart_email_send':False
                     }
             send_email = client['flying_high']['user_notify'].find_one(
             filter=filter
