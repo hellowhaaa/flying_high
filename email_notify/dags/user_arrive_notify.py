@@ -9,7 +9,7 @@ from datetime import datetime, tzinfo, timezone, timedelta
 import pytz
 import requests
 
-API_ENDPOINT  = 'http://127.0.0.1:5000/send_email'
+API_ENDPOINT  = 'http://127.0.0.1:5000/send_arrive_email'
 
 def get_arrive_flight_time():
     load_dotenv()
