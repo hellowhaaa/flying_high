@@ -236,9 +236,8 @@
 
       fetch("/fetch_insurance_content", {
         method: "POST",
-        body: formData,
+        body: formData,  
         headers: {
-                'Content-Type': 'application/json',
                 'X-CSRF-Token': csrftoken
             },
       },)

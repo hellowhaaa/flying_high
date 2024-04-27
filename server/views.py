@@ -455,6 +455,7 @@ def fetch_insurance_content():
         days = request.form.get("days")
         insured_amount = request.form.get("insuredAmount")
         insurance_company = request.form.get("insuranceCompany")
+        print("plan, insured_amount,insurance_company, days--->", (plan, insured_amount,insurance_company, days))
         result = select_insurance_amount(plan, insured_amount,insurance_company, days)
         content = result['travel_inconvenience_insurance']['content'][0][selected_inconvenience_insurance]
         print("content------->",content)
