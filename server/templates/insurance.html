@@ -134,7 +134,7 @@
               </ul>
               <input type="hidden" id="selectedPlan" name="plan" />
             </div>
-            <!-- 下拉選單 保險額度 -->
+            <!-- 拉選單 保險額度 -->
             <div class="dropdown mb-3 col-md-2">
               <button
                 class="btn btn-secondary dropdown-toggle opacity-75"
@@ -235,19 +235,22 @@
   //  --------------方案 -------------------------
 
   document.addEventListener("DOMContentLoaded", function () {
-    const insuranceCompanyDropdown = document.getElementById(
+    const insuranceCompanyMenu = document.getElementById(
       "insuranceCompanyDropdown"
-    );
-    const insuranceCompanyMenu = insuranceCompanyDropdown.nextElementSibling;
+    ).nextElementSibling;
     const planDropdownButton = document.getElementById("planDropdown");
     const planDropdownMenu = document.getElementById("planMenu");
     const selectedInsuranceCompany = document.getElementById(
       "selectedInsuranceCompany"
     );
+    const insuranceAmountButton = document.getElementById(
+      "insuranceAmountButton"
+    );
+    const insuranceAmountMenu = document.getElementById("insuranceAmountMenu");
 
+    // Options for plans by company
     const planOptions = {
       fubung: ["S方案", "M方案", "L方案", "XL方案"],
-      // shinkong: ["基本型", "全面型", "豪華型"],
       guotai: [
         "海外輕鬆型(T2)",
         "海外安心型(T2)",
@@ -256,61 +259,76 @@
       ],
     };
 
-    // 保險公司下拉選單的點擊事件
-    insuranceCompanyMenu.addEventListener("click", function (event) {
-      if (event.target.tagName === "A") {
-        const selectedCompany = event.target.textContent;
-        const companyData = event.target.getAttribute("data-company");
-        insuranceCompanyDropdown.textContent = selectedCompany; // 更新保險公司下拉button
-        updatePlanDropdown(planOptions[companyData] || []); // dynamic update plan dropdown
-        selectedInsuranceCompany.value =
-          event.target.getAttribute("data-company"); // 更新隐藏字段
-      }
-    });
+    // Insurance amounts by plan
+    const insuranceAmountsByPlan = {
+      S方案: { min: 200, max: 1500, step: 100 },
+      M方案: { min: 300, max: 1500, step: 100 },
+      L方案: { min: 600, max: 600, step: 100 },
+      XL方案: { min: 1200, max: 1500, step: 100 },
+      "海外輕鬆型(T2)": { min: 200, max: 1500, step: 100 },
+      "海外安心型(T2)": { min: 200, max: 400, step: 100 },
+      "賞櫻限定型(Z)": { min: 500, max: 1500, step: 100 },
+      "早鳥豪華型(U2)": { min: 300, max: 1500, step: 100 },
+    };
 
-    // 更新方案的下拉選單
-    function updatePlanDropdown(selectedPlans) {
-      planDropdownMenu.innerHTML = ""; // 清空原有的選項
-      selectedPlans.forEach((plan) => {
+    function updateDropdown(dropdown, options) {
+      dropdown.innerHTML = "";
+      options.forEach((option) => {
+        const li = document.createElement("li");
+        const a = document.createElement("a");
+        a.textContent = option;
+        a.href = "#";
+        a.className = "dropdown-item";
+        a.addEventListener("click", function (e) {
+          e.preventDefault();
+          dropdown.previousElementSibling.textContent = option;
+          document.getElementById("selectedPlan").value = option;
+          if (dropdown.id === "planMenu") {
+            const insuranceAmounts = insuranceAmountsByPlan[option];
+            if (insuranceAmounts) {
+              updateInsuranceAmountOptions(insuranceAmounts);
+            }
+          }
+        });
+        li.appendChild(a);
+        dropdown.appendChild(li);
+      });
+    }
+
+    function updateInsuranceAmountOptions({ min, max, step }) {
+      insuranceAmountButton.textContent = `${min}萬`; // Reset the button text
+      document.getElementById("selectedInsuranceAmount").value = min; // Reset the hidden input value
+      insuranceAmountMenu.innerHTML = ""; // Clear current options
+
+      for (let amount = min; amount <= max; amount += step) {
         const li = document.createElement("li");
         const a = document.createElement("a");
         a.className = "dropdown-item";
+        a.textContent = `${amount}萬`;
         a.href = "#";
-        a.textContent = plan;
-        a.onclick = function () {
-          planDropdownButton.textContent = plan; // 更新方案的下拉選單文本
-          document.getElementById("selectedPlan").value = plan; // 更新隐藏输入的值
-        };
+        a.addEventListener("click", function (e) {
+          e.preventDefault();
+          insuranceAmountButton.textContent = `${amount}萬`; // Update button text
+          document.getElementById("selectedInsuranceAmount").value = amount; // Update hidden input value
+        });
         li.appendChild(a);
-        planDropdownMenu.appendChild(li);
-      });
+        insuranceAmountMenu.appendChild(li);
+      }
     }
-  });
 
-  // 保險額度 200萬～ 1500萬 -------------------------------------
-  document.addEventListener("DOMContentLoaded", function () {
-    const insuranceAmountMenu = document.getElementById("insuranceAmountMenu");
-    const insuranceAmountButton = document.getElementById(
-      "insuranceAmountButton"
-    );
+    // Event listener for the insurance company selection
+    insuranceCompanyMenu.addEventListener("click", function (e) {
+      if (e.target.tagName === "A") {
+        const selectedCompany = e.target.textContent;
+        selectedInsuranceCompany.value = e.target.dataset.company; // Set the hidden input value
+        insuranceCompanyDropdown.textContent = selectedCompany; // Update button text
+        // Update the plan dropdown based on the selected company
+        updateDropdown(planDropdownMenu, planOptions[e.target.dataset.company]);
+      }
+    });
 
-    // 動態生成 200萬～ 1500萬 的選項
-    for (let amount = 200; amount <= 1500; amount += 100) {
-      const li = document.createElement("li");
-      const a = document.createElement("a");
-      a.className = "dropdown-item";
-      a.href = "#"; // 保持链接为 #
-      a.textContent = `${amount}萬`;
-      li.appendChild(a);
-      insuranceAmountMenu.appendChild(li);
-
-      // 點擊選項時，更新保險額度
-      a.addEventListener("click", function () {
-        insuranceAmountButton.textContent = `${amount}萬`;
-        insuranceAmountButton.setAttribute("data-selected-amount", `${amount}`);
-        document.getElementById("selectedInsuranceAmount").value = `${amount}`; // 更新隐藏输入的值
-      });
-    }
+    // Call this function initially to set up the default state
+    updateDropdown(planDropdownMenu, planOptions["fubung"]); // Set 'fubung' as default or based on user's previous selection
   });
 
   //   // 算 給予時間段 00:00 ~ 23:30 -------------------------------------
@@ -370,6 +388,8 @@
         insurancePeriodDisplay.textContent = "";
       }
     }
+
+    //
 
     //     // 當日期或時間改變時，更新保險期間
     startDateInput.addEventListener("change", updateInsurancePeriod);
