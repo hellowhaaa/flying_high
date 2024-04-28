@@ -32,6 +32,7 @@ insurance/.env
 # server folder
 server/__pycache__/
 server/logs/
+server/templates/map_*.html
 
 # streamlit folder
 .streamlit/
@@ -48,6 +49,8 @@ email_notify/.env
 email_notify/dags/__pycache__
 email_notify/dags/.env
 
+# map folder
+map/create_latitude.py
 
 logs/
 .env
