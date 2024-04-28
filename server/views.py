@@ -14,6 +14,7 @@ import jwt
 from datetime import datetime, timedelta
 import re
 from flask_mail import Mail, Message
+import folium
 
 
 
@@ -551,3 +552,5 @@ def dashboard():
     streamlit_url = "http://localhost:8501"
     return render_template('dashboard.html', streamlit_url=streamlit_url)
 
+def flight_map():
+    return render_template('map_with_layers.html')
