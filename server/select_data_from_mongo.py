@@ -2,7 +2,7 @@
 from pymongo import MongoClient
 import os 
 from dotenv import load_dotenv
-from datetime import datetime, tzinfo, timezone, timedelta
+from datetime import datetime
 import pytz
 load_dotenv()
 
