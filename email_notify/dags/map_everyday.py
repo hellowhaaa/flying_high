@@ -2,127 +2,177 @@ import folium
 from folium.plugins import MarkerCluster
 from folium import features
 import os
+from pymongo import MongoClient
+import pytz
+from datetime import datetime
+from dotenv import load_dotenv
+import re
+from geopy.geocoders import Nominatim
+from geopy.exc import GeocoderTimedOut
+import time
 
+load_dotenv()
+url = os.getenv("MONGODB_URI_FLY")
+print(url)
+client = MongoClient(url)
+
+db = client['flying_high']
+collection_arrive= db['flight_arrive2']
+collection_depart= db['flight_depart2']
+taiwan_tz = pytz.timezone('Asia/Taipei')
+tw_now = datetime.now(taiwan_tz)
+tw_midnight = taiwan_tz.localize(datetime(tw_now.year, tw_now.month, tw_now.day, 0, 0, 0))
+utc_midnight = tw_midnight.astimezone(pytz.utc)
+
+# aggregate unique destination
+pipeline = [
+    {
+        "$match": {
+            "updated_at": {"$gt": utc_midnight}  
+        }
+    },
+    {"$group": {"_id": "$destination"}},
+    {"$sort": {"_id": 1}} 
+]
+
+unique_arrive_destinations = collection_arrive.aggregate(pipeline)
+unique_depart_destinations = collection_depart.aggregate(pipeline)
+# extract chinese and () from destination
+def extract_chinese(text):
+    chinese_part = re.findall(r'[\u4e00-\u9fff]+', text)
+    if '(' in text:
+        chinese_only = chinese_part[-1]
+    else:
+        chinese_only = ''.join(chinese_part)
+    return chinese_only
+
+# get unique destination list
+def unique_destination_list(unique_destinations):
+    unique_destination_list = []
+    for destination in unique_destinations:
+        if destination['_id'] is not None: # 排除 None
+            destination = extract_chinese(destination['_id'])
+            unique_destination_list.append(destination)
+    return unique_destination_list
+
+
+unique_depart_destination_list = unique_destination_list(unique_depart_destinations)
+unique_arrive_destination_list = unique_destination_list(unique_arrive_destinations)
+
+# get arrive flight data from mongodb everyday by destination
+def flight_data(destination, collection_name):
+    url = os.getenv("MONGODB_URI_FLY")
+    print(url)
+    client = MongoClient(url)
+    filter={
+        'destination': {
+            '$regex': destination
+        },
+        "updated_at": {"$gt": utc_midnight} 
+    }
+    result = client['flying_high'][collection_name].find(
+    filter=filter
+    )
+    return list(result)
+
+
+## get longitude and latitude
+useranget = "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Mobile Safari/537.36,gzip(gfe)"
+geolocator = Nominatim(user_agent=useranget)
+
+def get_location_list_by_address(address):
+    try:
+        location = geolocator.geocode(address)
+        if location:
+            return [location.latitude, location.longitude]
+        else:
+            return (None, None)
+    except GeocoderTimedOut:
+        return get_location_list_by_address(address) # retry if timeout
+    
+    
+def arrive_result(collection_name):
+    destinations = []  
+    for location in unique_arrive_destination_list:
+        # 乾淨的 city name 去拉經緯度
+        location_data = get_location_list_by_address(location)
+        if location_data:
+            flight_collection = flight_data(location, collection_name)
+            flight_details = []
+            seen = set()  # Set to track unique flights
+            for collection in flight_collection:
+                airlines_list = collection['airline']
+                airline_names = [airline['airline_name'] + airline['airline_code'] for airline in airlines_list]
+                flight_tuple = (collection['scheduled_arrive_time'], tuple(airline_names))
+                if flight_tuple not in seen:
+                    seen.add(flight_tuple)
+                    flight_details.append({
+                        'scheduled_arrive_time': collection['scheduled_arrive_time'],
+                        'airlines': airline_names
+                    })
+
+            if not any(dest['destination'] == location for dest in destinations):
+                destinations.append({
+                    'destination': location,
+                    'latitude_longitude': location_data,
+                    'flights': flight_details
+                })
+                print("destinations--->",destinations)
+            else:
+                print(f"Destination {location} already exists in the dictionary.")
+        else:
+            print(f"Could not fetch data for {location}")
+        time.sleep(1)
+    return destinations # list
+
+# print(destinations)
+
+def depart_result(collection_name):
+    destinations = []  
+    for location in unique_depart_destination_list:
+        # 乾淨的 city name 去拉經緯度
+        location_data = get_location_list_by_address(location)
+        if location_data:
+            flight_collection = flight_data(location, collection_name)
+            flight_details = []
+            seen = set()  # Set to track unique flights
+            for collection in flight_collection:
+                airlines_list = collection['airline']
+                airline_names = [airline['airline_name'] + airline['airline_code'] for airline in airlines_list]
+                flight_tuple = (collection['scheduled_depart_time'], tuple(airline_names))
+                if flight_tuple not in seen:
+                    seen.add(flight_tuple)
+                    flight_details.append({
+                        'scheduled_depart_time': collection['scheduled_depart_time'],
+                        'airlines': airline_names
+                    })
+
+            if not any(dest['destination'] == location for dest in destinations):
+                destinations.append({
+                    'destination': location,
+                    'latitude_longitude': location_data,
+                    'flights': flight_details
+                })
+                print("destinations--->",destinations)
+            else:
+                print(f"Destination {location} already exists in the dictionary.")
+        else:
+            print(f"Could not fetch data for {location}")
+        time.sleep(1)
+    return destinations # list
+
+
+
+
+# -----------------------------------------
 # os.path.dirname(__file__) get current file path
 path = os.path.abspath(os.path.join(os.path.dirname(__file__),"../../server/templates"))
 print(path)
 taoyuan_airport_coords = [25.080, 121.2325]
 
+arrive_destinations = arrive_result('flight_arrive2')
+depart_destinations = depart_result('flight_depart2')
 
-arrive_destinations = [
-  {
-    "destination": "布里斯本",
-    "latitude_longitude": [22.66651495, 120.31366413016224]
-  },
-  { "destination": "曼谷", "latitude_longitude": [13.7524938, 100.4935089] },
-  {
-    "destination": "上海浦東",
-    "latitude_longitude": [31.142735899999998, 121.80411312160436]
-  },
-  { "destination": "亞庇", "latitude_longitude": [5.9780066, 116.0728988] },
-  { "destination": "仁川", "latitude_longitude": [37.456, 126.7052] },
-  { "destination": "仙台", "latitude_longitude": [38.2597492, 140.8798618] },
-  { "destination": "伊斯坦堡", "latitude_longitude": [41.006381, 28.9758715] },
-  { "destination": "休士頓", "latitude_longitude": [29.7589382, -95.3676974] },
-  {
-    "destination": "佐賀",
-    "latitude_longitude": [33.26417535, 130.29747292904747]
-  },
-  { "destination": "倫敦", "latitude_longitude": [51.5074456, -0.1277653] },
-  { "destination": "克拉克", "latitude_longitude": [28.3323055, 102.3516198] },
-  { "destination": "函館", "latitude_longitude": [41.7737872, 140.7261884] },
-  { "destination": "北京", "latitude_longitude": [40.190632, 116.412144] },
-  { "destination": "南京", "latitude_longitude": [32.0438284, 118.7788631] },
-  {
-    "destination": "卡堤克蘭",
-    "latitude_longitude": [-0.83170875, 37.00492162779861]
-  },
-  { "destination": "吉隆坡", "latitude_longitude": [3.1516964, 101.6942371] },
-  { "destination": "名古屋", "latitude_longitude": [35.170581, 136.8809822] },
-  { "destination": "多倫多", "latitude_longitude": [43.6534817, -79.3839347] },
-  { "destination": "大邱", "latitude_longitude": [35.8713, 128.6018] },
-  {
-    "destination": "大阪關西",
-    "latitude_longitude": [34.43420455, 135.2225230169576]
-  },
-  { "destination": "安大略", "latitude_longitude": [50.000678, -86.000977] },
-  { "destination": "宿霧", "latitude_longitude": [10.47, 123.83] },
-  {
-    "destination": "富國島",
-    "latitude_longitude": [22.6627466, 120.34971151344902]
-  },
-  { "destination": "富山", "latitude_longitude": [36.7020984, 137.2126608] },
-  { "destination": "寧波", "latitude_longitude": [29.8622194, 121.6203873] },
-  { "destination": "小松", "latitude_longitude": [36.4018391, 136.4528145] },
-  { "destination": "岡山", "latitude_longitude": [34.6654089, 133.917825] },
-  {
-    "destination": "峇里島",
-    "latitude_longitude": [22.7277177, 120.29994671624216]
-  },
-  { "destination": "峴港", "latitude_longitude": [16.068, 108.212] },
-  { "destination": "巴黎", "latitude_longitude": [48.8534951, 2.3483915] },
-  { "destination": "廈門", "latitude_longitude": [24.4801069, 118.0853479] },
-  { "destination": "廣島", "latitude_longitude": [34.3980242, 132.476095] },
-  { "destination": "廣州", "latitude_longitude": [23.1301964, 113.2592945] },
-  { "destination": "慕尼黑", "latitude_longitude": [48.1371079, 11.5753822] },
-  {
-    "destination": "成都天府",
-    "latitude_longitude": [30.303551050000003, 104.4457087996561]
-  },
-  { "destination": "新加坡", "latitude_longitude": [1.2899175, 103.8519072] },
-  {
-    "destination": "曼谷廊曼",
-    "latitude_longitude": [24.4477852, 118.0684726]
-  },
-  { "destination": "札幌", "latitude_longitude": [43.0686365, 141.3509218] },
-  { "destination": "杜拜", "latitude_longitude": [0.6353, 124.4958] },
-  { "destination": "杭州", "latitude_longitude": [30.2489634, 120.2052342] },
-  { "destination": "東京", "latitude_longitude": [35.6821936, 139.762221] },
-  { "destination": "松山", "latitude_longitude": [33.8403352, 132.751077] },
-  { "destination": "檳城", "latitude_longitude": [37.4311343, 118.0136196] },
-  { "destination": "汶萊", "latitude_longitude": [4.4137155, 114.5653908] },
-  { "destination": "河內", "latitude_longitude": [34.4691853, 132.8899558] },
-  { "destination": "法蘭克福", "latitude_longitude": [50.1106444, 8.6820917] },
-  { "destination": "洛杉磯", "latitude_longitude": [34.0536909, -118.242766] },
-  { "destination": "深圳", "latitude_longitude": [22.5445741, 114.0545429] },
-  { "destination": "清州", "latitude_longitude": [38.5746589, 116.8260491] },
-  { "destination": "清邁", "latitude_longitude": [18.7882778, 98.9858802] },
-  { "destination": "溫哥華", "latitude_longitude": [49.2608724, -123.113952] },
-  { "destination": "澳門", "latitude_longitude": [22.1899448, 113.5380454] },
-  { "destination": "濟州", "latitude_longitude": [33.4887737, 126.4987083] },
-  { "destination": "熊本", "latitude_longitude": [32.7903435, 130.6888842] },
-  { "destination": "沖繩", "latitude_longitude": [38.0058559, 140.6242638] },
-  { "destination": "福岡", "latitude_longitude": [36.7081098, 136.9317417] },
-  { "destination": "福州", "latitude_longitude": [21.9842196, 111.2062957] },
-  { "destination": "秋田", "latitude_longitude": [39.7168833, 140.1296657] },
-  { "destination": "紐約", "latitude_longitude": [40.7127281, -74.0060152] },
-  { "destination": "維也納", "latitude_longitude": [48.2083537, 16.3725042] },
-  { "destination": "羽田", "latitude_longitude": [35.5479444, 139.7466458] },
-  {
-    "destination": "胡志明市",
-    "latitude_longitude": [10.7763897, 106.7011391]
-  },
-  { "destination": "舊金山", "latitude_longitude": [37.7792588, -122.4193286] },
-  { "destination": "芝加哥", "latitude_longitude": [41.8755616, -87.6244212] },
-  { "destination": "茨城", "latitude_longitude": [29.9777203, 121.4454192] },
-  { "destination": "西雅圖", "latitude_longitude": [47.6038321, -122.330062] },
-  { "destination": "鄭州", "latitude_longitude": [34.7533392, 113.6599983] },
-  { "destination": "重慶", "latitude_longitude": [30.05518, 107.8748712] },
-  { "destination": "金邊", "latitude_longitude": [11.5730391, 104.857807] },
-  { "destination": "釜山", "latitude_longitude": [35.1799528, 129.0752365] },
-  {
-    "destination": "阿姆斯特丹",
-    "latitude_longitude": [52.3730796, 4.8924534]
-  },
-  { "destination": "雅加達", "latitude_longitude": [-6.175247, 106.8270488] },
-  { "destination": "青島", "latitude_longitude": [36.0637967, 120.3192081] },
-  { "destination": "香港", "latitude_longitude": [22.350627, 114.1849161] },
-  { "destination": "馬尼拉", "latitude_longitude": [14.5906346, 120.9799964] },
-  { "destination": "高松", "latitude_longitude": [34.350692, 134.0461528] }
-]
-
-# let two list be the same
-depart_destinations = arrive_destinations
 
 map = folium.Map(location=taoyuan_airport_coords, zoom_start=5, tiles='cartodbpositron')
 
@@ -141,25 +191,37 @@ folium.Marker(
 for each in arrive_destinations:
     city = each['destination']
     coords = each['latitude_longitude']
-    folium.Marker(
+    popup_content = f"<strong>{city}</strong><br/>"
+    for flight in each['flights']:
+        scheduled_arrive_time = flight['scheduled_arrive_time']
+        airlines = ', '.join(flight['airlines'])
+        popup_content += f"Scheduled Arrive: {scheduled_arrive_time}<br/>Airlines: {airlines}<br/>"
+    
+    marker = folium.Marker(
         coords,
-        popup=f'Arrival to {city}',
+        popup=folium.Popup(popup_content, max_width=250),
         icon=folium.Icon(color='green', icon='plane-arrival')
     ).add_to(arrivals)
     
-    folium.PolyLine([taoyuan_airport_coords, coords], color="green").add_to(arrivals)
+    folium.PolyLine([taoyuan_airport_coords, coords], weight=1,dash_array='10, 10',color="green").add_to(arrivals)
 
 # Depart
 for each in depart_destinations:
     city = each['destination']
     coords = each['latitude_longitude']
-    folium.Marker(
+    popup_content = f"<strong>{city}</strong><br/>"
+    for flight in each['flights']:
+        scheduled_depart_time = flight['scheduled_depart_time']
+        airlines = ', '.join(flight['airlines'])
+        popup_content += f"Scheduled Depart: {scheduled_depart_time}<br/>Airlines: {airlines}<br/>"
+    
+    marker = folium.Marker(
         coords,
-        popup=f'Departure from {city}',
-        icon=folium.Icon(color='blue', icon='plane-departure')
+        popup=folium.Popup(popup_content, max_width=250),
+        icon=folium.Icon(color='blue', icon='plane-arrival')
     ).add_to(departures)
     
-    folium.PolyLine([coords, taoyuan_airport_coords], color="blue").add_to(departures)
+    folium.PolyLine([taoyuan_airport_coords, coords], weight=1,dash_array='10, 10',color="blue").add_to(departures)
 
 # add  FeatureGroup to map
 map.add_child(arrivals)
