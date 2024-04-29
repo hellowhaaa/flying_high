@@ -322,10 +322,9 @@ def depart_flight_time():
     try:
         airline_code = request.form.get('airline') if request.method == 'POST' else request.args.get('airline_code')
         flight_number = request.form.get('flight_number') if request.method == 'POST' else request.args.get('flight_number')
+        airline_code = airline_code.split()[0]
         flight = airline_code + flight_number
-        print(flight)
         flight_result = get_depart_flight_time(flight)
-        print(flight_result)
         current_app.logger.info(f"Flight time retrieved for {flight_result}")
     except Exception:
         current_app.logger.error("Catch an exception.", exc_info=True)
@@ -363,10 +362,9 @@ def arrive_flight_time():
     try:
         airline_code = request.form.get('airline') if request.method == 'POST' else request.args.get('airline_code')
         flight_number = request.form.get('flight_number') if request.method == 'POST' else request.args.get('flight_number')
-        flight = airline_code + flight_number
-        print(flight)
+        airline_code = airline_code.split()[0]
+        flight = airline_code + flight_number 
         flight_result = get_arrive_flight_time(flight)
-        print(flight_result)
         current_app.logger.info(f"Flight time retrieved for {flight_result}")
     except Exception:
         current_app.logger.error("Catch an exception.", exc_info=True)
@@ -523,7 +521,7 @@ def fetch_depart_flight_code():
                 else:
                     return_code_dic[key] = [number_part] 
 
-    print("dic--->", return_code_dic)
+    # print("dic--->", return_code_dic)
     return return_code_dic
    
 def fetch_arrive_flight_code():
@@ -543,7 +541,7 @@ def fetch_arrive_flight_code():
                 else:
                     return_code_dic[key] = [number_part] 
 
-    print("dic--->", return_code_dic)
+    # print("dic--->", return_code_dic)
     return return_code_dic
 
 

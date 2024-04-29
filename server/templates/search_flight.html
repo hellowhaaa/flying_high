@@ -76,9 +76,48 @@
 <!--  選項 －－－－－ -->
 <div class="my-3">
   <form action="/arrive_flight_time" method="post">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
     <div class="container-lg .bg-primary-subtle text-white">
       Flight <span id="emphasize">Arrive </span>at Taoyuan Airport Today
 
+      <div class="input-group mb-3">
+        <select
+          class="form-select"
+          id="arrive_airlines"
+          name="airline"
+        ></select>
+      </div>
+
+      <div class="form-group mb-3">
+        <select
+          id="arrive_flightCodes"
+          style="width: 300px"
+          name="flight_number"
+        >
+          <!-- Dropdown List Option -->
+        </select>
+      </div>
+
+      <button
+        type="submit"
+        class="btn btn-secondary"
+        name="search"
+        value="depart"
+      >
+        Search
+      </button>
+    </div>
+  </form>
+</div>
+<div class="space"></div>
+<div class="my-3">
+  <form action="/depart_flight_time" method="post">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+    <!-- 這遍 -->
+    <div class="container-lg .bg-primary-subtle text-white">
+      Flight
+      <span id="emphasize">Depart</span>
+      from Taoyuan Airport Today
       <div class="input-group mb-3">
         <select
           class="form-select"
@@ -93,6 +132,7 @@
           class="form-control"
           id="depart_flightCodes"
           style="width: 100%"
+          name="flight_number"
         ></select>
       </div>
 
@@ -101,39 +141,6 @@
         class="btn btn-secondary"
         name="search"
         value="arrive"
-      >
-        Search
-      </button>
-    </div>
-  </form>
-</div>
-<div class="space"></div>
-<div class="my-3">
-  <form action="/depart_flight_time" method="post">
-    <div class="container-lg .bg-primary-subtle text-white">
-      Flight
-      <span id="emphasize">Depart</span>
-      from Taoyuan Airport Today
-
-      <div class="input-group mb-3">
-        <select
-          class="form-select"
-          id="arrive_airlines"
-          name="airline"
-        ></select>
-      </div>
-
-      <div class="form-group mb-3">
-        <select id="arrive_flightCodes" style="width: 300px">
-          <!-- Dropdown List Option -->
-        </select>
-      </div>
-
-      <button
-        type="submit"
-        class="btn btn-secondary"
-        name="search"
-        value="depart"
       >
         Search
       </button>
