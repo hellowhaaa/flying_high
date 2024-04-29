@@ -39,6 +39,7 @@ server/templates/map_*.html
 
 # script
 .scp.sh
+.scp_ubuntu.sh
 
 # email_notify folder
 
