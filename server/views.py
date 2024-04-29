@@ -57,7 +57,8 @@ def token_required(f):
             current_user = data['username']
             print("current_user:", current_user)
         except jwt.ExpiredSignatureError:
-            return jsonify({'message': 'Token has expired'}), 401
+            return redirect(url_for('sign_up'))
+            # return jsonify({'message': 'Token has expired'}), 401
         except jwt.InvalidTokenError:
             return jsonify({'message': 'Token is invalid'}), 401
         return f(current_user, *args, **kwargs)

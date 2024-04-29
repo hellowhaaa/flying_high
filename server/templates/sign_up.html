@@ -24,36 +24,67 @@
 
                 <!-- Name Input -->
                 <div class="mb-3">
-                  {{ form.username.label(class="form-label") }} {{
-                  form.username(class="form-control", size=32) }}
+                  <label for="username" class="form-label">Username</label>
+                  <input
+                    type="text"
+                    class="form-control"
+                    id="username"
+                    name="username"
+                    placeholder="Enter username"
+                    required
+                  />
                 </div>
 
                 <!-- Email Input -->
                 <div class="mb-3">
-                  {{ form.email.label(class="form-label") }} {{
-                  form.email(class="form-control", size=32) }}
+                  <label for="email" class="form-label">Email</label>
+                  <input
+                    type="email"
+                    class="form-control"
+                    id="email"
+                    name="email"
+                    placeholder="Enter email"
+                    required
+                  />
                 </div>
 
                 <!-- Password Input -->
                 <div class="mb-3">
-                  {{ form.password.label(class="form-label") }} {{
-                  form.password(class="form-control", size=32) }}
+                  <label for="password" class="form-label">Password</label>
+                  <input
+                    type="password"
+                    class="form-control"
+                    id="password"
+                    name="password"
+                    placeholder="Enter password"
+                    required
+                  />
                 </div>
 
                 <!-- Address Input -->
                 <div class="mb-4">
-                  {{ form.address.label(class="form-label") }} {{
-                  form.address(class="form-control", size=32) }}
+                  <label for="address" class="form-label">Address</label>
+                  <input
+                    type="text"
+                    class="form-control"
+                    id="address"
+                    name="address"
+                    placeholder="Enter address"
+                    required
+                  />
                 </div>
 
                 <!-- Register Button -->
                 <div class="d-grid">
-                  {{ form.submit(class="btn btn-primary") }}
+                  <button type="submit" class="btn btn-primary">
+                    Register
+                  </button>
                 </div>
+
                 <!-- Already Member Link -->
                 <div class="mt-4 text-center">
                   <a href="/user/log_in" class="text-decoration-none"
-                    >I am already member</a
+                    >I am already a member</a
                   >
                 </div>
               </form>
