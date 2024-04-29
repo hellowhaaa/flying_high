@@ -175,18 +175,18 @@ def update_user():
 @token_required
 def update_insurance(current_user):
     if request.method == "POST":
-        json_data = request.get_json()
-        print("json_data:" , json_data)
-        print("current_user", current_user)
-        insurance_company = json_data['insurance_company']
-        plan = json_data["plan"]
-        insured_amount = json_data["insured_amount"]
-        days = json_data["days"]
-        response = {
-            "status": "success",
-            "data": json_data
-        }
+        print("123123")
+        insurance_company = request.form.get("insurance_company")
+        plan = request.form.get("plan")
+        insured_amount = request.form.get("insured_amount")
+        days = request.form.get("days")
+        print(insurance_company, plan, insured_amount, days)
+        
+        
         update_info = update_user_insurance(current_user,insurance_company,plan, insured_amount, days)
+        response = {
+            "status": "success"
+        }
         print(update_info)
         print(response)
         return jsonify(response)
