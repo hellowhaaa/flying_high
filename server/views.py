@@ -15,6 +15,7 @@ from datetime import datetime, timedelta
 import re
 from flask_mail import Mail, Message
 import folium
+import pytz
 
 
 
@@ -318,7 +319,7 @@ def setup_routes(app, csrf):
 
 
 
-
+# TODO:
 def depart_flight_time():
     flight_result = None
     try:
@@ -342,6 +343,9 @@ def depart_flight_time():
         print("shared",share_code_list)
         if flight_result['status'] == '':
             flight_result['status'] = '已排定起飛時間'
+        taiwan_tz = pytz.timezone('Asia/Taipei')
+        updated_at_local = flight_result['updated_at'].replace(tzinfo=pytz.utc).astimezone(taiwan_tz)
+        flight_result['updated_at'] = updated_at_local.strftime('%m-%d %H:%M')
         flight = {
             "airline_name":airline_name,
             'main_code': main_code,
@@ -351,7 +355,8 @@ def depart_flight_time():
             'scheduled_depart_time': flight_result['scheduled_depart_time'],
             'actual_depart_time': flight_result['actual_depart_time'],
             'status': flight_result['status'],
-            'terminal': flight_result['terminal']
+            'terminal': flight_result['terminal'],
+            'updated_at':flight_result['updated_at']
         }
         print(flight)
         return render_template('flight_time.html',flight= flight)
@@ -542,7 +547,7 @@ def fetch_arrive_flight_code():
                     return_code_dic[key] = [number_part] 
     return return_code_dic
 
-# TODO: ---------   
+
 def fetch_user_depart_flight_code():
     return_code_dic = {}
     result = select_user_depart_flight_code()
