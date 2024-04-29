@@ -10,18 +10,50 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.1/js/select2.min.js"></script>
 <script type="text/javascript">
   $(document).ready(function () {
-    var depart_flight = ["JL", "CI", "IT", "TR", "SQ", "ZE", "LJ", "MM"];
-    $("#depart_flight").select2({
-      data: depart_flight,
-    });
+    fetch("/fetch_user_depart_flight_code")
+      .then((response) => response.json())
+      .then((data) => {
+        $("#depart_airlines").select2({
+          data: Object.keys(data).map((key) => ({ id: key, text: key })),
+        });
+
+        $("#depart_airlines").on("change", function () {
+          var selectedAirline = $(this).val();
+          var flightCodes = data[selectedAirline] || [];
+          $("#depart_flightCodes")
+            .empty()
+            .select2({
+              data: flightCodes.map((code) => ({ id: code, text: code })),
+            });
+        });
+      })
+      .catch((error) =>
+        console.error("Error fetching the airline data:", error)
+      );
   });
 </script>
 <script type="text/javascript">
   $(document).ready(function () {
-    var arrive_flight = ["JL", "CI", "IT", "TR", "SQ", "ZE", "LJ", "MM"];
-    $("#arrive_flight").select2({
-      data: arrive_flight,
-    });
+    fetch("/fetch_user_arrive_flight_code")
+      .then((response) => response.json())
+      .then((data) => {
+        $("#arrive_airlines").select2({
+          data: Object.keys(data).map((key) => ({ id: key, text: key })),
+        });
+
+        $("#arrive_airlines").on("change", function () {
+          var selectedAirline = $(this).val();
+          var flightCodes = data[selectedAirline] || [];
+          $("#arrive_flightCodes")
+            .empty()
+            .select2({
+              data: flightCodes.map((code) => ({ id: code, text: code })),
+            });
+        });
+      })
+      .catch((error) =>
+        console.error("Error fetching the airline data:", error)
+      );
   });
 </script>
 {% endblock %} {% block content %}
@@ -69,7 +101,7 @@
             />
           </div>
         </div>
-        <div class="row mb-3">
+        <!-- <div class="row mb-3">
           <div class="col-md-6">
             <label for="depart_flight" class="form-label">Depart Flight:</label>
             <select
@@ -78,7 +110,10 @@
               class="form-control"
               style="width: 300px"
             >
-              <!-- Options will be dynamically loaded -->
+            
+
+
+
             </select>
           </div>
           <div class="col-md-6">
@@ -91,7 +126,27 @@
               oninput="validateInput(this);"
             />
           </div>
+        </div> -->
+        <p>到達班機</p>
+        <div class="input-group mb-3">
+          <select
+            class="form-select"
+            id="arrive_airlines"
+            name="arriveFlight"
+          ></select>
         </div>
+
+        <div class="form-group mb-3">
+          <select
+            id="arrive_flightCodes"
+            style="width: 300px"
+            name="arriveFlightNumber"
+          >
+            <!-- Dropdown List Option -->
+          </select>
+        </div>
+
+        <!-- 
         <div class="row mb-3">
           <div class="col-md-6">
             <label for="arrive_flight" class="form-label">Arrive Flight:</label>
@@ -101,7 +156,7 @@
               class="form-control"
               style="width: 300px"
             >
-              <!-- Options will be dynamically loaded -->
+          
             </select>
           </div>
           <div class="col-md-6">
@@ -114,7 +169,28 @@
               oninput="validateInput(this);"
             />
           </div>
+        </div> -->
+        <p>起飛班機</p>
+        <div class="input-group mb-3">
+          <select
+            class="form-select"
+            id="depart_airlines"
+            name="departFlight"
+          ></select>
         </div>
+
+        <div class="form-group mb-3">
+          <label for="depart_flightCodes" class="form-label"
+            >Flight Number</label
+          >
+          <select
+            class="form-control"
+            id="depart_flightCodes"
+            style="width: 100%"
+            name="departFlightNumber"
+          ></select>
+        </div>
+
         <button
           type="button"
           class="btn btn-success"

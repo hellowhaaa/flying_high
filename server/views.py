@@ -4,7 +4,7 @@ from flask import (request, redirect, url_for, render_template, flash,
 from models2 import RegisterForm, create_user, same_username, check_user_credentials
 from select_data_from_mongo import (get_arrive_flight_time, get_depart_flight_time, select_insurance_amount,
                                 select_user_information, select_user_insurance, select_today_depart_flight_code,
-                                select_today_arrive_flight_code)
+                                select_today_arrive_flight_code, select_user_depart_flight_code, select_user_arrive_flight_code)
 from update_data_to_mongo import (update_user_insurance, update_user_flight_info, update_user_notify, 
                                 update_depart_email_send, update_arrive_email_send)
 import os
@@ -198,12 +198,14 @@ def update_flight_info(current_user):
         depart_taiwan_date = request.form.get("startDate")
         arrive_taiwan_date = request.form.get("endDate")
         # 出發班機
-        depart_flight = request.form.get("departFlight") 
+        depart_flight = request.form.get("departFlight")
+        depart_flight = depart_flight.split()[0]
         depart_fight_number = request.form.get("departFlightNumber")
         flight_depart_taoyuan = depart_flight+depart_fight_number
         
         # 抵達班機
         arrive_flight = request.form.get("arriveFlight")
+        arrive_flight = arrive_flight.split()[0]
         arrive_fight_number = request.form.get("arriveFlightNumber")
         flight_arrive_taoyuan = arrive_flight+arrive_fight_number
         
@@ -243,7 +245,7 @@ def index():
 def search_flight():
     return render_template('search_flight.html')
 
-# TODO: ---------     
+  
 def setup_routes(app, csrf):
     # Other routes setup
     @app.route('/send_depart_email', methods=['GET', 'POST'])
@@ -520,8 +522,6 @@ def fetch_depart_flight_code():
                         return_code_dic[key].append(number_part) 
                 else:
                     return_code_dic[key] = [number_part] 
-
-    # print("dic--->", return_code_dic)
     return return_code_dic
    
 def fetch_arrive_flight_code():
@@ -540,8 +540,43 @@ def fetch_arrive_flight_code():
                         return_code_dic[key].append(number_part) 
                 else:
                     return_code_dic[key] = [number_part] 
+    return return_code_dic
 
-    # print("dic--->", return_code_dic)
+# TODO: ---------   
+def fetch_user_depart_flight_code():
+    return_code_dic = {}
+    result = select_user_depart_flight_code()
+    for each in result:
+        airlines = each['airline']
+        for airline in airlines:
+            airline_code = airline['airline_code']
+            split_code = split_alpha_numeric(airline_code)
+            if len(split_code) == 2:
+                letter_part, number_part = split_code
+                key = f"{letter_part} {airline['airline_name']}"
+                if key in return_code_dic:
+                    if number_part not in return_code_dic[key]:
+                        return_code_dic[key].append(number_part) 
+                else:
+                    return_code_dic[key] = [number_part] 
+    return return_code_dic
+
+def fetch_user_arrive_flight_code():
+    return_code_dic = {}
+    result = select_user_arrive_flight_code()
+    for each in result:
+        airlines = each['airline']
+        for airline in airlines:
+            airline_code = airline['airline_code']
+            split_code = split_alpha_numeric(airline_code)
+            if len(split_code) == 2:
+                letter_part, number_part = split_code
+                key = f"{letter_part} {airline['airline_name']}"
+                if key in return_code_dic:
+                    if number_part not in return_code_dic[key]:
+                        return_code_dic[key].append(number_part) 
+                else:
+                    return_code_dic[key] = [number_part] 
     return return_code_dic
 
 

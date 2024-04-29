@@ -99,6 +99,19 @@ def select_today_arrive_flight_code():
     )
     return list(result)
 
+def select_user_depart_flight_code():
+    url = os.getenv("MONGODB_URI_FLY")
+    client = MongoClient(url)
+    result = client['flying_high']['flight_depart2'].find()
+    return list(result)
+
+def select_user_arrive_flight_code():
+    url = os.getenv("MONGODB_URI_FLY")
+    client = MongoClient(url)
+    result = client['flying_high']['flight_arrive2'].find()
+    return list(result)
+    
+
 
 
 def select_insurance_amount(plan, insurance_amount,insurance_company, insurance_days):

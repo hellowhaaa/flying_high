@@ -8,7 +8,8 @@ from views import (sign_up, login, logout, dashboard, insurance,search_flight,
                     user_insurance, user_info, update_user, update_insurance, my_insurance,
                     user_notify, fetch_insurance_content, fetch_travel_insurance_content,
                     user_flight, fetch_depart_flight_code, fetch_arrive_flight_code,
-                    update_flight_info, update_notify, setup_routes, flight_map)
+                    update_flight_info, update_notify, setup_routes, flight_map, 
+                    fetch_user_arrive_flight_code, fetch_user_depart_flight_code)
 import logging
 from logging.handlers import RotatingFileHandler
 import os
@@ -77,8 +78,9 @@ def create_app():
     app.add_url_rule('/depart_flight_time', view_func=depart_flight_time, methods=['POST','GET'])
     app.add_url_rule('/fetch_depart_flight_code', view_func=fetch_depart_flight_code, methods=['POST','GET'])
     app.add_url_rule('/fetch_arrive_flight_code', view_func=fetch_arrive_flight_code, methods=['POST','GET'])
-    
-    
+    app.add_url_rule('/fetch_user_depart_flight_code', view_func=fetch_user_depart_flight_code, methods=['POST','GET'])
+    app.add_url_rule('/fetch_user_arrive_flight_code', view_func=fetch_user_arrive_flight_code, methods=['POST','GET'])
+ 
     
     
     
