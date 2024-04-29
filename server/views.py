@@ -177,7 +177,7 @@ def update_insurance(current_user):
     if request.method == "POST":
         print("123123")
         insurance_company = request.form.get("insurance_company")
-        plan = request.form.get("plan")
+        plan = request.form.get("insurance_plan")
         insured_amount = request.form.get("insured_amount")
         days = request.form.get("days")
         print(insurance_company, plan, insured_amount, days)
@@ -231,10 +231,8 @@ def update_notify(current_user):
     if request.method == "POST":
         flight_change = request.form.get('flight_change') == '1' # return False or True
         flight_delay = request.form.get('flight_delay') == '1' # return False or True
-        print("flight_result", (flight_change,flight_delay))
-        result = update_user_notify(current_user,flight_change,flight_delay)
-        print("result",result)
-        
+        hsr = request.form.get('hsr_station')
+        result = update_user_notify(current_user,flight_change,flight_delay,hsr)
         return jsonify({"success": True, "message": "Flight information updated successfully."})
     return render_template("homepage.html")
         

@@ -67,7 +67,7 @@ def update_user_flight_info(username,depart_taiwan_date,arrive_taiwan_date,fligh
         "upserted_id": result.upserted_id
     }
 
-def update_user_notify(username,flight_change,flight_delay):
+def update_user_notify(username,flight_change,flight_delay,hsr):
     url = os.getenv("MONGODB_URI_FLY")
     client = MongoClient(url)
     filter = {"username": username}
@@ -76,6 +76,7 @@ def update_user_notify(username,flight_change,flight_delay):
         "$set": {
             "flight_change": flight_change,
             "flight_delay": flight_delay,
+            "hsr_station": hsr,
             "updated_at": datetime.utcnow()
         },
         "$setOnInsert": {
