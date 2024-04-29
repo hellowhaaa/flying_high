@@ -54,7 +54,26 @@
     <div class="col-md-10">
       <div class="py-4 px-md-5">
         <h1 class="mb-4">我的保險</h1>
-        <form id="insuranceForm">
+        <form
+          id="insuranceForm"
+          action="{{url_for('update_insurance')}}"
+          method="POST"
+        >
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+          <input
+            type="hidden"
+            name="insurance_company"
+            id="selectedInsuranceCompany"
+          />
+          <input type="hidden" name="insurance_plan" id="selectedPlan" />
+          <input
+            type="hidden"
+            name="insured_amount"
+            id="selectedInsuranceAmount"
+          />
+          <input type="hidden" name="days" id="selectedDays" />
+
+          <!-- 保險公司下拉選單 -->
           <div class="dropdown mb-3">
             <button
               class="btn btn-secondary dropdown-toggle"
@@ -128,7 +147,7 @@
               <!-- Dynamically filled with JavaScript -->
             </ul>
           </div>
-          <button type="button" id="submitBtn" class="btn btn-primary">
+          <button type="submit" id="submitBtn" class="btn btn-primary">
             Submit
           </button>
         </form>
@@ -137,5 +156,156 @@
   </div>
 </div>
 {% block user_insurance_script %}
-<script src="../static/js/user_insurance.js"></script>
+<!-- <script src="../static/js/user_insurance.js"> -->
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+    const insuranceCompanyMenu = document.getElementById(
+      "insuranceCompanyDropdown"
+    ).nextElementSibling;
+    const planDropdownButton = document.getElementById("planDropdown");
+    const planDropdownMenu = document.getElementById("planMenu");
+    const insuranceAmountButton = document.getElementById(
+      "insuranceAmountDropdown"
+    );
+    const insuranceAmountMenu = document.getElementById("insuranceAmountMenu");
+
+    const planOptions = {
+      fubung: ["S方案", "M方案", "L方案", "XL方案"],
+      guotai: [
+        "海外輕鬆型(T2)",
+        "海外安心型(T2)",
+        "賞櫻限定型(Z)",
+        "早鳥豪華型(U2)",
+      ],
+    };
+
+    insuranceCompanyMenu.addEventListener("click", function (event) {
+      if (event.target.tagName === "A") {
+        const selectedCompany = event.target.textContent;
+        insuranceCompanyDropdown.textContent = selectedCompany; // Update dropdown button text
+        updateDropdown(
+          planDropdownMenu,
+          planOptions[event.target.dataset.company]
+        );
+      }
+    });
+
+    function updateDropdown(dropdown, options) {
+      dropdown.innerHTML = ""; // Clear previous options
+      options.forEach((option) => {
+        const li = document.createElement("li");
+        const a = document.createElement("a");
+        a.className = "dropdown-item";
+        a.textContent = option;
+        a.href = "#";
+        a.addEventListener("click", function (e) {
+          e.preventDefault();
+          planDropdownButton.textContent = option; // Update dropdown button text
+          if (insuranceAmountsByPlan[option]) {
+            updateInsuranceAmountOptions(insuranceAmountsByPlan[option]);
+          }
+        });
+        li.appendChild(a);
+        dropdown.appendChild(li);
+      });
+    }
+
+    const insuranceAmountsByPlan = {
+      S方案: { min: 200, max: 1500, step: 100 },
+      M方案: { min: 300, max: 1500, step: 100 },
+      L方案: { min: 600, max: 1500, step: 100 },
+      XL方案: { min: 1200, max: 1500, step: 100 },
+      "海外輕鬆型(T2)": { min: 200, max: 1500, step: 100 },
+      "海外安心型(T2)": { min: 200, max: 400, step: 100 },
+      "賞櫻限定型(Z)": { min: 500, max: 1500, step: 100 },
+      "早鳥豪華型(U2)": { min: 300, max: 1500, step: 100 },
+    };
+
+    function updateInsuranceAmountOptions({ min, max, step }) {
+      insuranceAmountMenu.innerHTML = ""; // Clear previous options
+      for (let amount = min; amount <= max; amount += step) {
+        const li = document.createElement("li");
+        const a = document.createElement("a");
+        a.className = "dropdown-item";
+        a.textContent = `${amount}萬`;
+        a.href = "#";
+        a.addEventListener("click", function (e) {
+          e.preventDefault();
+          insuranceAmountButton.textContent = `${amount}萬`; // Update dropdown button text
+          document.getElementById("selectedInsuranceAmount").value = amount;
+        });
+        li.appendChild(a);
+        insuranceAmountMenu.appendChild(li);
+      }
+    }
+  });
+  document.addEventListener("DOMContentLoaded", function () {
+    const daysDropdownButton = document.getElementById("daysDropdown");
+    const daysMenu = document.getElementById("daysMenu");
+
+    for (let day = 3; day <= 30; day++) {
+      const li = document.createElement("li");
+      const a = document.createElement("a");
+      a.className = "dropdown-item";
+      a.textContent = `${day}天`;
+      a.href = "#";
+      a.addEventListener("click", function (e) {
+        e.preventDefault();
+        daysDropdownButton.textContent = `${day}天`; // Update dropdown button text
+        document.getElementById("days-edit").value = day; // Update the hidden input to reflect selected day
+      });
+      li.appendChild(a);
+      daysMenu.appendChild(li);
+    }
+  });
+
+  document.addEventListener("DOMContentLoaded", function () {
+    const insuranceCompanyMenu = document.getElementById(
+      "insuranceCompanyMenu"
+    );
+    const planDropdownMenu = document.getElementById("planMenu");
+    const insuranceAmountMenu = document.getElementById("insuranceAmountMenu");
+    const daysMenu = document.getElementById("daysMenu");
+
+    // 更新保險公司選擇
+    insuranceCompanyMenu.addEventListener("click", function (event) {
+      if (event.target.tagName === "A") {
+        document.getElementById("selectedInsuranceCompany").value =
+          event.target.dataset.company;
+        document.getElementById("insuranceCompanyDropdown").textContent =
+          event.target.textContent;
+      }
+    });
+
+    // 更新方案選擇
+    planDropdownMenu.addEventListener("click", function (event) {
+      if (event.target.tagName === "A") {
+        document.getElementById("selectedPlan").value =
+          event.target.textContent;
+        document.getElementById("planDropdown").textContent =
+          event.target.textContent;
+      }
+    });
+
+    // 更新保險額度選擇
+    insuranceAmountMenu.addEventListener("click", function (event) {
+      if (event.target.tagName === "A") {
+        document.getElementById("selectedInsuranceAmount").value =
+          event.target.textContent;
+        document.getElementById("insuranceAmountDropdown").textContent =
+          event.target.textContent;
+      }
+    });
+
+    // 更新天數選擇
+    daysMenu.addEventListener("click", function (event) {
+      if (event.target.tagName === "A") {
+        document.getElementById("selectedDays").value =
+          event.target.textContent;
+        document.getElementById("daysDropdown").textContent =
+          event.target.textContent;
+      }
+    });
+  });
+</script>
 {% endblock %} {% endblock %}

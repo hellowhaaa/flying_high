@@ -179,16 +179,23 @@ def update_insurance(current_user):
         insurance_company = request.form.get("insurance_company")
         plan = request.form.get("insurance_plan")
         insured_amount = request.form.get("insured_amount")
+        matched_numbers = re.search(r"(\d+)萬", insured_amount)
+        if matched_numbers:
+            numeric_part = matched_numbers.group(1)
+        else:
+            numeric_part = None
+        # numeric_part = int(numeric_part)*10000
         days = request.form.get("days")
-        print(insurance_company, plan, insured_amount, days)
-        
-        
-        update_info = update_user_insurance(current_user,insurance_company,plan, insured_amount, days)
+        matched_days = re.search(r"(\d+)天", days)
+        if matched_days:
+            day_part = matched_days.group(1)
+        else:
+            day_part = None
+        print(insurance_company, plan, numeric_part, day_part)
+        update_info = update_user_insurance(current_user,insurance_company,plan, numeric_part, day_part)
         response = {
             "status": "success"
         }
-        print(update_info)
-        print(response)
         return jsonify(response)
     return render_template('homepage.html')
 
