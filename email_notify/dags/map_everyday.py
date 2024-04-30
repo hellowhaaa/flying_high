@@ -4,12 +4,16 @@ from folium import features
 import os
 from pymongo import MongoClient
 import pytz
-from datetime import datetime
+from datetime import datetime,timedelta
 from dotenv import load_dotenv
 import re
 from geopy.geocoders import Nominatim
 from geopy.exc import GeocoderTimedOut
 import time
+from airflow import DAG
+from airflow.operators.empty import EmptyOperator
+from airflow.operators.python import PythonOperator
+import pendulum
 
 load_dotenv()
 url = os.getenv("MONGODB_URI_FLY")
@@ -163,92 +167,128 @@ def depart_result(collection_name):
 
 
 
+def main():
+    # -----------------------------------------
+    # os.path.dirname(__file__) get current file path
+    path = os.path.abspath(os.path.join(os.path.dirname(__file__),"../../server/templates"))
+    print(path)
+    taoyuan_airport_coords = [25.080, 121.2325]
 
-# -----------------------------------------
-# os.path.dirname(__file__) get current file path
-path = os.path.abspath(os.path.join(os.path.dirname(__file__),"../../server/templates"))
-print(path)
-taoyuan_airport_coords = [25.080, 121.2325]
-
-arrive_destinations = arrive_result('flight_arrive2')
-depart_destinations = depart_result('flight_depart2')
-
-
-map = folium.Map(location=taoyuan_airport_coords, zoom_start=5, tiles='cartodbpositron')
+    arrive_destinations = arrive_result('flight_arrive2')
+    depart_destinations = depart_result('flight_depart2')
 
 
-arrivals = folium.FeatureGroup(name='Arrivals to Taoyuan')
-departures = folium.FeatureGroup(name='Departures from Taoyuan')
+    map = folium.Map(location=taoyuan_airport_coords, zoom_start=5, tiles='cartodbpositron')
 
-# Marker 
-folium.Marker(
-    taoyuan_airport_coords,
-    popup='桃園國際機場',
-    icon=folium.Icon(color='red', icon='plane')
-).add_to(map)
 
-# Arrive
-for each in arrive_destinations:
-    city = each['destination']
-    coords = each['latitude_longitude']
-    popup_content = f"<strong>{city}</strong><br/>"
-    for flight in each['flights']:
-        scheduled_arrive_time = flight['scheduled_arrive_time']
-        airlines = ', '.join(flight['airlines'])
-        popup_content += f"Scheduled Arrive: {scheduled_arrive_time}<br/>Airlines: {airlines}<br/>"
+    arrivals = folium.FeatureGroup(name='Arrivals to Taoyuan')
+    departures = folium.FeatureGroup(name='Departures from Taoyuan')
+
+    # Marker 
+    folium.Marker(
+        taoyuan_airport_coords,
+        popup='桃園國際機場',
+        icon=folium.Icon(color='red', icon='plane')
+    ).add_to(map)
+
+    # Arrive
+    for each in arrive_destinations:
+        city = each['destination']
+        coords = each['latitude_longitude']
+        popup_content = f"<strong>{city}</strong><br/>"
+        for flight in each['flights']:
+            scheduled_arrive_time = flight['scheduled_arrive_time']
+            airlines = ', '.join(flight['airlines'])
+            popup_content += f"Scheduled Arrive: {scheduled_arrive_time}<br/>Airlines: {airlines}<br/>"
+        
+        marker = folium.Marker(
+            coords,
+            popup=folium.Popup(popup_content, max_width=250),
+            icon=folium.Icon(color='green', icon='plane-arrival')
+        ).add_to(arrivals)
+        
+        folium.PolyLine([taoyuan_airport_coords, coords], weight=1,dash_array='10, 10',color="green").add_to(arrivals)
+
+    # Depart
+    for each in depart_destinations:
+        city = each['destination']
+        coords = each['latitude_longitude']
+        popup_content = f"<strong>{city}</strong><br/>"
+        for flight in each['flights']:
+            scheduled_depart_time = flight['scheduled_depart_time']
+            airlines = ', '.join(flight['airlines'])
+            popup_content += f"Scheduled Depart: {scheduled_depart_time}<br/>Airlines: {airlines}<br/>"
+        
+        marker = folium.Marker(
+            coords,
+            popup=folium.Popup(popup_content, max_width=250),
+            icon=folium.Icon(color='blue', icon='plane-arrival')
+        ).add_to(departures)
+        
+        folium.PolyLine([taoyuan_airport_coords, coords], weight=1,dash_array='10, 10',color="blue").add_to(departures)
+
+    # add  FeatureGroup to map
+    map.add_child(arrivals)
+    map.add_child(departures)
+
+    # add LayerControl
+    map.add_child(folium.LayerControl())
+
+    style_function = """
+        function(feature) {
+            return {color: feature.properties.color};
+        };
+    """
+    highlight_function = """
+        function(feature) {
+            return {weight: 10, color: 'red'};
+        };
+    """
+
+    map.get_root().html.add_child(folium.Element("""
+        <style>
+        .leaflet-interactive:hover {
+            stroke-width: 10px;
+            stroke-color: #red !important;
+        }
+        </style>
+    """))
+
+    map.save(f'{path}/map_with_layers.html')
+
+
+default_args = {
+    'owner': 'airflow',
+    'depends_on_past': False, 
+    'email_on_failure': False,
+    'email_on_retry': False,
+    'retries': 1,
+    'retry_delay': timedelta(minutes=5)
+}
+
+with DAG(
+    dag_id="release_map_everyday",
+    schedule="0 17 * * *", # 每20分鐘執行一次
+    start_date=pendulum.datetime(2024, 4, 25, tz="UTC"),
+    default_args=default_args,
+    catchup=False, # 不會去執行以前的任務
+    max_active_runs=1,
+    tags=['map'],
+) as dag:
+    task_start = EmptyOperator(
+    task_id="task_start",
+    dag=dag
+    )
+    task_end = EmptyOperator(
+    task_id="task_end",
+    dag=dag
+    )
     
-    marker = folium.Marker(
-        coords,
-        popup=folium.Popup(popup_content, max_width=250),
-        icon=folium.Icon(color='green', icon='plane-arrival')
-    ).add_to(arrivals)
+    task_map_everyday = PythonOperator(
+        task_id = "map_everyday",
+        python_callable=main,
+        dag = dag  
+    )
     
-    folium.PolyLine([taoyuan_airport_coords, coords], weight=1,dash_array='10, 10',color="green").add_to(arrivals)
-
-# Depart
-for each in depart_destinations:
-    city = each['destination']
-    coords = each['latitude_longitude']
-    popup_content = f"<strong>{city}</strong><br/>"
-    for flight in each['flights']:
-        scheduled_depart_time = flight['scheduled_depart_time']
-        airlines = ', '.join(flight['airlines'])
-        popup_content += f"Scheduled Depart: {scheduled_depart_time}<br/>Airlines: {airlines}<br/>"
-    
-    marker = folium.Marker(
-        coords,
-        popup=folium.Popup(popup_content, max_width=250),
-        icon=folium.Icon(color='blue', icon='plane-arrival')
-    ).add_to(departures)
-    
-    folium.PolyLine([taoyuan_airport_coords, coords], weight=1,dash_array='10, 10',color="blue").add_to(departures)
-
-# add  FeatureGroup to map
-map.add_child(arrivals)
-map.add_child(departures)
-
-# add LayerControl
-map.add_child(folium.LayerControl())
-
-style_function = """
-    function(feature) {
-        return {color: feature.properties.color};
-    };
-"""
-highlight_function = """
-    function(feature) {
-        return {weight: 10, color: 'red'};
-    };
-"""
-
-map.get_root().html.add_child(folium.Element("""
-    <style>
-    .leaflet-interactive:hover {
-        stroke-width: 10px;
-        stroke-color: #red !important;
-    }
-    </style>
-"""))
-
-map.save(f'{path}/map_with_layers.html')
+(task_start >> task_map_everyday >> task_end)
 

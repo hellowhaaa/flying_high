@@ -5,7 +5,7 @@ import pendulum
 from dotenv import load_dotenv
 from pymongo import MongoClient,DESCENDING
 import os
-from datetime import datetime, tzinfo, timezone, timedelta
+from datetime import datetime,timedelta
 import pytz
 import requests
 
