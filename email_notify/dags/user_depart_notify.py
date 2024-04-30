@@ -9,7 +9,7 @@ from datetime import datetime, tzinfo, timezone, timedelta
 import pytz
 import requests
 
-API_ENDPOINT  = 'http://127.0.0.1:5000/send_depart_email'
+API_ENDPOINT  = 'http://13.230.61.140/send_depart_email'
 
 def get_depart_flight_time():
     load_dotenv()
@@ -20,7 +20,6 @@ def get_depart_flight_time():
     tw_now = datetime.now(taiwan_tz)
     tw_midnight = taiwan_tz.localize(datetime(tw_now.year, tw_now.month, tw_now.day, 0, 0, 0))
     utc_midnight = tw_midnight.astimezone(pytz.utc)  # UTC Time
-    print("utc_midnigh--------------->",utc_midnight)
     filter={
         'status': {
         '$in': [
