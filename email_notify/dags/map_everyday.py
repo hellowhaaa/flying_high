@@ -167,7 +167,7 @@ def depart_result(collection_name):
 
 
 
-def main():
+def task_map():
     # -----------------------------------------
     # os.path.dirname(__file__) get current file path
     path = os.path.abspath(os.path.join(os.path.dirname(__file__),"../../server/templates"))
@@ -286,7 +286,7 @@ with DAG(
     
     task_map_everyday = PythonOperator(
         task_id = "map_everyday",
-        python_callable=main,
+        python_callable=task_map,
         dag = dag  
     )
     
