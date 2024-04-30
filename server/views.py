@@ -284,27 +284,42 @@ def setup_routes(app, csrf):
             print('Error occurred:', str(e))
             return jsonify({"status": "Failed", "error": str(e)}), 500
         
+    def create_email_body(username, airline_code, scheduled_arrive_time, status, train_ls, actual_arrive_time):
+        print("train_ls",train_ls)
+        train_times_str = '\n'.join([f" Train ID: {train[0]} Departure : {train[1]}, Arrival: {train[2]}, Non-reserved Car: {train[3]}" for train in train_ls])
+        
+        body = (
+            f"Hi! {username}, your flight {airline_code} 's time has been changed. "
+            f"Your flight's scheduled depart time is {scheduled_arrive_time} which status is now {status}. "
+            f"The predicted arrival time is {actual_arrive_time}."
+            "For more detail, please click the link to trace your flight!\n\n"
+            "Here are your train times:\n(after arrive within 5 hours):\n"
+            f"{train_times_str}"
+        )
+        return body
 
     @app.route('/send_arrive_email', methods=['GET', 'POST'])
     @csrf.exempt
     def send_arrive_email():
         print("arrive11")
         try:
-            email = request.form.get('email')
-            scheduled_arrive_time = request.form.get('scheduled_arrive_time')
-            status = request.form.get('status')
-            airline_code = request.form.get('airline_code')
-            username = request.form.get('username')
-            print("data", (email, scheduled_arrive_time, status))
-            print("x")
+            email = request.json.get('email')
+            scheduled_arrive_time = request.json.get('scheduled_arrive_time')
+            status = request.json.get('status')
+            airline_code = request.json.get('airline_code')
+            username = request.json.get('username')
+            train_ls = request.json.get('train_ls')
+            print("dsgsilghd", train_ls)
+            actual_arrive_time = request.json.get('actual_arrive_time')
+            
+            print("data", (email, scheduled_arrive_time, status, train_ls,train_ls,actual_arrive_time))
             print("current_app_MAIL_USERNAME",current_app.config.get("MAIL_USERNAME"))
             mail = current_app.extensions['mail']
+            email_body = create_email_body(username, airline_code, scheduled_arrive_time, status, train_ls, actual_arrive_time)
             msg = Message(subject="Hello",
                         sender=current_app.config.get("MAIL_USERNAME"),
                         recipients=[email], # replace with your email for testing
-                        body=f"Hi! {username}  your flight {airline_code} 's time has been changed.\
-                            Your flight's scheduled depart time {scheduled_arrive_time} which status is now {status}. \
-                            For more detail, please click the link to trace your flight!")
+                        body=email_body)
             mail.send(msg)
             update = update_arrive_email_send(username)
             print("update_success", update)

@@ -8,6 +8,7 @@ import os
 from datetime import datetime, tzinfo, timezone, timedelta, time
 import pytz
 import requests
+import json
 
 API_ENDPOINT  = 'http://127.0.0.1:5000/send_arrive_email'
 
@@ -69,6 +70,7 @@ def transform_result():
                             train_id = each_train['id']
                             formatted_time_str = train_departure_time.strftime("%H:%M")
                             train_ls.append((train_id,formatted_time_str, train_destination_time, non_reserved_car))
+                print("train_ls", train_ls)
                 username = send_email_dic['username']
                 user_info = select_user_email(username)
                 # 找出使用者的 email
@@ -77,6 +79,7 @@ def transform_result():
                     print("email", email)
                     print("scheduled_arrive_time->", scheduled_arrive_time)
                     print("status-->", status)
+                    actual_arrive_time = actual_arrive_time.strftime("%H:%M") if actual_arrive_time else None
                     data = {'email': email,
                             'scheduled_arrive_time':scheduled_arrive_time,
                             'status':status,
@@ -85,7 +88,9 @@ def transform_result():
                             'train_ls':train_ls,
                             "actual_arrive_time":actual_arrive_time  # Could be None
                         }
-                    response = requests.post(url=API_ENDPOINT, data=data)
+                    print("data", data)
+                    headers = {'Content-Type': 'application/json'}
+                    response = requests.post(url=API_ENDPOINT, data=json.dumps(data), headers=headers)
                     response_text = response.text
                     print(response_text)        
                     
