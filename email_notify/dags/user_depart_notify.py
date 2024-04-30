@@ -3,7 +3,7 @@ from airflow.operators.python import PythonOperator
 from airflow.operators.empty import EmptyOperator
 import pendulum
 from dotenv import load_dotenv
-from pymongo import MongoClient
+from pymongo import MongoClient,DESCENDING
 import os
 from datetime import datetime, tzinfo, timezone, timedelta
 import pytz
@@ -32,7 +32,8 @@ def get_depart_flight_time():
     }
     }
     result = client['flying_high']['flight_depart2'].find(
-    filter=filter
+    filter=filter,
+    sort=[('updated_at', DESCENDING)]
     )
     return list(result)
 
@@ -128,46 +129,38 @@ def select_user_flight(airline_code):
     except Exception as e:
         print(str(e))
             
-        
 
+default_args = {
+    'owner': 'airflow',
+    'depends_on_past': False, 
+    'email_on_failure': False,
+    'email_on_retry': False,
+    'retries': 1,
+    'retry_delay': timedelta(minutes=5)
+}
 
-
-
-transform_result()
-# print("arrive->: ", get_arrive_flight_time())
-# print("depart->", get_depart_flight_time())
-
-# default_args = {
-#     'owner': 'airflow',
-#     'depends_on_past': False, 
-#     'email_on_failure': False,
-#     'email_on_retry': False,
-#     'retries': 1,
-#     'retry_delay': timedelta(minutes=5)
-# }
-
-# with DAG(
-#     dag_id="release_catch_flight_change",
-#     schedule="*/10 * * * *", # 每十分鐘執行一次
-#     start_date=pendulum.datetime(2024, 4, 25, tz="UTC"),
-#     default_args=default_args,
-#     catchup=False, # 不會去執行以前的任務
-#     max_active_runs=1,
-#     tags=['flight'],
-# ) as dag:
-#     task_start = EmptyOperator(
-#     task_id="task_start",
-#     dag=dag
-#     )
-#     task_end = EmptyOperator(
-#     task_id="task_end",
-#     dag=dag
-#     )
+with DAG(
+    dag_id="release_catch_depart_flight_change",
+    schedule="*/20 * * * *", # 每20分鐘執行一次
+    start_date=pendulum.datetime(2024, 4, 25, tz="UTC"),
+    default_args=default_args,
+    catchup=False, # 不會去執行以前的任務
+    max_active_runs=1,
+    tags=['flight'],
+) as dag:
+    task_start = EmptyOperator(
+    task_id="task_start",
+    dag=dag
+    )
+    task_end = EmptyOperator(
+    task_id="task_end",
+    dag=dag
+    )
     
-#     task_arrive_flight_change = PythonOperator(
-#         task_id = "arrive_flight_change",
-#         python_callable=get_arrive_flight_time,
-#         dag = dag  
-#     )
+    task_depart_flight_change = PythonOperator(
+        task_id = "depart_flight_change",
+        python_callable=transform_result,
+        dag = dag  
+    )
     
-# (task_start >> task_arrive_flight_change >> task_end)
+(task_start >> task_depart_flight_change >> task_end)
