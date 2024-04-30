@@ -66,42 +66,33 @@ def transform_result():
                         if is_within_five_hours(actual_arrive_time, train_departure_time):
                             train_destination_time = each_train['destination_time']
                             non_reserved_car = each_train['non_reserved_Car']
+                            train_id = each_train['id']
                             formatted_time_str = train_departure_time.strftime("%H:%M")
-                            train_ls.append((formatted_time_str, train_destination_time, non_reserved_car))
-                print(train_ls)
-
-def is_within_five_hours(start_time, end_time):
-    # check if the difference between start_time and end_time is within 5 hours
-    start_minutes = start_time.hour * 60 + start_time.minute
-    end_minutes = end_time.hour * 60 + end_time.minute
-    return 0 <= (end_minutes - start_minutes) <= 5 * 60            
-                
-                
-                
-                
-            #     username = send_email_dic['username']
-            #     user_info = select_user_email(username)
-            #     # 找出使用者的 email
-            #     if user_info is not None:
-            #         email = user_info['email']
-            #         print("email", email)
-            #         print("scheduled_arrive_time->", scheduled_arrive_time)
-            #         print("status-->", status)
-            #         data = {'email': email,
-            #                 'scheduled_arrive_time':scheduled_arrive_time,
-            #                 'status':status,
-            #                 'airline_code':airline_code,
-            #                 'username':username,
-            #                 "actual_arrive_time":actual_arrive_time  # Could be None
-            #             }
-            #         response = requests.post(url=API_ENDPOINT, data=data)
-            #         response_text = response.text
-            #         print(response_text)        
+                            train_ls.append((train_id,formatted_time_str, train_destination_time, non_reserved_car))
+                username = send_email_dic['username']
+                user_info = select_user_email(username)
+                # 找出使用者的 email
+                if user_info is not None:
+                    email = user_info['email']
+                    print("email", email)
+                    print("scheduled_arrive_time->", scheduled_arrive_time)
+                    print("status-->", status)
+                    data = {'email': email,
+                            'scheduled_arrive_time':scheduled_arrive_time,
+                            'status':status,
+                            'airline_code':airline_code,
+                            'username':username,
+                            'train_ls':train_ls,
+                            "actual_arrive_time":actual_arrive_time  # Could be None
+                        }
+                    response = requests.post(url=API_ENDPOINT, data=data)
+                    response_text = response.text
+                    print(response_text)        
                     
-            #     else:
-            #         print("no no email")
-            # else:
-            #     print("no no username")
+                else:
+                    print("no no email")
+            else:
+                print("no no username")
 
 
 def select_user_email(username):
@@ -184,7 +175,11 @@ def select_hsr_train(hsr_station):
     return result
     
         
-        
+def is_within_five_hours(start_time, end_time):
+    # check if the difference between start_time and end_time is within 5 hours
+    start_minutes = start_time.hour * 60 + start_time.minute
+    end_minutes = end_time.hour * 60 + end_time.minute
+    return 0 <= (end_minutes - start_minutes) <= 5 * 60         
         
         
         
