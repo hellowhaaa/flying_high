@@ -5,7 +5,7 @@ import pendulum
 from dotenv import load_dotenv
 from pymongo import MongoClient
 import os
-from datetime import datetime, tzinfo, timezone, timedelta
+from datetime import datetime, tzinfo, timezone, timedelta, time
 import pytz
 import requests
 
@@ -45,8 +45,11 @@ def transform_result():
         scheduled_arrive_time = collection['scheduled_arrive_time']
         status = collection['status']
         actual_arrive_time = collection['actual_arrive_time'] if collection['actual_arrive_time'] != "" else None
-        
-        
+        print("actual_arrive_time", actual_arrive_time)
+        train_ls = []
+        print(type(actual_arrive_time))
+        actual_arrive_time = datetime.strptime(actual_arrive_time, "%H:%M").time()
+        print("這", type(actual_arrive_time))
         for airline in airlines:
             airline_code = airline['airline_code']
             # 找出需要發送 email的 user
@@ -55,9 +58,24 @@ def transform_result():
             if send_email_dic is not None:
                 # 找出大於 actual_arrive_time 的高鐵班次
                 hsr_station = send_email_dic['hsr_station']
-                print("hsr_station", hsr_station)
-                train_time = select_hsr_train(hsr_station)
-                print("train_time", train_time)
+                train_time = select_hsr_train(hsr_station)     
+                for each_train in train_time['train_item']:
+                    train_departure_time_str = each_train['departure_time']
+                    if train_departure_time_str: # departure_time could be None
+                        train_departure_time = datetime.strptime(train_departure_time_str, "%H:%M").time()
+                        if is_within_five_hours(actual_arrive_time, train_departure_time):
+                            train_destination_time = each_train['destination_time']
+                            non_reserved_car = each_train['non_reserved_Car']
+                            formatted_time_str = train_departure_time.strftime("%H:%M")
+                            train_ls.append((formatted_time_str, train_destination_time, non_reserved_car))
+                print(train_ls)
+
+def is_within_five_hours(start_time, end_time):
+    # check if the difference between start_time and end_time is within 5 hours
+    start_minutes = start_time.hour * 60 + start_time.minute
+    end_minutes = end_time.hour * 60 + end_time.minute
+    return 0 <= (end_minutes - start_minutes) <= 5 * 60            
+                
                 
                 
                 
