@@ -44,32 +44,46 @@ def transform_result():
         airlines = collection['airline']
         scheduled_arrive_time = collection['scheduled_arrive_time']
         status = collection['status']
+        actual_arrive_time = collection['actual_arrive_time'] if collection['actual_arrive_time'] != "" else None
+        
+        
         for airline in airlines:
             airline_code = airline['airline_code']
             # 找出需要發送 email的 user
             send_email_dic = select_user_flight(airline_code)
+            print("send_email_dic")
             if send_email_dic is not None:
-                username = send_email_dic['username']
-                user_info = select_user_email(username)
-                if user_info is not None:
-                    email = user_info['email']
-                    print("email", email)
-                    print("scheduled_arrive_time->", scheduled_arrive_time)
-                    print("status-->", status)
-                    data = {'email': email,
-                            'scheduled_arrive_time':scheduled_arrive_time,
-                            'status':status,
-                            'airline_code':airline_code,
-                            'username':username
-                        }
-                    response = requests.post(url=API_ENDPOINT, data=data)
-                    response_text = response.text
-                    print(response_text)        
+                # 找出大於 actual_arrive_time 的高鐵班次
+                hsr_station = send_email_dic['hsr_station']
+                print("hsr_station", hsr_station)
+                train_time = select_hsr_train(hsr_station)
+                print("train_time", train_time)
+                
+                
+                
+            #     username = send_email_dic['username']
+            #     user_info = select_user_email(username)
+            #     # 找出使用者的 email
+            #     if user_info is not None:
+            #         email = user_info['email']
+            #         print("email", email)
+            #         print("scheduled_arrive_time->", scheduled_arrive_time)
+            #         print("status-->", status)
+            #         data = {'email': email,
+            #                 'scheduled_arrive_time':scheduled_arrive_time,
+            #                 'status':status,
+            #                 'airline_code':airline_code,
+            #                 'username':username,
+            #                 "actual_arrive_time":actual_arrive_time  # Could be None
+            #             }
+            #         response = requests.post(url=API_ENDPOINT, data=data)
+            #         response_text = response.text
+            #         print(response_text)        
                     
-                else:
-                    print("no no email")
-            else:
-                print("no no username")
+            #     else:
+            #         print("no no email")
+            # else:
+            #     print("no no username")
 
 
 def select_user_email(username):
@@ -117,7 +131,7 @@ def select_user_flight(airline_code):
             # 找出 需要寄送通知, 但是還沒有寄送過的人 
             filter={
                 'username': username, 
-                'flight_change': True,
+                'flight_delay': True,
                 'arrive_email_send':False
                     }
             send_email = client['flying_high']['user_notify'].find_one(
@@ -128,6 +142,40 @@ def select_user_flight(airline_code):
                 return send_email #dict
     except Exception as e:
         print(str(e))
+
+def select_hsr_train(hsr_station):
+    load_dotenv()
+    url = os.getenv("MONGODB_URI_FLY")
+    print(url)
+    client = MongoClient(url)
+    #  今天凌晨
+    taiwan_tz = pytz.timezone('Asia/Taipei')
+    tw_now = datetime.now(taiwan_tz)
+    tw_midnight = taiwan_tz.localize(datetime(tw_now.year, tw_now.month, tw_now.day, 0, 0, 0))
+    utc_midnight = tw_midnight.astimezone(pytz.utc)
+
+    filter={
+        'end_station': hsr_station,
+        'hsr_utc_time': {
+        '$eq': utc_midnight
+    }
+    }
+    result = client['flying_high']['hsr_time'].find_one(
+    filter=filter
+    )
+    return result
+    
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
 
 transform_result()
 
