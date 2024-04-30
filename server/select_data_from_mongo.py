@@ -1,5 +1,5 @@
 
-from pymongo import MongoClient
+from pymongo import MongoClient,DESCENDING
 import os 
 from dotenv import load_dotenv
 from datetime import datetime
@@ -35,7 +35,8 @@ def get_arrive_flight_time(flight):  # airline_code 是 JL96 的組合\l
     }
     }
     result = client['flying_high']['flight_arrive2'].find_one(
-    filter=filter
+    filter=filter,
+    sort=[('updated_at', DESCENDING)]
     )
     return result
 
@@ -59,7 +60,8 @@ def get_depart_flight_time(flight):
     }
     }
     result = client['flying_high']['flight_depart2'].find_one(
-    filter=filter
+    filter=filter,
+    sort=[('updated_at', DESCENDING)]
     )
     return result
 

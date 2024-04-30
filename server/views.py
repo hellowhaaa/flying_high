@@ -393,6 +393,9 @@ def arrive_flight_time():
         print("shared",share_code_list)
         if flight_result['status'] == '':
             flight_result['status'] = '已排定起飛時間'
+        taiwan_tz = pytz.timezone('Asia/Taipei')
+        updated_at_local = flight_result['updated_at'].replace(tzinfo=pytz.utc).astimezone(taiwan_tz)
+        flight_result['updated_at'] = updated_at_local.strftime('%m-%d %H:%M')
         flight = {
             "airline_name":airline_name,
             'main_code': main_code,
@@ -402,7 +405,8 @@ def arrive_flight_time():
             'scheduled_arrive_time': flight_result['scheduled_arrive_time'],
             'actual_arrive_time': flight_result['actual_arrive_time'],
             'status': flight_result['status'],
-            'terminal': flight_result['terminal']
+            'terminal': flight_result['terminal'],
+            'updated_at':flight_result['updated_at']
         }
         print(flight)
         return render_template('flight_time.html',flight= flight)
