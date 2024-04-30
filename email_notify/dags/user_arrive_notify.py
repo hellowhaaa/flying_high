@@ -3,7 +3,7 @@ from airflow.operators.python import PythonOperator
 from airflow.operators.empty import EmptyOperator
 import pendulum
 from dotenv import load_dotenv
-from pymongo import MongoClient
+from pymongo import MongoClient,DESCENDING
 import os
 from datetime import datetime, tzinfo, timezone, timedelta, time
 import pytz
@@ -33,7 +33,8 @@ def get_arrive_flight_time():
     }
     }
     result = client['flying_high']['flight_arrive2'].find(
-    filter=filter
+    filter=filter,
+    sort=[('updated_at', DESCENDING)]
     )
     return list(result)
 
