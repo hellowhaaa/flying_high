@@ -14,6 +14,7 @@ from airflow import DAG
 from airflow.operators.empty import EmptyOperator
 from airflow.operators.python import PythonOperator
 import pendulum
+from branca.element import Template, MacroElement
 
 load_dotenv()
 url = os.getenv("MONGODB_URI_FLY")
@@ -27,6 +28,9 @@ taiwan_tz = pytz.timezone('Asia/Taipei')
 tw_now = datetime.now(taiwan_tz)
 tw_midnight = taiwan_tz.localize(datetime(tw_now.year, tw_now.month, tw_now.day, 0, 0, 0))
 utc_midnight = tw_midnight.astimezone(pytz.utc)
+
+
+
 
 # aggregate unique destination
 pipeline = [
@@ -253,6 +257,23 @@ def task_map():
         }
         </style>
     """))
+    template = """
+    {% macro html(this, kwargs) %}
+    <div style="position: absolute; top: 20px; left: 50px; width: 300px; height: 20px; z-index:9999; font-size:16px; font-weight:bold;">
+        Map created on: {{date}}
+    </div>
+    {% endmacro %}
+    """
+    # 設置台灣當天時間 顯示在map最上面
+    taiwan_tz = pytz.timezone('Asia/Taipei')
+    current_date = datetime.now(taiwan_tz).strftime('%Y-%m-%d')
+
+    macro = MacroElement()
+    macro._template = Template(template)
+    macro._template.module.date = current_date
+
+    map.get_root().add_child(macro)
+        
 
     map.save(f'{path}/map_with_layers.html')
 
