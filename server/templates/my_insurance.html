@@ -71,10 +71,15 @@
           <input type="hidden" name="days" value="{{ user_insurance.days }}" />
 
           <h4>投保資訊：</h4>
-          <p>投保公司: {{ user_insurance.insurance_company }}</p>
+          {% if user_insurance.insurance_company == 'fubung' %}
+          <p>投保公司：富邦人壽</p>
+          {% else %}
+          <p>投保公司：國泰人壽</p>
+          {% endif %}
+          <!-- <p>投保公司: {{ user_insurance.insurance_company }}</p> -->
           <p>方案: {{ user_insurance.plan }}</p>
-          <p>投保額度: {{ user_insurance.insured_amount }}</p>
-          <p>投保天數: {{ user_insurance.days }}</p>
+          <p>投保額度: {{ user_insurance.insured_amount }} 萬</p>
+          <p>投保天數: {{ user_insurance.days }} 天</p>
           <h3>不便險</h3>
           <div class="dropdown mb-3 col-md-4">
             <button class="btn btn-secondary dropdown-toggle" type="button" id="convenienceDropdown" data-bs-toggle="dropdown" aria-expanded="false">
@@ -148,9 +153,16 @@
       <p id="price"></p>
       <p id="name"></p>
       <p id="count"></p>
-      <p id="description"></p>
-      <p id="explain"></p>
+      <!-- <p id="description"></p> -->
+      <!-- <p id="explain"></p> -->
       <p id="necessities"></p>
+      <p id="explain" style="display: none;">範例：等待...</p>
+      <button id="toggleExplainBtn" style="display: none;">查看範例</button>
+
+      <p id="description" style="display: none;">保險內容：等待...</p>
+      <button id="toggleDescriptionBtn" style="display: none;">查看保險內容</button>
+
+
 
       <div>
         <form id="travelInsuranceForm">
@@ -205,15 +217,55 @@
       <p id="pay_type2"></p>
       <p id="price2"></p>
       <p id="name2"></p>
-      <p id="count2">理賠最高次數: 1</p>
-      <p id="description2"></p>
+      <p id="count2"></p>
+      <!-- <p id="description2"></p> -->
       <p id="explain2"></p>
       <p id="necessities2"></p>
+      <p id="description2" style="display: none;">保險內容：等待...</p>
+      <button id="toggleDescriptionBtn2" style="display: none;">查看保險內容</button>
     </div>
   </div>
 </div>
 
 <script>
+document.getElementById("toggleDescriptionBtn").addEventListener("click", function() {
+  var description = document.getElementById("description");
+  if (description.style.display === "none") {
+    description.style.display = "block"; 
+    this.textContent = "隱藏"; 
+  } else {
+    description.style.display = "none";  
+    // 恢復查看更多保險內容
+    this.textContent = "查看更多保險內容"; 
+  }
+});
+
+document.getElementById("toggleDescriptionBtn2").addEventListener("click", function() {
+  var description2 = document.getElementById("description2");
+  if (description2.style.display === "none") {
+    description2.style.display = "block"; 
+    this.textContent = "隱藏"; 
+  } else {
+    description2.style.display = "none";  
+    // 恢復查看更多保險內容
+    this.textContent = "查看更多保險內容"; 
+  }
+});
+
+document.getElementById("toggleExplainBtn").addEventListener("click", function() {
+  var explain = document.getElementById("explain");
+  if (explain.style.display === "none") {
+    explain.style.display = "block";  // 顯示範例
+    this.textContent = "隐藏範例";  // 變更button 為“隐藏範例”
+  } else {
+    explain.style.display = "none";  // 隐藏範例
+    this.textContent = "查看範例";  // 恢復button 為“查看範例”
+  }
+});
+
+
+
+
   document.querySelectorAll(".dropdown-item").forEach((item) => {
   item.addEventListener("click", function () {
     const parentDropdown = this.closest('.dropdown');
@@ -222,8 +274,8 @@
     const optionValue = this.getAttribute("data-option");
     const hiddenInputId = parentDropdown.querySelector('input[type="hidden"]').id;
     
-    document.getElementById(dropdownButtonId).textContent = optionText;  // 更新按钮显示文本
-    document.getElementById(hiddenInputId).value = optionValue;  // 更新隐藏输入的值
+    document.getElementById(dropdownButtonId).textContent = optionText;  // 更新button的文字
+    document.getElementById(hiddenInputId).value = optionValue;  // 更新隐藏的input的值
   });
 });
 
@@ -245,6 +297,13 @@
         .then((data) => {
           console.log(data);
           if (data.status === "success") {
+            document.getElementById("description").style.display = "none";  // 確保保險內容一開始是隐藏的
+            document.getElementById("toggleDescriptionBtn").style.display = "inline-block";  // 顯示按钮
+            document.getElementById("description").textContent = `保險內容：${data.data.description}`;  // 設置保險內容
+
+            document.getElementById("explain").style.display = "none";  
+            document.getElementById("toggleExplainBtn").style.display = "inline-block"; 
+            document.getElementById("explain").textContent = `範例：${data.data.explain}`;  
             document.getElementById(
               "pay_type"
             ).textContent = `支付類型：${data.data.pay_type}`;
@@ -257,15 +316,21 @@
             document.getElementById(
               "count"
             ).textContent = `理賠最高次數：${data.data.count}`;
-            document.getElementById(
-              "description"
-            ).textContent = `保險內容：${data.data.description}`;
-            document.getElementById(
-              "explain"
-            ).textContent = `範例：${data.data.explain}`;
-            document.getElementById(
-              "necessities"
-            ).textContent = `理賠需準備文件：${data.data.necessities}`;
+            // document.getElementById(
+            //   "description"
+            // ).textContent = `保險內容：${data.data.description}`;
+            // document.getElementById(
+            //   "explain"
+            // ).textContent = `範例：${data.data.explain}`;
+            document.getElementById("necessities").innerHTML = `理賠需準備文件：${data.data.necessities}`;
+            document.getElementById("necessities").style.color = 'red';  
+            document.getElementById("necessities").style.fontSize = 'larger';  
+
+
+
+            // document.getElementById(
+            //   "necessities"
+            // ).textContent = `理賠需準備文件：${data.data.necessities}`;
           } else {
             alert("沒有找到數據");
           }
@@ -302,12 +367,34 @@
             document.getElementById(
               "count2"
             ).textContent = `理賠最高次數：1`;
-            document.getElementById(
-              "description2"
-            ).textContent = `保險內容：${data.data.description}`;
-            document.getElementById(
-              "necessities2"
-            ).textContent = `理賠需準備文件：${data.data.necessities}`;
+            // document.getElementById(
+            //   "description2"
+            // ).textContent = `保險內容：${data.data.description}`;
+            document.getElementById("description2").style.display = "none";  // 確保保險內容一開始是隐藏的
+            document.getElementById("toggleDescriptionBtn2").style.display = "inline-block";  // 顯示按钮
+            document.getElementById("description2").textContent = `保險內容：${data.data.description}`;  // 設置保險內容
+
+
+            
+            // document.getElementById(
+            //   "necessities2"
+            // ).textContent = `理賠需準備文件：${data.data.necessities}`;
+
+            
+            let necessitiesHtml = '理賠需準備文件：<ul>';
+            data.data.necessities.forEach((item) => {
+                for (let key in item) {
+                    necessitiesHtml += `<li>${key}：<ul>`;
+                    item[key].forEach((doc) => {
+                        necessitiesHtml += `<li>${doc}</li>`;
+                    });
+                    necessitiesHtml += '</ul></li>';
+                }
+            });
+            necessitiesHtml += '</ul>';
+            document.getElementById("necessities2").innerHTML = necessitiesHtml;
+
+
           } else {
             alert("沒有找到數據");
           }
