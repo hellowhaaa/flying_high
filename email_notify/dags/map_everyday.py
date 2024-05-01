@@ -257,38 +257,40 @@ def task_map():
     map.save(f'{path}/map_with_layers.html')
 
 
-default_args = {
-    'owner': 'airflow',
-    'depends_on_past': False, 
-    'email_on_failure': False,
-    'email_on_retry': False,
-    'retries': 1,
-    'retry_delay': timedelta(minutes=5)
-}
+task_map()
 
-with DAG(
-    dag_id="release_map_everyday",
-    schedule="0 17 * * *", # 每20分鐘執行一次
-    start_date=pendulum.datetime(2024, 4, 25, tz="UTC"),
-    default_args=default_args,
-    catchup=False, # 不會去執行以前的任務
-    max_active_runs=1,
-    tags=['map'],
-) as dag:
-    task_start = EmptyOperator(
-    task_id="task_start",
-    dag=dag
-    )
-    task_end = EmptyOperator(
-    task_id="task_end",
-    dag=dag
-    )
+# default_args = {
+#     'owner': 'airflow',
+#     'depends_on_past': False, 
+#     'email_on_failure': False,
+#     'email_on_retry': False,
+#     'retries': 1,
+#     'retry_delay': timedelta(minutes=5)
+# }
+
+# with DAG(
+#     dag_id="release_map_everyday",
+#     schedule="0 17 * * *", # 每20分鐘執行一次
+#     start_date=pendulum.datetime(2024, 4, 25, tz="UTC"),
+#     default_args=default_args,
+#     catchup=False, # 不會去執行以前的任務
+#     max_active_runs=1,
+#     tags=['map'],
+# ) as dag:
+#     task_start = EmptyOperator(
+#     task_id="task_start",
+#     dag=dag
+#     )
+#     task_end = EmptyOperator(
+#     task_id="task_end",
+#     dag=dag
+#     )
     
-    task_map_everyday = PythonOperator(
-        task_id = "map_everyday",
-        python_callable=task_map,
-        dag = dag  
-    )
+#     task_map_everyday = PythonOperator(
+#         task_id = "map_everyday",
+#         python_callable=task_map,
+#         dag = dag  
+#     )
     
-(task_start >> task_map_everyday >> task_end)
+# (task_start >> task_map_everyday >> task_end)
 
