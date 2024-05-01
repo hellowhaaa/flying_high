@@ -10,9 +10,6 @@ import re
 from geopy.geocoders import Nominatim
 from geopy.exc import GeocoderTimedOut
 import time
-from airflow import DAG
-from airflow.operators.empty import EmptyOperator
-from airflow.operators.python import PythonOperator
 import pendulum
 from branca.element import Template, MacroElement, Element
 load_dotenv()
