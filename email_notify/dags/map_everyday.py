@@ -14,8 +14,7 @@ from airflow import DAG
 from airflow.operators.empty import EmptyOperator
 from airflow.operators.python import PythonOperator
 import pendulum
-from branca.element import Template, MacroElement
-
+from branca.element import Template, MacroElement, Element
 load_dotenv()
 url = os.getenv("MONGODB_URI_FLY")
 print(url)
@@ -183,6 +182,20 @@ def task_map():
 
 
     map = folium.Map(location=taoyuan_airport_coords, zoom_start=5, tiles='cartodbpositron')
+    # 設置台灣當天時間 顯示在map最上面
+    taiwan_tz = pytz.timezone('Asia/Taipei')
+    current_date = datetime.now(taiwan_tz).strftime('%Y-%m-%d')
+
+    date_html = f"""
+    <div style="position: absolute; top: 10px; left: 10px; z-index:9999; font-size:16px; 
+                background-color: white; padding: 5px; border: 2px solid black; border-radius: 5px;">
+        Map created on: {current_date}
+    </div>
+    """
+    
+    date_element = Element(date_html)
+    map.get_root().html.add_child(date_element)
+
 
 
     arrivals = folium.FeatureGroup(name='Arrivals to Taoyuan')
@@ -257,61 +270,10 @@ def task_map():
         }
         </style>
     """))
-    template = """
-    {% macro html(this, kwargs) %}
-    <div style="position: absolute; top: 20px; left: 50px; width: 300px; height: 20px; z-index:9999; font-size:16px; font-weight:bold;">
-        Map created on: {{date}}
-    </div>
-    {% endmacro %}
-    """
-    # 設置台灣當天時間 顯示在map最上面
-    taiwan_tz = pytz.timezone('Asia/Taipei')
-    current_date = datetime.now(taiwan_tz).strftime('%Y-%m-%d')
-
-    macro = MacroElement()
-    macro._template = Template(template)
-    macro._template.module.date = current_date
-
-    map.get_root().add_child(macro)
+    
+    
         
 
     map.save(f'{path}/map_with_layers.html')
-
-
 task_map()
-
-# default_args = {
-#     'owner': 'airflow',
-#     'depends_on_past': False, 
-#     'email_on_failure': False,
-#     'email_on_retry': False,
-#     'retries': 1,
-#     'retry_delay': timedelta(minutes=5)
-# }
-
-# with DAG(
-#     dag_id="release_map_everyday",
-#     schedule="0 17 * * *", # 每20分鐘執行一次
-#     start_date=pendulum.datetime(2024, 4, 25, tz="UTC"),
-#     default_args=default_args,
-#     catchup=False, # 不會去執行以前的任務
-#     max_active_runs=1,
-#     tags=['map'],
-# ) as dag:
-#     task_start = EmptyOperator(
-#     task_id="task_start",
-#     dag=dag
-#     )
-#     task_end = EmptyOperator(
-#     task_id="task_end",
-#     dag=dag
-#     )
-    
-#     task_map_everyday = PythonOperator(
-#         task_id = "map_everyday",
-#         python_callable=task_map,
-#         dag = dag  
-#     )
-    
-# (task_start >> task_map_everyday >> task_end)
 
