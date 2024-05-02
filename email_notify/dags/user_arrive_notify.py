@@ -61,51 +61,53 @@ def transform_result():
                 if send_email_dic is not None:
                     # 找出大於 actual_arrive_time 的高鐵班次
                     hsr_station = send_email_dic['hsr_station']
-                    train_time = select_hsr_train(hsr_station)     
-                    for each_train in train_time['train_item']:
-                        train_departure_time_str = each_train['departure_time']
-                        if train_departure_time_str: # departure_time could be None
-                            train_departure_time = datetime.strptime(train_departure_time_str, "%H:%M").time()
-                            if is_within_five_hours(actual_arrive_time, train_departure_time):
-                                train_destination_time = each_train['destination_time']
-                                non_reserved_car = each_train['non_reserved_Car']
-                                train_id = each_train['id']
-                                formatted_time_str = train_departure_time.strftime("%H:%M")
-                                train_ls.append((train_id,formatted_time_str, train_destination_time, non_reserved_car))
-                    print("train_ls", train_ls)
-                    username = send_email_dic['username']
-                    user_info = select_user_email(username)
-                    # 找出使用者的 email
-                    if user_info is not None:
-                        email = user_info['email']
-                        print("email", email)
-                        print("scheduled_arrive_time->", scheduled_arrive_time)
-                        print("status-->", status)
-                        actual_arrive_time = actual_arrive_time.strftime("%H:%M") if actual_arrive_time else None
-                        data = {'email': email,
-                                'scheduled_arrive_time':scheduled_arrive_time,
-                                'status':status,
-                                'airline_code':airline_code,
-                                'username':username,
-                                'train_ls':train_ls,
-                                "actual_arrive_time":actual_arrive_time  # Could be None
-                            }
-                        print("data", data)
-                        try:
-                            headers = {'Content-Type': 'application/json'}
-                            response = requests.post(url=API_ENDPOINT, data=json.dumps(data), headers=headers)
-                            response_text = response.text
-                            print(response_text)
-                            response.raise_for_status()
-                        except requests.exceptions.HTTPError as err:
-                            print(f"HTTP error occurred: {err}")
-                        except requests.exceptions.ConnectionError as err:
-                            print(f"Connection error occurred: {err}")
-                        except Exception as err:
-                            print(f"An error occurred: {err}")        
-                        
-                    else:
-                        print("no no email")
+                    print("hsr_station", hsr_station)
+                    train_time = select_hsr_train(hsr_station)
+                    if train_time is not None:     
+                        for each_train in train_time['train_item']:
+                            train_departure_time_str = each_train['departure_time']
+                            if train_departure_time_str: # departure_time could be None
+                                train_departure_time = datetime.strptime(train_departure_time_str, "%H:%M").time()
+                                if is_within_five_hours(actual_arrive_time, train_departure_time):
+                                    train_destination_time = each_train['destination_time']
+                                    non_reserved_car = each_train['non_reserved_Car']
+                                    train_id = each_train['id']
+                                    formatted_time_str = train_departure_time.strftime("%H:%M")
+                                    train_ls.append((train_id,formatted_time_str, train_destination_time, non_reserved_car))
+                        print("train_ls", train_ls)
+                        username = send_email_dic['username']
+                        user_info = select_user_email(username)
+                        # 找出使用者的 email
+                        if user_info is not None:
+                            email = user_info['email']
+                            print("email", email)
+                            print("scheduled_arrive_time->", scheduled_arrive_time)
+                            print("status-->", status)
+                            actual_arrive_time = actual_arrive_time.strftime("%H:%M") if actual_arrive_time else None
+                            data = {'email': email,
+                                    'scheduled_arrive_time':scheduled_arrive_time,
+                                    'status':status,
+                                    'airline_code':airline_code,
+                                    'username':username,
+                                    'train_ls':train_ls,
+                                    "actual_arrive_time":actual_arrive_time  # Could be None
+                                }
+                            print("data", data)
+                            try:
+                                headers = {'Content-Type': 'application/json'}
+                                response = requests.post(url=API_ENDPOINT, data=json.dumps(data), headers=headers)
+                                response_text = response.text
+                                print(response_text)
+                                response.raise_for_status()
+                            except requests.exceptions.HTTPError as err:
+                                print(f"HTTP error occurred: {err}")
+                            except requests.exceptions.ConnectionError as err:
+                                print(f"Connection error occurred: {err}")
+                            except Exception as err:
+                                print(f"An error occurred: {err}")        
+                            
+                        else:
+                            print("no no email")
                 else:
                     print("no no username")
         else:
@@ -215,16 +217,18 @@ def select_hsr_train(hsr_station):
     tw_now = datetime.now(taiwan_tz)
     tw_midnight = taiwan_tz.localize(datetime(tw_now.year, tw_now.month, tw_now.day, 0, 0, 0))
     utc_midnight = tw_midnight.astimezone(pytz.utc)
-
+    print("hsr_staiton_inside_filter", hsr_station)
     filter={
         'end_station': hsr_station,
-        'hsr_utc_time': {
-        '$eq': utc_midnight
+    #     'hsr_utc_time': {
+    #     # '$eq': utc_midnight
+    # }
     }
-    }
+    print("filter", filter)
     result = client['flying_high']['hsr_time'].find_one(
     filter=filter
     )
+    print("train_time:----->", result)
     return result
     
         

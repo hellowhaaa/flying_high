@@ -335,7 +335,7 @@ def setup_routes(app, csrf):
                 print("data", (email, scheduled_arrive_time, status, train_ls,train_ls,actual_arrive_time))
                 print("current_app_MAIL_USERNAME",current_app.config.get("MAIL_USERNAME"))
                 mail = current_app.extensions['mail']
-                email_body = create_cancel_email_body(username, airline_code, scheduled_arrive_time, status)
+                email_body = create_email_body(username, airline_code, scheduled_arrive_time, status)
                 msg = Message(subject="Hello",
                             sender=current_app.config.get("MAIL_USERNAME"),
                             recipients=[email], # replace with your email for testing
@@ -527,29 +527,33 @@ def fetch_insurance_content():
     return render_template("homepage.html")
 
 def fetch_travel_insurance_content():
-    if request.method == "POST":
-        selected_insurance = request.form.get("travelInsuranceOption")
-        plan = request.form.get("plan")
-        days = request.form.get("days")
-        insured_amount = request.form.get("insuredAmount")
-        insurance_company = request.form.get("insuranceCompany")
-        print("plan, insured_amount,insurance_company, days, selected_insurance", (plan, insured_amount,insurance_company, days, selected_insurance))
-        result = select_insurance_amount(plan, insured_amount,insurance_company, days)
-        content = result['travel_insurance']['content'][0][selected_insurance]
-        print("content------->",content)
-        necessities = content['necessities'] if 'necessities' in content and content['necessities'] else ''
-        response = {
-            'status': 'success',
-            'data': {
-                'pay_type': content['pay_type'],
-                'price': content['price'],
-                'name': content['name'],
-                'description':content['description'],
-                'necessities':necessities
+    try:
+        if request.method == "POST":
+            selected_insurance = request.form.get("travelInsuranceOption")
+            plan = request.form.get("plan")
+            days = request.form.get("days")
+            insured_amount = request.form.get("insuredAmount")
+            insurance_company = request.form.get("insuranceCompany")
+            print("plan, insured_amount,insurance_company, days, selected_insurance", (plan, insured_amount,insurance_company, days, selected_insurance))
+            result = select_insurance_amount(plan, insured_amount,insurance_company, days)
+            content = result['travel_insurance']['content'][0][selected_insurance]
+            print("content------->",content)
+            necessities = content['necessities'] if 'necessities' in content and content['necessities'] else ''
+            response = {
+                'status': 'success',
+                'data': {
+                    'pay_type': content['pay_type'],
+                    'price': content['price'],
+                    'name': content['name'],
+                    'description':content['description'],
+                    'necessities':necessities
+                }
             }
-        }
-        return jsonify(response)
-    return render_template("homepage.html")
+            return jsonify(response)
+    except Exception as e:
+        print(f"An error occurred: {str(e)}")
+        return jsonify({'status': 'error', 'message': 'An internal error occurred'}), 500
+    
 
 def split_alpha_numeric(s):
     parts = re.findall(r'[A-Za-z]+|\d+', s)

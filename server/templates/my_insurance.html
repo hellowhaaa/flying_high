@@ -149,6 +149,7 @@
           </button>
         </form>
       </div>
+      
       <p id="pay_type"></p>
       <p id="price"></p>
       <p id="name"></p>
@@ -256,7 +257,7 @@ document.getElementById("toggleExplainBtn").addEventListener("click", function()
   var explain = document.getElementById("explain");
   if (explain.style.display === "none") {
     explain.style.display = "block";  // 顯示範例
-    this.textContent = "隐藏範例";  // 變更button 為“隐藏範例”
+    this.textContent = "隱藏範例";  // 變更button 為“隐藏範例”
   } else {
     explain.style.display = "none";  // 隐藏範例
     this.textContent = "查看範例";  // 恢復button 為“查看範例”
@@ -340,7 +341,8 @@ document.getElementById("toggleExplainBtn").addEventListener("click", function()
           alert("請求失敗");
         });
     });
-
+    //  這邊開始請求 旅平險 －－－－－－－－－－－－－－
+    
     document
     .getElementById("submitTravelInsuranceBtn")
     .addEventListener("click", function (event) {
@@ -380,17 +382,43 @@ document.getElementById("toggleExplainBtn").addEventListener("click", function()
             //   "necessities2"
             // ).textContent = `理賠需準備文件：${data.data.necessities}`;
 
-            
+          
             let necessitiesHtml = '理賠需準備文件：<ul>';
-            data.data.necessities.forEach((item) => {
-                for (let key in item) {
-                    necessitiesHtml += `<li>${key}：<ul>`;
-                    item[key].forEach((doc) => {
-                        necessitiesHtml += `<li>${doc}</li>`;
-                    });
-                    necessitiesHtml += '</ul></li>';
+            const { necessities } = data.data;
+
+            if (Array.isArray(necessities)) {
+                necessities.forEach((item) => {
+                    if (typeof item === 'object' && item !== null) {
+                        // Assume it's an object with keys and array values
+                        for (let key in item) {
+                            if (Array.isArray(item[key])) {
+                                necessitiesHtml += `<li>${key}：<ul>`;
+                                item[key].forEach((doc) => {
+                                    necessitiesHtml += `<li>${doc}</li>`;
+                                });
+                                necessitiesHtml += '</ul></li>';
+                            } else {
+                                // Handle case where item[key] is not an array
+                                necessitiesHtml += `<li>${key}: ${item[key]}</li>`;
+                            }
+                        }
+                    } else {
+                        // Handle case where item is not an object (e.g., a string)
+                        necessitiesHtml += `<li>${item}</li>`;
+                    }
+                });
+            } else if (typeof necessities === 'string') {
+                // Handle case where necessities is a simple string
+                necessitiesHtml += `<li> 理賠申請書 </li>`;
+                necessitiesHtml += `<li> 保單或投保憑證影本 </li>`;
+                necessitiesHtml += `<li> 身分證明文件 </li>`;
+            } else if (necessities && typeof necessities === 'object') {
+                // Handle case where necessities is a single object (not in an array)
+                for (let key in necessities) {
+                    necessitiesHtml += `<li>${key}: ${necessities[key]}</li>`;
                 }
-            });
+            }
+
             necessitiesHtml += '</ul>';
             document.getElementById("necessities2").innerHTML = necessitiesHtml;
 
