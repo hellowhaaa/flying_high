@@ -108,6 +108,44 @@ def transform_result():
                         print("no no email")
                 else:
                     print("no no username")
+        else:
+            print("no actual_arrive_time, means flight has been canceled or time is not fixed yet.")
+            for airline in airlines:
+                airline_code = airline['airline_code']
+                # 找出需要發送 email的 user
+                send_email_dic = select_user_flight(airline_code)
+                print("send_email_dic, find out who need to be notified.")
+                if send_email_dic is not None:
+                    username = send_email_dic['username']
+                    user_info = select_user_email(username)
+                    # 找出使用者的 email
+                    if user_info is not None:
+                        email = user_info['email']
+                        print("email", email)
+                        print("scheduled_arrive_time->", scheduled_arrive_time)
+                        print("status-->", status)
+                        data = {'email': email,
+                                'scheduled_arrive_time':scheduled_arrive_time,
+                                'status':status,
+                                'airline_code':airline_code,
+                                'username':username
+                                # 'train_ls':train_ls,
+                                # "actual_arrive_time":actual_arrive_time  # Could be None
+                            }
+                        print("data", data)
+                        try:
+                            headers = {'Content-Type': 'application/json'}
+                            response = requests.post(url=API_ENDPOINT, data=json.dumps(data), headers=headers)
+                            response_text = response.text
+                            print(response_text)
+                            response.raise_for_status()
+                        except requests.exceptions.HTTPError as err:
+                            print(f"HTTP error occurred: {err}")
+                        except requests.exceptions.ConnectionError as err:
+                            print(f"Connection error occurred: {err}")
+                        except Exception as err:
+                            print(f"An error occurred: {err}") 
+            
 
 
 def select_user_email(username):

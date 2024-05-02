@@ -297,6 +297,13 @@ def setup_routes(app, csrf):
             f"{train_times_str}"
         )
         return body
+    def create_cancel_email_body(username, airline_code, scheduled_arrive_time, status):
+        body = (
+            f"Hi! {username}, your flight {airline_code} 's time has been changed. "
+            f"Your flight's scheduled depart time is {scheduled_arrive_time} which status is now {status}. "
+            "For more detail, please click the link to trace your flight!\n\n"
+        )
+        return body 
 
     @app.route('/send_arrive_email', methods=['GET', 'POST'])
     @csrf.exempt
@@ -308,22 +315,35 @@ def setup_routes(app, csrf):
             status = request.json.get('status')
             airline_code = request.json.get('airline_code')
             username = request.json.get('username')
-            train_ls = request.json.get('train_ls')
-            print("dsgsilghd", train_ls)
-            actual_arrive_time = request.json.get('actual_arrive_time')
-            
-            print("data", (email, scheduled_arrive_time, status, train_ls,train_ls,actual_arrive_time))
-            print("current_app_MAIL_USERNAME",current_app.config.get("MAIL_USERNAME"))
-            mail = current_app.extensions['mail']
-            email_body = create_email_body(username, airline_code, scheduled_arrive_time, status, train_ls, actual_arrive_time)
-            msg = Message(subject="Hello",
-                        sender=current_app.config.get("MAIL_USERNAME"),
-                        recipients=[email], # replace with your email for testing
-                        body=email_body)
-            mail.send(msg)
-            update = update_arrive_email_send(username)
-            print("update_success", update)
-            return jsonify({"status": "Success", "message": " Arrive email sent successfully."})
+            train_ls = request.json.get('train_ls', [])
+            print("train_ls", train_ls)
+            actual_arrive_time = request.json.get('actual_arrive_time', None)
+            if actual_arrive_time is not None:
+                print("data", (email, scheduled_arrive_time, status, train_ls,train_ls,actual_arrive_time))
+                print("current_app_MAIL_USERNAME",current_app.config.get("MAIL_USERNAME"))
+                mail = current_app.extensions['mail']
+                email_body = create_email_body(username, airline_code, scheduled_arrive_time, status, train_ls, actual_arrive_time)
+                msg = Message(subject="Hello",
+                            sender=current_app.config.get("MAIL_USERNAME"),
+                            recipients=[email], # replace with your email for testing
+                            body=email_body)
+                mail.send(msg)
+                update = update_arrive_email_send(username)
+                print("update_success", update)
+                return jsonify({"status": "Success", "message": " Arrive email sent successfully."})
+            else:
+                print("data", (email, scheduled_arrive_time, status, train_ls,train_ls,actual_arrive_time))
+                print("current_app_MAIL_USERNAME",current_app.config.get("MAIL_USERNAME"))
+                mail = current_app.extensions['mail']
+                email_body = create_cancel_email_body(username, airline_code, scheduled_arrive_time, status)
+                msg = Message(subject="Hello",
+                            sender=current_app.config.get("MAIL_USERNAME"),
+                            recipients=[email], # replace with your email for testing
+                            body=email_body)
+                mail.send(msg)
+                update = update_arrive_email_send(username)
+                print("update_success", update)
+                return jsonify({"status": "Success", "message": " Arrive email sent successfully."})
         except Exception as e:
             print('Error occurred:', str(e))
             return jsonify({"status": "Failed", "error": str(e)}), 500
