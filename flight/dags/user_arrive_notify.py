@@ -5,7 +5,7 @@ import pendulum
 from dotenv import load_dotenv
 from pymongo import MongoClient,DESCENDING
 import os
-from datetime import datetime, tzinfo, timezone, timedelta, time
+from datetime import datetime,timedelta
 import pytz
 import requests
 import json
@@ -78,7 +78,6 @@ def transform_result():
                                     logging.error(f"Connection error occurred: {err}")
                                 except Exception as err:
                                     logging.error(f"An error occurred: {err}")    
-                                
                             else:
                                 logging.info("No email found")
                         else:
@@ -126,8 +125,8 @@ def transform_result():
                     
                     
 def get_arrive_flight_time():
+    logging.info("Start to get time canceled or time changed flight.")
     try:
-        logging.info("Start to get time canceled or time changed flight.")
         load_dotenv()
         url = os.getenv("MONGODB_URI_FLY")  
         client = MongoClient(url)
@@ -155,8 +154,8 @@ def get_arrive_flight_time():
         logging.error(f"An exception occurred: {str(e)}", exc_info=True)
 
 def select_user_email(username):
+    logging.info("Start to get user email.")
     try:
-        logging.info("Start to get user email.")
         load_dotenv()
         url = os.getenv("MONGODB_URI_FLY")
         client = MongoClient(url)
@@ -172,8 +171,8 @@ def select_user_email(username):
         
         
 def select_user_flight(airline_code):
+    logging.info("Start to get username for specific flight which assigned for today.")
     try:
-        logging.info("Start to get username for specific flight which assigned for today.")
         load_dotenv()
         url = os.getenv("MONGODB_URI_FLY")
         client = MongoClient(url)
@@ -248,7 +247,7 @@ default_args = {
 
 with DAG(
     dag_id="release_catch_arrive_flight_change",
-    schedule="*/10 * * * *", # 每十分鐘執行一次
+    schedule="*/20 * * * *", # 每20分鐘執行一次
     start_date=pendulum.datetime(2024, 4, 25, tz="UTC"),
     default_args=default_args,
     catchup=False, # 不會去執行以前的任務
