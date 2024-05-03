@@ -22,12 +22,12 @@ def transform_result():
         logging.info("Start to fetch the flight data and send email")
         result_ls = get_arrive_flight_time()
         for collection in result_ls:
-            logging.info("Canceled or Delayed Arrive Flight", collection)
+            logging.info("Canceled or Delayed Arrive Flight %s", collection)
             airlines = collection['airline']
             scheduled_arrive_time = collection['scheduled_arrive_time']
             status = collection['status']
             actual_arrive_time = collection['actual_arrive_time'] if collection['actual_arrive_time'] != "" else None
-            logging.info("Actual Arrive Time: ", actual_arrive_time)
+            logging.info("Actual Arrive Time: %s", actual_arrive_time)
             if actual_arrive_time is not None: # check if the flight has been canceled or time is fixed
                 train_ls = []
                 actual_arrive_time = datetime.strptime(actual_arrive_time, "%H:%M").time()
@@ -35,10 +35,10 @@ def transform_result():
                     airline_code = airline['airline_code']
                     send_email_dic = select_user_flight(airline_code)
                     if send_email_dic is not None: # check if there are users need to be send email
-                        logging.info("Who need to be notified: ", send_email_dic)
+                        logging.info("Who need to be notified: %s", send_email_dic)
                         hsr_station = send_email_dic['hsr_station']
                         train_time = select_hsr_train(hsr_station)
-                        logging.info("Train time: ", train_time)
+                        logging.info("Train time: %s", train_time)
                         if train_time is not None: # check if there are trains available
                             for each_train in train_time['train_item']:
                                 train_departure_time_str = each_train['departure_time']
@@ -50,10 +50,10 @@ def transform_result():
                                         train_id = each_train['id']
                                         formatted_time_str = train_departure_time.strftime("%H:%M")
                                         train_ls.append((train_id,formatted_time_str, train_destination_time, non_reserved_car))
-                            logging.info("Train list: ", train_ls)
+                            logging.info("Train list: %s", train_ls)
                             username = send_email_dic['username']
                             user_info = select_user_email(username)
-                            logging.info("User Information: ", user_info)
+                            logging.info("User Information: %s", user_info)
                             if user_info is not None: 
                                 email = user_info['email']
                                 actual_arrive_time = actual_arrive_time.strftime("%H:%M") if actual_arrive_time else None
@@ -65,12 +65,12 @@ def transform_result():
                                         'train_ls':train_ls,
                                         "actual_arrive_time":actual_arrive_time  # Could be None
                                     }
-                                logging.info("Data post to API: ", data)
+                                logging.info("Data post to API: %s", data)
                                 try:
                                     headers = {'Content-Type': 'application/json'}
                                     response = requests.post(url=API_ENDPOINT, data=json.dumps(data), headers=headers)
                                     response_text = response.text
-                                    logging.info("Response after Post: ", response_text)
+                                    logging.info("Response after Post: %s", response_text)
                                     response.raise_for_status()
                                 except requests.exceptions.HTTPError as err:
                                     logging.error(f"HTTP error occurred: {err}")
@@ -90,7 +90,7 @@ def transform_result():
                     airline_code = airline['airline_code']
                     send_email_dic = select_user_flight(airline_code)
                     if send_email_dic is not None: # check if there are users need to be send email
-                        logging.info("Who need to be notified: ", send_email_dic)
+                        logging.info("Who need to be notified: %s", send_email_dic)
                         username = send_email_dic['username']
                         user_info = select_user_email(username)
                         if user_info is not None:
@@ -103,12 +103,12 @@ def transform_result():
                                     # 'train_ls':train_ls,
                                     # "actual_arrive_time":actual_arrive_time  # Could be None
                                 }
-                            logging.info("Data post to API: ", data)
+                            logging.info("Data post to API: %s", data)
                             try:
                                 headers = {'Content-Type': 'application/json'}
                                 response = requests.post(url=API_ENDPOINT, data=json.dumps(data), headers=headers)
                                 response_text = response.text
-                                logging.info("Response after Post: ", response_text)
+                                logging.info("Response after Post: %s", response_text)
                                 response.raise_for_status()
                             except requests.exceptions.HTTPError as err:
                                 logging.error(f"HTTP error occurred: {err}")
@@ -182,7 +182,7 @@ def select_user_flight(airline_code):
         tw_midnight = taiwan_tz.localize(datetime(tw_now.year, tw_now.month, tw_now.day, 0, 0, 0))
         # UTC Time
         utc_midnight = tw_midnight.astimezone(pytz.utc)
-        logging.info("User's UTC time: ", utc_midnight)
+        logging.info("User's UTC time: %s", utc_midnight)
         # 找出有登記 此飛機 且出發日期為今天 （utc時間）的 user
         filter = {
             'flight_arrive_taoyuan': airline_code,
