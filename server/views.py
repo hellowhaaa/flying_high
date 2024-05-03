@@ -209,7 +209,7 @@ def update_insurance(current_user):
                 day_part = None
             current_app.logger.info(f"Data received from update insurance page: {insurance_company}, {plan}, {numeric_part}, {day_part}")
             update_insurance_result = update_user_insurance(current_user,insurance_company,plan, numeric_part, day_part)
-            current_app.logger.info("Update Insurance Result: ",update_insurance_result)
+            current_app.logger.info(f"Update Insurance Result: {update_insurance_result}")
             response = {
                 "status": "success"
             }
@@ -240,7 +240,7 @@ def update_flight_info(current_user):
             flight_arrive_taoyuan = arrive_flight+arrive_fight_number
             current_app.logger.info(f"Data received from update flight page: {depart_taiwan_date}, {arrive_taiwan_date}, {flight_depart_taoyuan}, {flight_arrive_taoyuan}")
             update_flight_info = update_user_flight_info(current_user,depart_taiwan_date,arrive_taiwan_date,flight_depart_taoyuan,flight_arrive_taoyuan)
-            current_app.logger.info("Update Flight Info: ",update_flight_info)
+            current_app.logger.info(f"Update Flight Info: {update_flight_info}")
             response = {
                 "status": "success",
                 "data": "Flight Information Updated Successfully."
@@ -262,7 +262,7 @@ def update_notify(current_user):
             flight_delay = request.form.get('flight_delay') == '1' # return False or True
             hsr = request.form.get('hsr_station')
             result = update_user_notify(current_user,flight_change,flight_delay,hsr)
-            current_app.logger.info("Update Notification: ",result)
+            current_app.logger.info(f"Update Notification: {result}")
             return jsonify({"success": True, "message": "Flight information updated successfully."})
         return render_template("homepage.html")
     except Exception as e:
@@ -346,7 +346,7 @@ def setup_routes(app, csrf):
                             body=email_body)
             mail.send(msg)
             update_result = update_arrive_email_send(username)
-            current_app.logger.info("Update Arrive Email Send (Set True to False in MongoDB): ",update_result)
+            current_app.logger.info(f"Update Arrive Email Send (Set True to False in MongoDB): {update_result}")
             return jsonify({"status": "Success", "message": " Arrive email sent successfully."})
         except Exception as e:
             current_app.logger.error(f"An error occurred: {str(e)}", exc_info=True)
@@ -395,8 +395,7 @@ def depart_flight_time():
                     airline_name = each_air['airline_name']
                 else:
                     share_code_list.append(each_air['airline_code'])
-            print("main:",main_code)
-            print("shared",share_code_list)
+            current_app.logger.info(f"Main code: {main_code}, Share code: {share_code_list}")
             if flight_result['status'] == '':
                 flight_result['status'] = '已排定起飛時間'
             taiwan_tz = pytz.timezone('Asia/Taipei')
@@ -414,7 +413,6 @@ def depart_flight_time():
                 'terminal': flight_result['terminal'],
                 'updated_at':flight_result['updated_at']
             }
-            print(flight)
             return render_template('flight_time.html',flight= flight)
         else:
             flash('No flight found. Please search another flight.', 'alert-danger')
@@ -441,8 +439,7 @@ def arrive_flight_time():
                 airline_name = each_air['airline_name']
             else:
                 share_code_list.append(each_air['airline_code'])
-        print("main:",main_code)
-        print("shared",share_code_list)
+        current_app.logger.info(f"Main code: {main_code}, Share code: {share_code_list}")
         if flight_result['status'] == '':
             flight_result['status'] = '已排定起飛時間'
         taiwan_tz = pytz.timezone('Asia/Taipei')
@@ -460,88 +457,100 @@ def arrive_flight_time():
             'terminal': flight_result['terminal'],
             'updated_at':flight_result['updated_at']
         }
-        print(flight)
         return render_template('flight_time.html',flight= flight)
     else:
         flash('No flight found. Please search another flight.', 'alert-danger')
         return redirect(url_for('search_flight'))
 
 
-
 @token_required
 def my_insurance(current_user):
-    user_insurance = select_user_insurance(current_user)
-    if user_insurance is not None:
-        print("user_insurance",user_insurance)
-        insurance_company = user_insurance["insurance_company"]
-        plan = user_insurance["plan"]
-        insured_amount = user_insurance["insured_amount"]
-        days = user_insurance["days"]
-        insurance_content = select_insurance_amount(plan, insured_amount,insurance_company, days)
-        insurance_content["insurance_company"] = insurance_company
-        print("insurance_content print from route: ", insurance_content)
-        return render_template('my_insurance.html', user_insurance = user_insurance, insurance_content= insurance_content)
-    else:
-        return redirect(url_for('user_insurance'))
-
-
+    try:
+        user_insurance = select_user_insurance(current_user)
+        current_app.logger.info(f"User's Insurance Plans Retrieved from MongoDB Successfully")
+        if user_insurance is not None:
+            insurance_company = user_insurance["insurance_company"]
+            plan = user_insurance["plan"]
+            insured_amount = user_insurance["insured_amount"]
+            days = user_insurance["days"]
+            insurance_content = select_insurance_amount(plan, insured_amount,insurance_company, days)
+            current_app.logger.info(f"Insurance Content Retrieved from MongoDB Successfully")
+            insurance_content["insurance_company"] = insurance_company
+            return render_template('my_insurance.html', user_insurance = user_insurance, insurance_content= insurance_content)
+        else:
+            return redirect(url_for('user_insurance'))
+    except Exception as e:
+        current_app.logger.error(f"An error occurred: {str(e)}", exc_info=True)
+        return jsonify({"status": "error", "message": "An internal error occurred"}), 500
 
 
 def insurance():
-    return render_template('insurance.html')
+    try:
+        return render_template('insurance.html')
+    except Exception as e:
+        current_app.logger.error(f"An error occurred: {str(e)}", exc_info=True)
+        return jsonify({"status": "error", "message": "An internal error occurred"}), 500
 
 
 def fetch_insurance_amount():
     try:
         insurance_company = request.form.get('insuranceCompany')
         plan = request.form.get('plan')  
-        print("plan:", plan)
         insurance_amount = request.form.get('insuranceAmount')
         insurance_days = request.form.get('insuranceDays')
-        current_app.logger.info(f"get insurance information!")
-        print("test:",insurance_company, plan, insurance_amount, insurance_days)
+        current_app.logger.info(f"Data received from fetch insurance amount: {insurance_company}, {plan}, {insurance_amount}, {insurance_days}")
     except Exception as e:
         current_app.logger.error(f"Catch an exception. + {e}", exc_info=True)
-    result = select_insurance_amount(plan, insurance_amount,insurance_company, insurance_days)
-    print(result)
-    if result:
-        price = result['insurance_premium']['price']
-    else:
-        price = '不在試算範圍內, 請重新輸入'
-        print('價格:',price)
-    response = {
-            'status': 'success',
-            'data': {
-                'insurance_price': price
+    try:
+        result = select_insurance_amount(plan, insurance_amount,insurance_company, insurance_days)
+        current_app.logger.info(f"Insurance amount retrieved from MongoDB successfully")
+        if result:
+            price = result['insurance_premium']['price']
+        else:
+            price = '不在試算範圍內, 請重新輸入'
+        response = {
+                'status': 'success',
+                'data': {
+                    'insurance_price': price
+                }
             }
-        }
-    return jsonify(response)
+        current_app.logger.info(f"Insurance price: {price}")
+        return jsonify(response)
+    except Exception as e:
+        current_app.logger.error(f"An error occurred: {str(e)}", exc_info=True)
+        return jsonify({'status': 'error', 'message': 'An internal error occurred'}), 500
+
 
 def fetch_insurance_content():
-    if request.method == "POST":
-        selected_inconvenience_insurance = request.form.get("convenienceOption")
-        plan = request.form.get("plan")
-        days = request.form.get("days")
-        insured_amount = request.form.get("insuredAmount")
-        insurance_company = request.form.get("insuranceCompany")
-        print("plan, insured_amount,insurance_company, days--->", (plan, insured_amount,insurance_company, days))
-        result = select_insurance_amount(plan, insured_amount,insurance_company, days)
-        content = result['travel_inconvenience_insurance']['content'][0][selected_inconvenience_insurance]
-        print("content------->",content)
-        response = {
-            'status': 'success',
-            'data': {
-                'pay_type': content['pay_type'],
-                'price': content['price'],
-                'name': content['name'],
-                'count': content['count'],
-                'description':content['description'],
-                'explain': content['explain'],
-                'necessities':content['necessities']
+    try:
+        if request.method == "POST":
+            selected_inconvenience_insurance = request.form.get("convenienceOption")
+            plan = request.form.get("plan")
+            days = request.form.get("days")
+            insured_amount = request.form.get("insuredAmount")
+            insurance_company = request.form.get("insuranceCompany")
+            current_app.logger.info(f"Data received from fetch insurance content: {selected_inconvenience_insurance}, {plan}, {days}, {insured_amount}, {insurance_company}")
+            result = select_insurance_amount(plan, insured_amount,insurance_company, days)
+            content = result['travel_inconvenience_insurance']['content'][0][selected_inconvenience_insurance]
+            response = {
+                'status': 'success',
+                'data': {
+                    'pay_type': content['pay_type'],
+                    'price': content['price'],
+                    'name': content['name'],
+                    'count': content['count'],
+                    'description':content['description'],
+                    'explain': content['explain'],
+                    'necessities':content['necessities']
+                }
             }
-        }
-        return jsonify(response)
-    return render_template("homepage.html")
+            current_app.logger.info(f"Response In fetch_insurance_content Route: {response}")
+            return jsonify(response)
+        return render_template("homepage.html")
+    except Exception as e:
+        current_app.logger.error(f"An error occurred: {str(e)}", exc_info=True)
+        return jsonify({'status': 'error', 'message': 'An internal error occurred'}), 500
+
 
 def fetch_travel_insurance_content():
     try:
@@ -551,10 +560,9 @@ def fetch_travel_insurance_content():
             days = request.form.get("days")
             insured_amount = request.form.get("insuredAmount")
             insurance_company = request.form.get("insuranceCompany")
-            print("plan, insured_amount,insurance_company, days, selected_insurance", (plan, insured_amount,insurance_company, days, selected_insurance))
+            current_app.logger.info(f"Data received from fetch travel insurance content: {selected_insurance}, {plan}, {days}, {insured_amount}, {insurance_company}")
             result = select_insurance_amount(plan, insured_amount,insurance_company, days)
             content = result['travel_insurance']['content'][0][selected_insurance]
-            print("content------->",content)
             necessities = content['necessities'] if 'necessities' in content and content['necessities'] else ''
             response = {
                 'status': 'success',
@@ -566,9 +574,10 @@ def fetch_travel_insurance_content():
                     'necessities':necessities
                 }
             }
+            current_app.logger.info(f"Response In fetch_insurance_content Route: {response}")
             return jsonify(response)
     except Exception as e:
-        print(f"An error occurred: {str(e)}")
+        current_app.logger.error(f"An error occurred: {str(e)}", exc_info=True)
         return jsonify({'status': 'error', 'message': 'An internal error occurred'}), 500
     
 
@@ -576,79 +585,101 @@ def split_alpha_numeric(s):
     parts = re.findall(r'[A-Za-z]+|\d+', s)
     return parts
 
-  
+
 def fetch_depart_flight_code():
-    return_code_dic = {}
-    result = select_today_depart_flight_code()
-    for each in result:
-        airlines = each['airline']
-        for airline in airlines:
-            airline_code = airline['airline_code']
-            split_code = split_alpha_numeric(airline_code)
-            if len(split_code) == 2:
-                letter_part, number_part = split_code
-                key = f"{letter_part} {airline['airline_name']}"
-                if key in return_code_dic:
-                    if number_part not in return_code_dic[key]:
-                        return_code_dic[key].append(number_part) 
-                else:
-                    return_code_dic[key] = [number_part] 
-    return return_code_dic
-   
+    try:
+        return_code_dic = {}
+        result = select_today_depart_flight_code()
+        current_app.logger.info(f"Retrieved today's Depart Flight Code Successfully")
+        for each in result:
+            airlines = each['airline']
+            for airline in airlines:
+                airline_code = airline['airline_code']
+                split_code = split_alpha_numeric(airline_code)
+                if len(split_code) == 2:
+                    letter_part, number_part = split_code
+                    key = f"{letter_part} {airline['airline_name']}"
+                    if key in return_code_dic:
+                        if number_part not in return_code_dic[key]:
+                            return_code_dic[key].append(number_part) 
+                    else:
+                        return_code_dic[key] = [number_part] 
+        return return_code_dic
+    except Exception as e:
+        current_app.logger.error(f"An error occurred: {str(e)}", exc_info=True)
+        return jsonify({'status': 'error', 'message': 'An internal error occurred'}), 500
+
+
 def fetch_arrive_flight_code():
-    return_code_dic = {}
-    result = select_today_arrive_flight_code()
-    for each in result:
-        airlines = each['airline']
-        for airline in airlines:
-            airline_code = airline['airline_code']
-            split_code = split_alpha_numeric(airline_code)
-            if len(split_code) == 2:
-                letter_part, number_part = split_code
-                key = f"{letter_part} {airline['airline_name']}"
-                if key in return_code_dic:
-                    if number_part not in return_code_dic[key]:
-                        return_code_dic[key].append(number_part) 
-                else:
-                    return_code_dic[key] = [number_part] 
-    return return_code_dic
+    try:
+        return_code_dic = {}
+        result = select_today_arrive_flight_code()
+        current_app.logger.info(f"Retrieved today's Arrive Flight Code Successfully")
+        for each in result:
+            airlines = each['airline']
+            for airline in airlines:
+                airline_code = airline['airline_code']
+                split_code = split_alpha_numeric(airline_code)
+                if len(split_code) == 2:
+                    letter_part, number_part = split_code
+                    key = f"{letter_part} {airline['airline_name']}"
+                    if key in return_code_dic:
+                        if number_part not in return_code_dic[key]:
+                            return_code_dic[key].append(number_part) 
+                    else:
+                        return_code_dic[key] = [number_part] 
+        return return_code_dic
+    except Exception as e:
+        current_app.logger.error(f"An error occurred: {str(e)}", exc_info=True)
+        return jsonify({'status': 'error', 'message': 'An internal error occurred'}), 500
 
 
 def fetch_user_depart_flight_code():
-    return_code_dic = {}
-    result = select_user_depart_flight_code()
-    for each in result:
-        airlines = each['airline']
-        for airline in airlines:
-            airline_code = airline['airline_code']
-            split_code = split_alpha_numeric(airline_code)
-            if len(split_code) == 2:
-                letter_part, number_part = split_code
-                key = f"{letter_part} {airline['airline_name']}"
-                if key in return_code_dic:
-                    if number_part not in return_code_dic[key]:
-                        return_code_dic[key].append(number_part) 
-                else:
-                    return_code_dic[key] = [number_part] 
-    return return_code_dic
+    try:
+        return_code_dic = {}
+        result = select_user_depart_flight_code()
+        current_app.logger.info(f"Retrieved All Depart Flights Information")
+        for each in result:
+            airlines = each['airline']
+            for airline in airlines:
+                airline_code = airline['airline_code']
+                split_code = split_alpha_numeric(airline_code)
+                if len(split_code) == 2:
+                    letter_part, number_part = split_code
+                    key = f"{letter_part} {airline['airline_name']}"
+                    if key in return_code_dic:
+                        if number_part not in return_code_dic[key]:
+                            return_code_dic[key].append(number_part) 
+                    else:
+                        return_code_dic[key] = [number_part] 
+        return return_code_dic
+    except Exception as e:
+        current_app.logger.error(f"An error occurred: {str(e)}", exc_info=True)
+        return jsonify({'status': 'error', 'message': 'An internal error occurred'}), 500
+
 
 def fetch_user_arrive_flight_code():
-    return_code_dic = {}
-    result = select_user_arrive_flight_code()
-    for each in result:
-        airlines = each['airline']
-        for airline in airlines:
-            airline_code = airline['airline_code']
-            split_code = split_alpha_numeric(airline_code)
-            if len(split_code) == 2:
-                letter_part, number_part = split_code
-                key = f"{letter_part} {airline['airline_name']}"
-                if key in return_code_dic:
-                    if number_part not in return_code_dic[key]:
-                        return_code_dic[key].append(number_part) 
-                else:
-                    return_code_dic[key] = [number_part] 
-    return return_code_dic
+    try:
+        return_code_dic = {}
+        result = select_user_arrive_flight_code()
+        current_app.logger.info(f"Retrieved All Arrive Flights Information")
+        for each in result:
+            airlines = each['airline']
+            for airline in airlines:
+                airline_code = airline['airline_code']
+                split_code = split_alpha_numeric(airline_code)
+                if len(split_code) == 2:
+                    letter_part, number_part = split_code
+                    key = f"{letter_part} {airline['airline_name']}"
+                    if key in return_code_dic:
+                        if number_part not in return_code_dic[key]:
+                            return_code_dic[key].append(number_part) 
+                    else:
+                        return_code_dic[key] = [number_part] 
+        return return_code_dic
+    except Exception as e:
+        current_app.logger.error(f"An error occurred: {str(e)}", exc_info=True)
+        return jsonify({'status': 'error', 'message': 'An internal error occurred'}), 500
 
 
 
@@ -657,4 +688,8 @@ def dashboard():
     return render_template('dashboard.html', streamlit_url=streamlit_url)
 
 def flight_map():
-    return render_template('map_with_layers.html')
+    try:
+        return render_template('map_with_layers.html')
+    except Exception as e:
+        current_app.logger.error(f"An error occurred: {str(e)}", exc_info=True)
+        return jsonify({"status": "error", "message": "An internal error occurred"}), 500

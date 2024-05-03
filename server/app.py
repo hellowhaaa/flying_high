@@ -76,10 +76,10 @@ def create_app():
     app.add_url_rule('/search_flight', view_func=search_flight, methods=['GET', 'POST'])
     app.add_url_rule('/arrive_flight_time', view_func=arrive_flight_time, methods=['POST','GET'])
     app.add_url_rule('/depart_flight_time', view_func=depart_flight_time, methods=['POST','GET'])
-    app.add_url_rule('/fetch_depart_flight_code', view_func=fetch_depart_flight_code, methods=['POST','GET'])
-    app.add_url_rule('/fetch_arrive_flight_code', view_func=fetch_arrive_flight_code, methods=['POST','GET'])
-    app.add_url_rule('/fetch_user_depart_flight_code', view_func=fetch_user_depart_flight_code, methods=['POST','GET'])
-    app.add_url_rule('/fetch_user_arrive_flight_code', view_func=fetch_user_arrive_flight_code, methods=['POST','GET'])
+    app.add_url_rule('/fetch_depart_flight_code', view_func=fetch_depart_flight_code, methods=['GET'])
+    app.add_url_rule('/fetch_arrive_flight_code', view_func=fetch_arrive_flight_code, methods=['GET'])
+    app.add_url_rule('/fetch_user_depart_flight_code', view_func=fetch_user_depart_flight_code, methods=['GET'])
+    app.add_url_rule('/fetch_user_arrive_flight_code', view_func=fetch_user_arrive_flight_code, methods=['GET'])
  
     
     
@@ -87,7 +87,7 @@ def create_app():
     # insurance
     app.add_url_rule('/insurance', view_func=insurance, methods=['GET', 'POST'])
     app.add_url_rule('/my_insurance', view_func=my_insurance, methods=['GET', 'POST'])
-    app.add_url_rule('/fetch_insurance_amount', view_func=fetch_insurance_amount, methods=['POST','GET'])
+    app.add_url_rule('/fetch_insurance_amount', view_func=fetch_insurance_amount, methods=['POST'])
     app.add_url_rule('/fetch_insurance_content', view_func=fetch_insurance_content, methods=['POST','GET'])
     app.add_url_rule('/fetch_travel_insurance_content', view_func=fetch_travel_insurance_content, methods=['POST','GET'])
     
