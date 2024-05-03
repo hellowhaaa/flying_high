@@ -1,8 +1,5 @@
-# app.py
 from flask import Flask, request
 from flask_wtf import CSRFProtect
-
-# from models2 import db
 from views import (sign_up, login, logout, dashboard, insurance,search_flight,
                     index,arrive_flight_time,fetch_insurance_amount, depart_flight_time,
                     user_insurance, user_info, update_user, update_insurance, my_insurance,

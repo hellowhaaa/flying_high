@@ -1,7 +1,7 @@
 # views.py
 from flask import (request, redirect, url_for, render_template, flash, 
                     current_app,jsonify, abort, session, make_response)
-from models2 import RegisterForm, create_user, same_username, check_user_credentials
+from models import RegisterForm, create_user, same_username, check_user_credentials
 from select_data_from_mongo import *
 from update_data_to_mongo import *
 import os

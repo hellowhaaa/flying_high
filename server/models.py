@@ -7,7 +7,6 @@ import datetime
 from werkzeug.security import generate_password_hash, check_password_hash
 
 
-
 class RegisterForm(FlaskForm):
     username = StringField('username', validators=[InputRequired()], render_kw={"placeholder": "Username"}) 
     password = PasswordField('Password', validators=[InputRequired()], render_kw={"placeholder": "Password"})
@@ -19,11 +18,6 @@ class RegisterForm(FlaskForm):
         self.password_hash = generate_password_hash(password)
     
     
-    
-    # def check_password(self, password):
-    #     return check_password_hash(self.password_hash, password)
-    
-
 def create_user(username,password,email,address):
     body = {
         'username': username,
@@ -41,10 +35,8 @@ def same_username(collection, username):
     }
     user = collection.find_one(filter = filter)
     if user:
-        print("有",user)
         return True
     else:
-        print('沒有',user)
         return False
 
 def check_user_credentials(collection,username, password):
