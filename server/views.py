@@ -2,19 +2,15 @@
 from flask import (request, redirect, url_for, render_template, flash, 
                     current_app,jsonify, abort, session, make_response)
 from models2 import RegisterForm, create_user, same_username, check_user_credentials
-from select_data_from_mongo import (get_arrive_flight_time, get_depart_flight_time, select_insurance_amount,
-                                select_user_information, select_user_insurance, select_today_depart_flight_code,
-                                select_today_arrive_flight_code, select_user_depart_flight_code, select_user_arrive_flight_code)
-from update_data_to_mongo import (update_user_insurance, update_user_flight_info, update_user_notify, 
-                                update_depart_email_send, update_arrive_email_send)
+from select_data_from_mongo import *
+from update_data_to_mongo import *
 import os
 from pymongo import MongoClient
 from functools import wraps
 import jwt
 from datetime import datetime, timedelta
 import re
-from flask_mail import Mail, Message
-import folium
+from flask_mail import Message
 import pytz
 
 
@@ -22,10 +18,9 @@ import pytz
 def encode_auth_token(username):
     try:
         payload = {
-            'exp': datetime.utcnow() + timedelta(days=1),  # Token的過期時間
-            'iat': datetime.utcnow(),  # Token的發行時間
-            # 'sub': user_id,  # 訂閱識別
-            'username': username  # 使用者名稱
+            'exp': datetime.utcnow() + timedelta(days=1),  # Token expiration time
+            'iat': datetime.utcnow(),  # Token issued at
+            'username': username  
         }
         return jwt.encode(
             payload,
@@ -33,282 +28,299 @@ def encode_auth_token(username):
             algorithm='HS256'
         )
     except Exception as e:
+        current_app.logger.error(f"Error encoding token: {e}", exc_info=True)
         return e
 
 def token_required(f):
     @wraps(f)
     def decorated(*args, **kwargs):
         token = None
-        
-        # 確認是否有 token
-        if 'Authorization' in request.headers:
+        if 'Authorization' in request.headers: # check for token in headers
             token = request.headers["Authorization"].split(" ")[1]
-        # If not found, check for token in cookies
-        elif 'access_token' in request.cookies:
+        elif 'access_token' in request.cookies: # If not found, check for token in cookies
             token = request.cookies.get('access_token').split(" ")[1]
-        print("token:", token)
-        if not token:
-            # return jsonify({'message': 'Token is missing'}), 401
+        current_app.logger.info(f"Token: {token}")
+        if not token: # Token is missing
             return redirect(url_for('sign_up'))  
         
-        # 確認是否為有效的 token
-        try:
+        try: # check if token is valid
             data = jwt.decode(token, current_app.config['SECRET_KEY'], algorithms="HS256")
             current_user = data['username']
-            print("current_user:", current_user)
+            current_app.logger.info(f"Current user: {current_user}")
         except jwt.ExpiredSignatureError:
             return redirect(url_for('sign_up'))
-            # return jsonify({'message': 'Token has expired'}), 401
         except jwt.InvalidTokenError:
-            return jsonify({'message': 'Token is invalid'}), 401
+            return redirect(url_for('sign_up'))
         return f(current_user, *args, **kwargs)
     return decorated
 
 
 def sign_up():
-    # Mongodb Init
-    url = os.getenv("MONGODB_URI_FLY")
-    client = MongoClient(url)
-    collection = client['flying_high']['user']
-    # Form Init
-    form = RegisterForm(request.form)
-    if request.method == 'POST':
-        print("POST request received")
-        if form.validate():
-            print("Form validated")
-            username = form.username.data
-            if same_username(collection, username):
-                print('same user!!!!')
-                flash('Username already exists')
-                return redirect(url_for('sign_up'))
-            email = form.email.data
-            address = form.address.data
-            password = form.password.data
-            form.set_password(password)  # Hashes the password and stores it in the form
-            user = create_user(username, form.password_hash, email, address)
-            try:
-                collection.insert_one(user)
-                current_app.logger.info(f"User saved: {user['username']}")
-            except Exception as e:
-                current_app.logger.error(f"Error saving user: {e}", exc_info=True)
-                
-            token = encode_auth_token(username)
-            # Storing the token in session or cookie
-            print("token:", token)
-            response = make_response(redirect(url_for('search_flight')))
-            response.set_cookie('access_token', f'Bearer {token}')
-            # Redirect to homepage after successful login
-            flash('You have been logged in!', 'success')
-            return response
-        else:
-            for fieldName, errorMessages in form.errors.items():
-                for err in errorMessages:
-                    current_app.logger.error(f"Error in {fieldName}: {err}")
-    return render_template('sign_up.html', form=form)
+    try:
+        url = os.getenv("MONGODB_URI_FLY")
+        client = MongoClient(url)
+        collection = client['flying_high']['user']
+        # Form Init
+        form = RegisterForm(request.form)
+        if request.method == 'POST':
+            current_app.logger.info("Sign up post request received")
+            if form.validate():
+                username = form.username.data
+                if same_username(collection, username):
+                    flash('Username already exists')
+                    return redirect(url_for('sign_up'))
+                email = form.email.data
+                address = form.address.data
+                password = form.password.data
+                form.set_password(password)  # Hashes the password and stores it in the form
+                user = create_user(username, form.password_hash, email, address)
+                try:
+                    collection.insert_one(user)
+                    current_app.logger.info(f"User saved: {user['username']}")
+                except Exception as e:
+                    current_app.logger.error(f"Error saving user: {e}", exc_info=True)
+                token = encode_auth_token(username)
+                # Storing the token in session or cookie
+                current_app.logger.info(f"Token: {token}")
+                response = make_response(redirect(url_for('search_flight')))
+                response.set_cookie('access_token', f'Bearer {token}')
+                # Redirect to homepage after successful login
+                flash('You have been logged in!', 'success')
+                return response
+            else:
+                for fieldName, errorMessages in form.errors.items():
+                    for err in errorMessages:
+                        current_app.logger.error(f"Error in {fieldName}: {err}")
+        return render_template('sign_up.html', form=form)
+    except Exception as e:
+        current_app.logger.error(f"An error occurred: {str(e)}", exc_info=True)
+        return jsonify({"status": "error", "message": "An internal error occurred"}), 500
+    
 
 
 
 def login():
-    if request.method == 'POST':
-        url = os.getenv("MONGODB_URI_FLY")
-        client = MongoClient(url)
-        collection = client['flying_high']['user']
-        username = request.form.get('username')
-        password = request.form.get('password')
-        print(username, password)
-
-        user = check_user_credentials(collection,username, password)
-        print("user-->", user)
-        if user:
-            # user_id_str = str(user['_id'])
-            token = encode_auth_token(username)
-            # Storing the token in session or cookie
-            print("token:", token)
-            response = make_response(redirect(url_for('search_flight')))
-            response.set_cookie('access_token', f'Bearer {token}')
-            flash('You have been logged in!', 'success')
-            return response
-        else:
-            flash('Username or Password is wrong', 'danger')
-            return redirect(url_for('login'))
-    return render_template('login.html')
+    try:
+        if request.method == 'POST':
+            url = os.getenv("MONGODB_URI_FLY")
+            client = MongoClient(url)
+            collection = client['flying_high']['user']
+            username = request.form.get('username')
+            password = request.form.get('password')
+            user = check_user_credentials(collection,username, password)
+            if user: # check password
+                current_app.logger.info(f"User Logged In: {user}")
+                token = encode_auth_token(username)
+                # Storing the token in session or cookie
+                current_app.logger.info(f"Token: {token}")
+                response = make_response(redirect(url_for('search_flight')))
+                response.set_cookie('access_token', f'Bearer {token}')
+                flash('You have been logged in!', 'success')
+                return response
+            else:
+                flash('Username or Password is wrong', 'danger')
+                return redirect(url_for('login'))
+        return render_template('login.html')
+    except Exception as e:
+        current_app.logger.error(f"An error occurred: {str(e)}", exc_info=True)
+        return jsonify({"status": "error", "message": "An internal error occurred"}), 500
+    
 
 def logout():
-    response = make_response(redirect(url_for('search_flight')))
-    response.delete_cookie("access_token", path='/')
-    flash('You have been logged out.', 'success')
-    return response
-
+    try:
+        response = make_response(redirect(url_for('search_flight')))
+        response.delete_cookie("access_token", path='/')
+        flash('You have been logged out.', 'success')
+        return response
+    except Exception as e:
+        current_app.logger.error(f"An error occurred: {str(e)}", exc_info=True)
+        return jsonify({"status": "error", "message": "An internal error occurred"}), 500
+    
 
 
 @token_required
 def user_insurance(current_user):
-    user_insurance = select_user_insurance(current_user)
-    print("user_insurance print from route: ", user_insurance)
-    return render_template('user_insurance.html', user_info_dict=user_insurance)
+    try:
+        user_insurance = select_user_insurance(current_user)
+        return render_template('user_insurance.html', user_info_dict=user_insurance)
+    except Exception as e:
+        current_app.logger.error(f"An error occurred: {str(e)}", exc_info=True)
+        return jsonify({"status": "error", "message": "An internal error occurred"}), 500
 
 @token_required
 def user_info(current_user):
-    user_info_dict = select_user_information(current_user) # dict
-    return render_template('user_info.html',user_info_dict=user_info_dict) 
+    try:
+        user_info_dict = select_user_information(current_user) # dict
+        return render_template('user_info.html',user_info_dict=user_info_dict)
+    except Exception as e:
+        current_app.logger.error(f"An error occurred: {str(e)}", exc_info=True)
+        return jsonify({"status": "error", "message": "An internal error occurred"}), 500
 
 @token_required
 def user_notify(current_user):
-    return render_template('user_notify.html')
+    try:
+        return render_template('user_notify.html')
+    except Exception as e:
+        current_app.logger.error(f"An error occurred: {str(e)}", exc_info=True)
+        return jsonify({"status": "error", "message": "An internal error occurred"}), 500
 
 @token_required
 def user_flight(current_user):
-    return render_template('user_flight.html')
+    try:
+        return render_template('user_flight.html')
+    except Exception as e:
+        current_app.logger.error(f"An error occurred: {str(e)}", exc_info=True)
+        return jsonify({"status": "error", "message": "An internal error occurred"}), 500
 
 
 def update_user():
-    if request.method == "POST":
-        json_data = request.get_json()
-        print(json_data)
-        response = {
-            "status": "success",
-            "data" : json_data
-        }
-        return jsonify(response)
-    return render_template('homepage.html')
+    try:
+        if request.method == "POST":
+            json_data = request.get_json()
+            current_app.logger.info(f"Data received from update user page: {json_data}")
+            response = {
+                "status": "success",
+                "data" : json_data
+            }
+            return jsonify(response)
+        return render_template('homepage.html')
+    except Exception as e:
+        current_app.logger.error(f"An error occurred: {str(e)}", exc_info=True)
+        return jsonify({"status": "error", "message": "An internal error occurred"}), 500
+
 
 @token_required
 def update_insurance(current_user):
-    if request.method == "POST":
-        print("123123")
-        insurance_company = request.form.get("insurance_company")
-        plan = request.form.get("insurance_plan")
-        insured_amount = request.form.get("insured_amount")
-        matched_numbers = re.search(r"(\d+)萬", insured_amount)
-        if matched_numbers:
-            numeric_part = matched_numbers.group(1)
-        else:
-            numeric_part = None
-        # numeric_part = int(numeric_part)*10000
-        days = request.form.get("days")
-        matched_days = re.search(r"(\d+)天", days)
-        if matched_days:
-            day_part = matched_days.group(1)
-        else:
-            day_part = None
-        print(insurance_company, plan, numeric_part, day_part)
-        update_info = update_user_insurance(current_user,insurance_company,plan, numeric_part, day_part)
-        response = {
-            "status": "success"
-        }
-        return jsonify(response)
-    return render_template('homepage.html')
+    try:
+        if request.method == "POST":
+            insurance_company = request.form.get("insurance_company")
+            plan = request.form.get("insurance_plan")
+            insured_amount = request.form.get("insured_amount")
+            matched_numbers = re.search(r"(\d+)萬", insured_amount)
+            if matched_numbers:
+                numeric_part = matched_numbers.group(1)
+            else:
+                numeric_part = None
+            days = request.form.get("days")
+            matched_days = re.search(r"(\d+)天", days)
+            if matched_days:
+                day_part = matched_days.group(1)
+            else:
+                day_part = None
+            current_app.logger.info(f"Data received from update insurance page: {insurance_company}, {plan}, {numeric_part}, {day_part}")
+            update_insurance_result = update_user_insurance(current_user,insurance_company,plan, numeric_part, day_part)
+            current_app.logger.info("Update Insurance Result: ",update_insurance_result)
+            response = {
+                "status": "success"
+            }
+            return jsonify(response)
+        return render_template('homepage.html')
+    except Exception as e:
+        current_app.logger.error(f"An error occurred: {str(e)}", exc_info=True)
+        return jsonify({"status": "error", "message": "An internal error occurred"}), 500
 
- 
+
 @token_required
 def update_flight_info(current_user):
-    print("token---->",request.headers.get('X-CSRFToken'))
-    if request.method == "POST":
-        depart_taiwan_date = request.form.get("startDate")
-        arrive_taiwan_date = request.form.get("endDate")
-        # 出發班機
-        depart_flight = request.form.get("departFlight")
-        depart_flight = depart_flight.split()[0]
-        depart_fight_number = request.form.get("departFlightNumber")
-        flight_depart_taoyuan = depart_flight+depart_fight_number
-        
-        # 抵達班機
-        arrive_flight = request.form.get("arriveFlight")
-        arrive_flight = arrive_flight.split()[0]
-        arrive_fight_number = request.form.get("arriveFlightNumber")
-        flight_arrive_taoyuan = arrive_flight+arrive_fight_number
-        
-        
-        print(depart_taiwan_date,arrive_taiwan_date,flight_depart_taoyuan,flight_arrive_taoyuan)
-        update_info = update_user_flight_info(current_user,depart_taiwan_date,arrive_taiwan_date,flight_depart_taoyuan,flight_arrive_taoyuan)
-        print(update_info)
-        json_data = "hi"
-        response = {
-            "status": "success",
-            "data": json_data
-        }
-        
-        return jsonify(response)
-    return render_template('homepage.html')
+    try:
+        current_app.logger.info(f"Token: {request.headers.get('X-CSRFToken')}")
+        if request.method == "POST":
+            depart_taiwan_date = request.form.get("startDate")
+            arrive_taiwan_date = request.form.get("endDate")
+            # Depart Flights
+            depart_flight = request.form.get("departFlight")
+            depart_flight = depart_flight.split()[0]
+            depart_fight_number = request.form.get("departFlightNumber")
+            flight_depart_taoyuan = depart_flight+depart_fight_number
+            
+            # Arrive Flights
+            arrive_flight = request.form.get("arriveFlight")
+            arrive_flight = arrive_flight.split()[0]
+            arrive_fight_number = request.form.get("arriveFlightNumber")
+            flight_arrive_taoyuan = arrive_flight+arrive_fight_number
+            current_app.logger.info(f"Data received from update flight page: {depart_taiwan_date}, {arrive_taiwan_date}, {flight_depart_taoyuan}, {flight_arrive_taoyuan}")
+            update_flight_info = update_user_flight_info(current_user,depart_taiwan_date,arrive_taiwan_date,flight_depart_taoyuan,flight_arrive_taoyuan)
+            current_app.logger.info("Update Flight Info: ",update_flight_info)
+            response = {
+                "status": "success",
+                "data": "Flight Information Updated Successfully."
+            }
+            
+            return jsonify(response)
+        return render_template('homepage.html')
+    except Exception as e:
+        current_app.logger.error(f"An error occurred: {str(e)}", exc_info=True)
+        return jsonify({"status": "error", "message": "An internal error occurred"}), 500
 
  
 @token_required
 def update_notify(current_user):
-    print("token---->",request.headers.get('X-CSRFToken'))
-    if request.method == "POST":
-        flight_change = request.form.get('flight_change') == '1' # return False or True
-        flight_delay = request.form.get('flight_delay') == '1' # return False or True
-        hsr = request.form.get('hsr_station')
-        result = update_user_notify(current_user,flight_change,flight_delay,hsr)
-        return jsonify({"success": True, "message": "Flight information updated successfully."})
-    return render_template("homepage.html")
+    try:
+        current_app.logger.info(f"Token: {request.headers.get('X-CSRFToken')}")
+        if request.method == "POST":
+            flight_change = request.form.get('flight_change') == '1' # return False or True
+            flight_delay = request.form.get('flight_delay') == '1' # return False or True
+            hsr = request.form.get('hsr_station')
+            result = update_user_notify(current_user,flight_change,flight_delay,hsr)
+            current_app.logger.info("Update Notification: ",result)
+            return jsonify({"success": True, "message": "Flight information updated successfully."})
+        return render_template("homepage.html")
+    except Exception as e:
+        current_app.logger.error(f"An error occurred: {str(e)}", exc_info=True)
+        return jsonify({"status": "error", "message": "An internal error occurred"}), 500
         
 
 
 def index():
-    return render_template('homepage.html')
+    try:
+        return render_template('homepage.html')
+    except Exception as e:
+        current_app.logger.error(f"An error occurred: {str(e)}", exc_info=True)
+        return jsonify({"status": "error", "message": "An internal error occurred"}), 500
 
 
 def search_flight():
-    return render_template('search_flight.html')
+    try:
+        return render_template('search_flight.html')
+    except Exception as e:
+        current_app.logger.error(f"An error occurred: {str(e)}", exc_info=True)
+        return jsonify({"status": "error", "message": "An internal error occurred"}), 500
 
   
 def setup_routes(app, csrf):
-    # Other routes setup
     @app.route('/send_depart_email', methods=['GET', 'POST'])
     @csrf.exempt
     def send_depart_email():
-        print("depart1")
+        current_app.logger.info("Depart email request received")
         try:
             email = request.form.get('email')
             scheduled_depart_time = request.form.get('scheduled_depart_time')
             status = request.form.get('status')
             airline_code = request.form.get('airline_code')
             username = request.form.get('username')
-            print("data", (email, scheduled_depart_time, status))
-            print("x")
-            print("current_app_MAIL_USERNAME",current_app.config.get("MAIL_USERNAME"))
+            current_app.logger.info(f"Data received: {email}, {scheduled_depart_time}, {status}, {airline_code}, {username}")
+            current_app.logger.info(f"Current app MAIL USERNAME: {current_app.config.get('MAIL_USERNAME')}")
             mail = current_app.extensions['mail']
             msg = Message(subject="Hello",
                         sender=current_app.config.get("MAIL_USERNAME"),
                         recipients=[email], # replace with your email for testing
-                        body=f"Hi! {username}  your flight {airline_code} 's time has been changed.\
-                            Your flight's scheduled depart time {scheduled_depart_time} which status is now {status}. \
-                            For more detail, please click the link to trace your flight!")
+                        body=f"Hi! {username}  your flight {airline_code} 's time has been changed.\n\
+                            Your flight's scheduled depart time {scheduled_depart_time} which status is now {status}.\n\
+                            For more detail, please click the link below to trace your flight!")
             # ! -- 這邊再提供 search flight URL ---
             mail.send(msg)
-            update = update_depart_email_send(username)
-            print("update_success", update)
+            update_result = update_depart_email_send(username)
+            
+            print("update_success", update_result)
             return jsonify({"status": "Success", "message": "Depart email sent successfully."})
         except Exception as e:
-            print('Error occurred:', str(e))
-            return jsonify({"status": "Failed", "error": str(e)}), 500
-        
-    def create_email_body(username, airline_code, scheduled_arrive_time, status, train_ls, actual_arrive_time):
-        print("train_ls",train_ls)
-        train_times_str = '\n'.join([f" Train ID: {train[0]} Departure : {train[1]}, Arrival: {train[2]}, Non-reserved Car: {train[3]}" for train in train_ls])
-        
-        body = (
-            f"Hi! {username}, your flight {airline_code} 's time has been changed. "
-            f"Your flight's scheduled depart time is {scheduled_arrive_time} which status is now {status}. "
-            f"The predicted arrival time is {actual_arrive_time}."
-            "For more detail, please click the link to trace your flight!\n\n"
-            "Here are your train times:\n(after arrive within 5 hours):\n"
-            f"{train_times_str}"
-        )
-        return body
-    def create_cancel_email_body(username, airline_code, scheduled_arrive_time, status):
-        body = (
-            f"Hi! {username}, your flight {airline_code} 's time has been changed. "
-            f"Your flight's scheduled depart time is {scheduled_arrive_time} which status is now {status}. "
-            "For more detail, please click the link to trace your flight!\n\n"
-        )
-        return body 
+            current_app.logger.error(f"An error occurred: {str(e)}", exc_info=True)
+            return jsonify({"status": "Failed", "error": str(e)}), 500 
+
 
     @app.route('/send_arrive_email', methods=['GET', 'POST'])
     @csrf.exempt
     def send_arrive_email():
-        print("arrive11")
         try:
             email = request.json.get('email')
             scheduled_arrive_time = request.json.get('scheduled_arrive_time')
@@ -316,51 +328,53 @@ def setup_routes(app, csrf):
             airline_code = request.json.get('airline_code')
             username = request.json.get('username')
             train_ls = request.json.get('train_ls', [])
-            print("train_ls", train_ls)
             actual_arrive_time = request.json.get('actual_arrive_time', None)
-            if actual_arrive_time is not None:
-                print("data", (email, scheduled_arrive_time, status, train_ls,train_ls,actual_arrive_time))
-                print("current_app_MAIL_USERNAME",current_app.config.get("MAIL_USERNAME"))
-                mail = current_app.extensions['mail']
-                email_body = create_email_body(username, airline_code, scheduled_arrive_time, status, train_ls, actual_arrive_time)
-                msg = Message(subject="Hello",
-                            sender=current_app.config.get("MAIL_USERNAME"),
-                            recipients=[email], # replace with your email for testing
-                            body=email_body)
-                mail.send(msg)
-                update = update_arrive_email_send(username)
-                print("update_success", update)
-                return jsonify({"status": "Success", "message": " Arrive email sent successfully."})
-            else:
-                print("data", (email, scheduled_arrive_time, status, train_ls,train_ls,actual_arrive_time))
-                print("current_app_MAIL_USERNAME",current_app.config.get("MAIL_USERNAME"))
-                mail = current_app.extensions['mail']
-                email_body = create_email_body(username, airline_code, scheduled_arrive_time, status)
-                msg = Message(subject="Hello",
-                            sender=current_app.config.get("MAIL_USERNAME"),
-                            recipients=[email], # replace with your email for testing
-                            body=email_body)
-                mail.send(msg)
-                update = update_arrive_email_send(username)
-                print("update_success", update)
-                return jsonify({"status": "Success", "message": " Arrive email sent successfully."})
+            current_app.logger.info(f"Data received: {email}, {scheduled_arrive_time}, {status}, {airline_code}, {username},{actual_arrive_time}")
+            current_app
         except Exception as e:
-            print('Error occurred:', str(e))
+            current_app.logger.error(f"An error occurred: {str(e)}", exc_info=True)    
+        try: 
+            if actual_arrive_time is not None: # Time changed Flight
+                email_body = create_email_body(username, airline_code, scheduled_arrive_time, status, train_ls, actual_arrive_time)
+            else: # Cancelled Flight
+                email_body = create_cancel_email_body(username, airline_code, scheduled_arrive_time, status)
+            current_app.logger.info(f"Email Body Created")
+            mail = current_app.extensions['mail']
+            msg = Message(subject="Hello",
+                            sender=current_app.config.get("MAIL_USERNAME"),
+                            recipients=[email], # replace with your email for testing
+                            body=email_body)
+            mail.send(msg)
+            update_result = update_arrive_email_send(username)
+            current_app.logger.info("Update Arrive Email Send (Set True to False in MongoDB): ",update_result)
+            return jsonify({"status": "Success", "message": " Arrive email sent successfully."})
+        except Exception as e:
+            current_app.logger.error(f"An error occurred: {str(e)}", exc_info=True)
             return jsonify({"status": "Failed", "error": str(e)}), 500
-            
-            
+        
+    # Email Body
+    def create_email_body(username, airline_code, scheduled_arrive_time, status, train_ls, actual_arrive_time):
+        train_times_str = '\n'.join([f" Train ID: {train[0]} Departure : {train[1]}, Arrival: {train[2]}, Non-reserved Car: {train[3]}" for train in train_ls])
+        
+        body = (
+            f"Hi! {username}, your flight {airline_code} 's time has been changed. "
+            f"Your flight's scheduled depart time is {scheduled_arrive_time} which status is now {status}. "
+            f"The predicted arrival time is {actual_arrive_time}."
+            "For more detail, please click the link below to trace your flight!\n\n"
+            "Here are your train times:\n(after arrive within 5 hours):\n"
+            f"{train_times_str}"
+        )
+        return body
     
-
-
-
-
-
-
-
-
-
-
-# TODO:
+    # Cancel Email Body
+    def create_cancel_email_body(username, airline_code, scheduled_arrive_time, status):
+        body = (
+            f"Hi! {username}, your flight {airline_code} 's time has been changed. "
+            f"Your flight's scheduled depart time is {scheduled_arrive_time} which status is now {status}. "
+            "For more detail, please click the link to trace your flight!\n\n"
+        )
+        return body
+    
 def depart_flight_time():
     flight_result = None
     try:
@@ -372,38 +386,41 @@ def depart_flight_time():
         current_app.logger.info(f"Flight time retrieved for {flight_result}")
     except Exception:
         current_app.logger.error("Catch an exception.", exc_info=True)
-    share_code_list = []
-    if flight_result is not None:
-        for each_air in flight_result['airline']:
-            if each_air['airline_code'] == flight:
-                main_code = flight
-                airline_name = each_air['airline_name']
-            else:
-                share_code_list.append(each_air['airline_code'])
-        print("main:",main_code)
-        print("shared",share_code_list)
-        if flight_result['status'] == '':
-            flight_result['status'] = '已排定起飛時間'
-        taiwan_tz = pytz.timezone('Asia/Taipei')
-        updated_at_local = flight_result['updated_at'].replace(tzinfo=pytz.utc).astimezone(taiwan_tz)
-        flight_result['updated_at'] = updated_at_local.strftime('%m-%d %H:%M')
-        flight = {
-            "airline_name":airline_name,
-            'main_code': main_code,
-            'share_code': share_code_list, 
-            'destination': flight_result['destination'],
-            'gate': flight_result['gate'],
-            'scheduled_depart_time': flight_result['scheduled_depart_time'],
-            'actual_depart_time': flight_result['actual_depart_time'],
-            'status': flight_result['status'],
-            'terminal': flight_result['terminal'],
-            'updated_at':flight_result['updated_at']
-        }
-        print(flight)
-        return render_template('flight_time.html',flight= flight)
-    else:
-        flash('No flight found. Please search another flight.', 'alert-danger')
-        return redirect(url_for('search_flight'))
+    try:
+        share_code_list = []
+        if flight_result is not None:
+            for each_air in flight_result['airline']:
+                if each_air['airline_code'] == flight:
+                    main_code = flight
+                    airline_name = each_air['airline_name']
+                else:
+                    share_code_list.append(each_air['airline_code'])
+            print("main:",main_code)
+            print("shared",share_code_list)
+            if flight_result['status'] == '':
+                flight_result['status'] = '已排定起飛時間'
+            taiwan_tz = pytz.timezone('Asia/Taipei')
+            updated_at_local = flight_result['updated_at'].replace(tzinfo=pytz.utc).astimezone(taiwan_tz)
+            flight_result['updated_at'] = updated_at_local.strftime('%m-%d %H:%M')
+            flight = {
+                "airline_name":airline_name,
+                'main_code': main_code,
+                'share_code': share_code_list, 
+                'destination': flight_result['destination'],
+                'gate': flight_result['gate'],
+                'scheduled_depart_time': flight_result['scheduled_depart_time'],
+                'actual_depart_time': flight_result['actual_depart_time'],
+                'status': flight_result['status'],
+                'terminal': flight_result['terminal'],
+                'updated_at':flight_result['updated_at']
+            }
+            print(flight)
+            return render_template('flight_time.html',flight= flight)
+        else:
+            flash('No flight found. Please search another flight.', 'alert-danger')
+            return redirect(url_for('search_flight'))
+    except Exception as e:
+        current_app.logger.error(f"An error occurred: {str(e)}", exc_info=True)
 
 def arrive_flight_time():
     flight_result = None

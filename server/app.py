@@ -66,10 +66,10 @@ def create_app():
     app.add_url_rule('/user/notify.html', view_func=user_notify, methods=['GET', 'POST'])
     app.add_url_rule('/user/flight.html', view_func=user_flight, methods=['GET', 'POST'])
     
-    app.add_url_rule('/user/update_user', view_func=update_user, methods=['GET', 'POST'])
-    app.add_url_rule('/user/update_insurance', view_func=update_insurance, methods=['GET', 'POST'])
-    app.add_url_rule('/user/update_flight_info', view_func=update_flight_info, methods=['GET', 'POST'])
-    app.add_url_rule('/user/update_notify', view_func=update_notify, methods=['GET', 'POST'])
+    app.add_url_rule('/user/update_user', view_func=update_user, methods=['POST'])
+    app.add_url_rule('/user/update_insurance', view_func=update_insurance, methods=['POST'])
+    app.add_url_rule('/user/update_flight_info', view_func=update_flight_info, methods=['POST'])
+    app.add_url_rule('/user/update_notify', view_func=update_notify, methods=['POST'])
     
 
     # flight ---
