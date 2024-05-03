@@ -9,149 +9,154 @@ from datetime import datetime, tzinfo, timezone, timedelta, time
 import pytz
 import requests
 import json
+import logging
+
+FORMAT = '%(asctime)s %(levelname)s: %(message)s'
+logging.basicConfig(level=logging.DEBUG, format=FORMAT)
 
 API_ENDPOINT  = 'http://13.230.61.140/send_arrive_email'
 
-def get_arrive_flight_time():
-    load_dotenv()
-    url = os.getenv("MONGODB_URI_FLY")
-    client = MongoClient(url)
-    taiwan_tz = pytz.timezone('Asia/Taipei')
-    #  今天凌晨
-    tw_now = datetime.now(taiwan_tz)
-    tw_midnight = taiwan_tz.localize(datetime(tw_now.year, tw_now.month, tw_now.day, 0, 0, 0))
-    utc_midnight = tw_midnight.astimezone(pytz.utc)  # UTC Time
-    filter={
-        'status': {
-        '$in': [
-            '預計時間變更.', '時間未定', '取消'
-            ]
-        },
-        'updated_at': {
-        '$gt': utc_midnight
-    }
-    }
-    result = client['flying_high']['flight_arrive2'].find(
-    filter=filter,
-    sort=[('updated_at', DESCENDING)]
-    )
-    return list(result)
 
 def transform_result():
-    result_ls = get_arrive_flight_time()
-    for collection in result_ls:
-        print(collection)
-        print("-------")
-        airlines = collection['airline']
-        scheduled_arrive_time = collection['scheduled_arrive_time']
-        status = collection['status']
-        actual_arrive_time = collection['actual_arrive_time'] if collection['actual_arrive_time'] != "" else None
-        print(actual_arrive_time)
-        if actual_arrive_time is not None:
-            print("actual_arrive_time", actual_arrive_time)
-            train_ls = []
-            print(type(actual_arrive_time))
-            actual_arrive_time = datetime.strptime(actual_arrive_time, "%H:%M").time()
-            print("這", type(actual_arrive_time))
-            for airline in airlines:
-                airline_code = airline['airline_code']
-                # 找出需要發送 email的 user
-                send_email_dic = select_user_flight(airline_code)
-                print("send_email_dic")
-                if send_email_dic is not None:
-                    # 找出大於 actual_arrive_time 的高鐵班次
-                    hsr_station = send_email_dic['hsr_station']
-                    print("hsr_station", hsr_station)
-                    train_time = select_hsr_train(hsr_station)
-                    if train_time is not None:     
-                        for each_train in train_time['train_item']:
-                            train_departure_time_str = each_train['departure_time']
-                            if train_departure_time_str: # departure_time could be None
-                                train_departure_time = datetime.strptime(train_departure_time_str, "%H:%M").time()
-                                if is_within_five_hours(actual_arrive_time, train_departure_time):
-                                    train_destination_time = each_train['destination_time']
-                                    non_reserved_car = each_train['non_reserved_Car']
-                                    train_id = each_train['id']
-                                    formatted_time_str = train_departure_time.strftime("%H:%M")
-                                    train_ls.append((train_id,formatted_time_str, train_destination_time, non_reserved_car))
-                        print("train_ls", train_ls)
+    try:
+        logging.info("Start to fetch the flight data and send email")
+        result_ls = get_arrive_flight_time()
+        for collection in result_ls:
+            logging.info("Canceled or Delayed Arrive Flight", collection)
+            airlines = collection['airline']
+            scheduled_arrive_time = collection['scheduled_arrive_time']
+            status = collection['status']
+            actual_arrive_time = collection['actual_arrive_time'] if collection['actual_arrive_time'] != "" else None
+            logging.info("Actual Arrive Time: ", actual_arrive_time)
+            if actual_arrive_time is not None: # check if the flight has been canceled or time is fixed
+                train_ls = []
+                actual_arrive_time = datetime.strptime(actual_arrive_time, "%H:%M").time()
+                for airline in airlines:
+                    airline_code = airline['airline_code']
+                    send_email_dic = select_user_flight(airline_code)
+                    if send_email_dic is not None: # check if there are users need to be send email
+                        logging.info("Who need to be notified: ", send_email_dic)
+                        hsr_station = send_email_dic['hsr_station']
+                        train_time = select_hsr_train(hsr_station)
+                        logging.info("Train time: ", train_time)
+                        if train_time is not None: # check if there are trains available
+                            for each_train in train_time['train_item']:
+                                train_departure_time_str = each_train['departure_time']
+                                if train_departure_time_str: # departure_time could be None
+                                    train_departure_time = datetime.strptime(train_departure_time_str, "%H:%M").time()
+                                    if is_within_five_hours(actual_arrive_time, train_departure_time):
+                                        train_destination_time = each_train['destination_time']
+                                        non_reserved_car = each_train['non_reserved_Car']
+                                        train_id = each_train['id']
+                                        formatted_time_str = train_departure_time.strftime("%H:%M")
+                                        train_ls.append((train_id,formatted_time_str, train_destination_time, non_reserved_car))
+                            logging.info("Train list: ", train_ls)
+                            username = send_email_dic['username']
+                            user_info = select_user_email(username)
+                            logging.info("User Information: ", user_info)
+                            if user_info is not None: 
+                                email = user_info['email']
+                                actual_arrive_time = actual_arrive_time.strftime("%H:%M") if actual_arrive_time else None
+                                data = {'email': email,
+                                        'scheduled_arrive_time':scheduled_arrive_time,
+                                        'status':status,
+                                        'airline_code':airline_code,
+                                        'username':username,
+                                        'train_ls':train_ls,
+                                        "actual_arrive_time":actual_arrive_time  # Could be None
+                                    }
+                                logging.info("Data post to API: ", data)
+                                try:
+                                    headers = {'Content-Type': 'application/json'}
+                                    response = requests.post(url=API_ENDPOINT, data=json.dumps(data), headers=headers)
+                                    response_text = response.text
+                                    logging.info("Response after Post: ", response_text)
+                                    response.raise_for_status()
+                                except requests.exceptions.HTTPError as err:
+                                    logging.error(f"HTTP error occurred: {err}")
+                                except requests.exceptions.ConnectionError as err:
+                                    logging.error(f"Connection error occurred: {err}")
+                                except Exception as err:
+                                    logging.error(f"An error occurred: {err}")    
+                                
+                            else:
+                                logging.info("No email found")
+                        else:
+                            logging.info("No train found")
+                    else:
+                        logging.info("No user found")
+            else: # flight canceled or time is not fixed
+                logging.info("No actual_arrive_time, Flight has been canceled or time is not fixed yet.")
+                for airline in airlines:
+                    airline_code = airline['airline_code']
+                    send_email_dic = select_user_flight(airline_code)
+                    if send_email_dic is not None: # check if there are users need to be send email
+                        logging.info("Who need to be notified: ", send_email_dic)
                         username = send_email_dic['username']
                         user_info = select_user_email(username)
-                        # 找出使用者的 email
                         if user_info is not None:
                             email = user_info['email']
-                            print("email", email)
-                            print("scheduled_arrive_time->", scheduled_arrive_time)
-                            print("status-->", status)
-                            actual_arrive_time = actual_arrive_time.strftime("%H:%M") if actual_arrive_time else None
                             data = {'email': email,
                                     'scheduled_arrive_time':scheduled_arrive_time,
                                     'status':status,
                                     'airline_code':airline_code,
-                                    'username':username,
-                                    'train_ls':train_ls,
-                                    "actual_arrive_time":actual_arrive_time  # Could be None
+                                    'username':username
+                                    # 'train_ls':train_ls,
+                                    # "actual_arrive_time":actual_arrive_time  # Could be None
                                 }
-                            print("data", data)
+                            logging.info("Data post to API: ", data)
                             try:
                                 headers = {'Content-Type': 'application/json'}
                                 response = requests.post(url=API_ENDPOINT, data=json.dumps(data), headers=headers)
                                 response_text = response.text
-                                print(response_text)
+                                logging.info("Response after Post: ", response_text)
                                 response.raise_for_status()
                             except requests.exceptions.HTTPError as err:
-                                print(f"HTTP error occurred: {err}")
+                                logging.error(f"HTTP error occurred: {err}")
                             except requests.exceptions.ConnectionError as err:
-                                print(f"Connection error occurred: {err}")
+                                logging.error(f"Connection error occurred: {err}")
                             except Exception as err:
-                                print(f"An error occurred: {err}")        
-                            
+                                logging.error(f"An error occurred: {err}")  
                         else:
-                            print("no no email")
-                else:
-                    print("no no username")
-        else:
-            print("no actual_arrive_time, means flight has been canceled or time is not fixed yet.")
-            for airline in airlines:
-                airline_code = airline['airline_code']
-                # 找出需要發送 email的 user
-                send_email_dic = select_user_flight(airline_code)
-                print("send_email_dic, find out who need to be notified.")
-                if send_email_dic is not None:
-                    username = send_email_dic['username']
-                    user_info = select_user_email(username)
-                    # 找出使用者的 email
-                    if user_info is not None:
-                        email = user_info['email']
-                        print("email", email)
-                        print("scheduled_arrive_time->", scheduled_arrive_time)
-                        print("status-->", status)
-                        data = {'email': email,
-                                'scheduled_arrive_time':scheduled_arrive_time,
-                                'status':status,
-                                'airline_code':airline_code,
-                                'username':username
-                                # 'train_ls':train_ls,
-                                # "actual_arrive_time":actual_arrive_time  # Could be None
-                            }
-                        print("data", data)
-                        try:
-                            headers = {'Content-Type': 'application/json'}
-                            response = requests.post(url=API_ENDPOINT, data=json.dumps(data), headers=headers)
-                            response_text = response.text
-                            print(response_text)
-                            response.raise_for_status()
-                        except requests.exceptions.HTTPError as err:
-                            print(f"HTTP error occurred: {err}")
-                        except requests.exceptions.ConnectionError as err:
-                            print(f"Connection error occurred: {err}")
-                        except Exception as err:
-                            print(f"An error occurred: {err}") 
-            
-
+                            logging.info("No email found")
+                    else:
+                        logging.info("No user found")
+    except Exception as e:
+        logging.error(f"An exception occurred: {str(e)}", exc_info=True)
+                    
+                    
+def get_arrive_flight_time():
+    try:
+        logging.info("Start to get time canceled or time changed flight.")
+        load_dotenv()
+        url = os.getenv("MONGODB_URI_FLY")  
+        client = MongoClient(url)
+        taiwan_tz = pytz.timezone('Asia/Taipei')
+        #  midnight of today
+        tw_now = datetime.now(taiwan_tz)
+        tw_midnight = taiwan_tz.localize(datetime(tw_now.year, tw_now.month, tw_now.day, 0, 0, 0))
+        utc_midnight = tw_midnight.astimezone(pytz.utc)  # UTC Time
+        filter={
+            'status': {
+            '$in': [
+                '預計時間變更.', '時間未定', '取消'
+                ]
+            },
+            'updated_at': {
+            '$gt': utc_midnight
+        }
+        }
+        result = client['flying_high']['flight_arrive2'].find(
+        filter=filter,
+        sort=[('updated_at', DESCENDING)]
+        )
+        return list(result)
+    except Exception as e:
+        logging.error(f"An exception occurred: {str(e)}", exc_info=True)
 
 def select_user_email(username):
     try:
+        logging.info("Start to get user email.")
         load_dotenv()
         url = os.getenv("MONGODB_URI_FLY")
         client = MongoClient(url)
@@ -163,22 +168,22 @@ def select_user_email(username):
         )   
         return result # dict      
     except Exception as e:
-        print(str(e))
+        logging.error(f"An exception occurred: {str(e)}", exc_info=True)
         
         
 def select_user_flight(airline_code):
     try:
+        logging.info("Start to get username for specific flight which assigned for today.")
         load_dotenv()
         url = os.getenv("MONGODB_URI_FLY")
         client = MongoClient(url)
         taiwan_tz = pytz.timezone('Asia/Taipei')
-        #  今天凌晨
+        #  Midnight of today
         tw_now = datetime.now(taiwan_tz)
         tw_midnight = taiwan_tz.localize(datetime(tw_now.year, tw_now.month, tw_now.day, 0, 0, 0))
-        # 轉換成 UTC 時間
+        # UTC Time
         utc_midnight = tw_midnight.astimezone(pytz.utc)
-        print("使用者的utc---->", utc_midnight)
-        
+        logging.info("User's UTC time: ", utc_midnight)
         # 找出有登記 此飛機 且出發日期為今天 （utc時間）的 user
         filter = {
             'flight_arrive_taoyuan': airline_code,
@@ -189,10 +194,9 @@ def select_user_flight(airline_code):
         result = client['flying_high']['user_flight'].find(
         filter=filter)
         result = list(result)
-        
-        for user_flight_col in result:
+        logging.info("Start to find the user who needs email but has not been sent email")
+        for user_flight_col in result: # find the user who needs email but has not been sent email
             username = user_flight_col['username']
-            # 找出 需要寄送通知, 但是還沒有寄送過的人 
             filter={
                 'username': username, 
                 'flight_delay': True,
@@ -201,35 +205,29 @@ def select_user_flight(airline_code):
             send_email = client['flying_high']['user_notify'].find_one(
             filter=filter
             )
-            if send_email is not None:
-                print("test success")
-                return send_email #dict
+            return send_email # dict
     except Exception as e:
-        print(str(e))
+        logging.error(f"An exception occurred: {str(e)}", exc_info=True)
 
 def select_hsr_train(hsr_station):
-    load_dotenv()
-    url = os.getenv("MONGODB_URI_FLY")
-    print(url)
-    client = MongoClient(url)
-    #  今天凌晨
-    taiwan_tz = pytz.timezone('Asia/Taipei')
-    tw_now = datetime.now(taiwan_tz)
-    tw_midnight = taiwan_tz.localize(datetime(tw_now.year, tw_now.month, tw_now.day, 0, 0, 0))
-    utc_midnight = tw_midnight.astimezone(pytz.utc)
-    print("hsr_staiton_inside_filter", hsr_station)
-    filter={
-        'end_station': hsr_station,
-    #     'hsr_utc_time': {
-    #     # '$eq': utc_midnight
-    # }
-    }
-    print("filter", filter)
-    result = client['flying_high']['hsr_time'].find_one(
-    filter=filter
-    )
-    print("train_time:----->", result)
-    return result
+    try:
+        logging.info("Start to get HSR train time.")
+        load_dotenv()
+        url = os.getenv("MONGODB_URI_FLY")
+        client = MongoClient(url)
+        filter={
+        'end_station': hsr_station
+        }
+        sort=list({
+            'updated_at': -1
+        }.items())
+        result = client['flying_high']['hsr_time'].find_one(
+        filter=filter,
+        sort=sort
+        )
+        return result
+    except Exception as e:
+        logging.error(f"An exception occurred: {str(e)}", exc_info=True)
     
         
 def is_within_five_hours(start_time, end_time):
