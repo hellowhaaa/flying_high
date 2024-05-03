@@ -23,7 +23,7 @@ def transform_result():
         logging.info("Start to fetch the flight data and send email")
         result_ls = get_depart_flight_time()
         for collection in result_ls:
-            logging.info("Canceled or Delayed Depart Flight", collection)
+            logging.info("Canceled or Delayed Depart Flight: %s", collection)
             airlines = collection['airline']
             scheduled_depart_time = collection['scheduled_depart_time']
             status = collection['status']
@@ -31,7 +31,7 @@ def transform_result():
                 airline_code = airline['airline_code']
                 send_email_dic = select_user_flight(airline_code)
                 if send_email_dic is not None: # check if there are users need to be send email
-                    logging.info("Who need to be notified: ", send_email_dic)
+                    logging.info("Who need to be notified: %s", send_email_dic)
                     username = send_email_dic['username']
                     user_info = select_user_email(username)
                     if user_info is not None:
@@ -42,11 +42,11 @@ def transform_result():
                                 'airline_code':airline_code,
                                 'username':username
                             }
-                        logging.info("Data post to API: ", data)
+                        logging.info("Data post to API: %s", data)
                         try:
                             response = requests.post(url=API_ENDPOINT, data=data)
                             response_text = response.text
-                            logging.info("Response after Post: ", response_text)
+                            logging.info("Response after Post: %s", response_text)
                             response.raise_for_status()
                         except requests.exceptions.HTTPError as err:
                                     logging.error(f"HTTP error occurred: {err}")
@@ -121,7 +121,7 @@ def select_user_flight(airline_code):
         tw_midnight = taiwan_tz.localize(datetime(tw_now.year, tw_now.month, tw_now.day, 0, 0, 0))
         # UTC Time
         utc_midnight = tw_midnight.astimezone(pytz.utc)
-        logging.info("User's UTC time: ", utc_midnight)
+        logging.info("User's UTC time: %s", utc_midnight)
         # 找出有登記 此飛機 且出發日期為今天 （utc時間）的 user
         filter = {
             'flight_depart_taoyuan': airline_code,
