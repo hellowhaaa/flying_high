@@ -40,6 +40,7 @@ server/templates/map_*.html
 # script
 .scp.sh
 .scp_ubuntu.sh
+.scp_linux_after_restructure.sh
 
 # email_notify folder
 
@@ -52,6 +53,7 @@ email_notify/dags/.env
 
 # map folder
 map/create_latitude.py
+map/dags/__pycache__/
 
 logs/
 .env
