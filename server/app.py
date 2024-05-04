@@ -43,6 +43,7 @@ def create_app():
         # Ensure the directory exists
         os.makedirs(log_path, exist_ok=True)
         # Initialize logging handler
+        print('log_path:', log_path)
         file_handler = RotatingFileHandler(os.path.join(log_path, 'app.log'), maxBytes=10240, backupCount=3)
         file_handler.setFormatter(logging.Formatter(
             '%(asctime)s %(levelname)s: %(message)s [in %(pathname)s:%(lineno)d]'

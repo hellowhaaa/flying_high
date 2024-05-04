@@ -141,7 +141,9 @@ def logout():
 @token_required
 def user_insurance(current_user):
     try:
-        user_insurance = select_user_insurance(current_user)
+        current_app.logger.info(f"Token: {request.headers.get('X-CSRFToken')}")
+        current_app.logger.info(f"Current User: {current_user}")
+        user_insurance = select_user_insurance(current_user, logger=current_app.logger)
         return render_template('user_insurance.html', user_info_dict=user_insurance)
     except Exception as e:
         current_app.logger.error(f"An error occurred: {str(e)}", exc_info=True)
@@ -150,7 +152,9 @@ def user_insurance(current_user):
 @token_required
 def user_info(current_user):
     try:
-        user_info_dict = select_user_information(current_user) # dict
+        current_app.logger.info(f"Token: {request.headers.get('X-CSRFToken')}")
+        current_app.logger.info(f"Current User: {current_user}")
+        user_info_dict = select_user_information(current_user, logger=current_app.logger) # dict
         return render_template('user_info.html',user_info_dict=user_info_dict)
     except Exception as e:
         current_app.logger.error(f"An error occurred: {str(e)}", exc_info=True)
@@ -159,6 +163,8 @@ def user_info(current_user):
 @token_required
 def user_notify(current_user):
     try:
+        current_app.logger.info(f"Token: {request.headers.get('X-CSRFToken')}")
+        current_app.logger.info(f"Current User: {current_user}")
         return render_template('user_notify.html')
     except Exception as e:
         current_app.logger.error(f"An error occurred: {str(e)}", exc_info=True)
@@ -167,6 +173,8 @@ def user_notify(current_user):
 @token_required
 def user_flight(current_user):
     try:
+        current_app.logger.info(f"Token: {request.headers.get('X-CSRFToken')}")
+        current_app.logger.info(f"Current User: {current_user}")
         return render_template('user_flight.html')
     except Exception as e:
         current_app.logger.error(f"An error occurred: {str(e)}", exc_info=True)
@@ -208,7 +216,7 @@ def update_insurance(current_user):
             else:
                 day_part = None
             current_app.logger.info(f"Data received from update insurance page: {insurance_company}, {plan}, {numeric_part}, {day_part}")
-            update_insurance_result = update_user_insurance(current_user,insurance_company,plan, numeric_part, day_part)
+            update_insurance_result = update_user_insurance(current_user,insurance_company,plan, numeric_part, day_part, logger=current_app.logger)
             current_app.logger.info(f"Update Insurance Result: {update_insurance_result}")
             response = {
                 "status": "success"
@@ -239,7 +247,7 @@ def update_flight_info(current_user):
             arrive_fight_number = request.form.get("arriveFlightNumber")
             flight_arrive_taoyuan = arrive_flight+arrive_fight_number
             current_app.logger.info(f"Data received from update flight page: {depart_taiwan_date}, {arrive_taiwan_date}, {flight_depart_taoyuan}, {flight_arrive_taoyuan}")
-            update_flight_info = update_user_flight_info(current_user,depart_taiwan_date,arrive_taiwan_date,flight_depart_taoyuan,flight_arrive_taoyuan)
+            update_flight_info = update_user_flight_info(current_user,depart_taiwan_date,arrive_taiwan_date,flight_depart_taoyuan,flight_arrive_taoyuan, logger=current_app.logger)
             current_app.logger.info(f"Update Flight Info: {update_flight_info}")
             response = {
                 "status": "success",
@@ -261,7 +269,7 @@ def update_notify(current_user):
             flight_change = request.form.get('flight_change') == '1' # return False or True
             flight_delay = request.form.get('flight_delay') == '1' # return False or True
             hsr = request.form.get('hsr_station')
-            result = update_user_notify(current_user,flight_change,flight_delay,hsr)
+            result = update_user_notify(current_user,flight_change,flight_delay,hsr, logger=current_app.logger)
             current_app.logger.info(f"Update Notification: {result}")
             return jsonify({"success": True, "message": "Flight information updated successfully."})
         return render_template("homepage.html")
@@ -286,7 +294,7 @@ def search_flight():
         current_app.logger.error(f"An error occurred: {str(e)}", exc_info=True)
         return jsonify({"status": "error", "message": "An internal error occurred"}), 500
 
-  
+
 def setup_routes(app, csrf):
     @app.route('/send_depart_email', methods=['GET', 'POST'])
     @csrf.exempt
@@ -309,9 +317,8 @@ def setup_routes(app, csrf):
                             For more detail, please click the link below to trace your flight!")
             # ! -- 這邊再提供 search flight URL ---
             mail.send(msg)
-            update_result = update_depart_email_send(username)
-            
-            print("update_success", update_result)
+            update_result = update_depart_email_send(username, logger=current_app.logger)
+            current_app.logger.info(f"Update Success: {update_result}")
             return jsonify({"status": "Success", "message": "Depart email sent successfully."})
         except Exception as e:
             current_app.logger.error(f"An error occurred: {str(e)}", exc_info=True)
@@ -345,7 +352,7 @@ def setup_routes(app, csrf):
                             recipients=[email], # replace with your email for testing
                             body=email_body)
             mail.send(msg)
-            update_result = update_arrive_email_send(username)
+            update_result = update_arrive_email_send(username, logger=current_app.logger)
             current_app.logger.info(f"Update Arrive Email Send (Set True to False in MongoDB): {update_result}")
             return jsonify({"status": "Success", "message": " Arrive email sent successfully."})
         except Exception as e:
@@ -382,7 +389,7 @@ def depart_flight_time():
         flight_number = request.form.get('flight_number') if request.method == 'POST' else request.args.get('flight_number')
         airline_code = airline_code.split()[0]
         flight = airline_code + flight_number
-        flight_result = get_depart_flight_time(flight)
+        flight_result = get_depart_flight_time(flight,logger=current_app.logger)
         current_app.logger.info(f"Flight time retrieved for {flight_result}")
     except Exception:
         current_app.logger.error("Catch an exception.", exc_info=True)
@@ -427,7 +434,7 @@ def arrive_flight_time():
         flight_number = request.form.get('flight_number') if request.method == 'POST' else request.args.get('flight_number')
         airline_code = airline_code.split()[0]
         flight = airline_code + flight_number 
-        flight_result = get_arrive_flight_time(flight)
+        flight_result = get_arrive_flight_time(flight, logger=current_app.logger)
         current_app.logger.info(f"Flight time retrieved for {flight_result}")
     except Exception:
         current_app.logger.error("Catch an exception.", exc_info=True)
@@ -466,14 +473,14 @@ def arrive_flight_time():
 @token_required
 def my_insurance(current_user):
     try:
-        user_insurance = select_user_insurance(current_user)
+        user_insurance = select_user_insurance(current_user, logger=current_app.logger)
         current_app.logger.info(f"User's Insurance Plans Retrieved from MongoDB Successfully")
         if user_insurance is not None:
             insurance_company = user_insurance["insurance_company"]
             plan = user_insurance["plan"]
             insured_amount = user_insurance["insured_amount"]
             days = user_insurance["days"]
-            insurance_content = select_insurance_amount(plan, insured_amount,insurance_company, days)
+            insurance_content = select_insurance_amount(plan, insured_amount,insurance_company, days, logger=current_app.logger)
             current_app.logger.info(f"Insurance Content Retrieved from MongoDB Successfully")
             insurance_content["insurance_company"] = insurance_company
             return render_template('my_insurance.html', user_insurance = user_insurance, insurance_content= insurance_content)
@@ -589,7 +596,7 @@ def split_alpha_numeric(s):
 def fetch_depart_flight_code():
     try:
         return_code_dic = {}
-        result = select_today_depart_flight_code()
+        result = select_today_depart_flight_code(logger=current_app.logger)
         current_app.logger.info(f"Retrieved today's Depart Flight Code Successfully")
         for each in result:
             airlines = each['airline']
@@ -613,7 +620,7 @@ def fetch_depart_flight_code():
 def fetch_arrive_flight_code():
     try:
         return_code_dic = {}
-        result = select_today_arrive_flight_code()
+        result = select_today_arrive_flight_code(logger=current_app.logger)
         current_app.logger.info(f"Retrieved today's Arrive Flight Code Successfully")
         for each in result:
             airlines = each['airline']
@@ -637,7 +644,7 @@ def fetch_arrive_flight_code():
 def fetch_user_depart_flight_code():
     try:
         return_code_dic = {}
-        result = select_user_depart_flight_code()
+        result = select_user_depart_flight_code(logger=current_app.logger)
         current_app.logger.info(f"Retrieved All Depart Flights Information")
         for each in result:
             airlines = each['airline']
@@ -661,7 +668,7 @@ def fetch_user_depart_flight_code():
 def fetch_user_arrive_flight_code():
     try:
         return_code_dic = {}
-        result = select_user_arrive_flight_code()
+        result = select_user_arrive_flight_code(logger=current_app.logger)
         current_app.logger.info(f"Retrieved All Arrive Flights Information")
         for each in result:
             airlines = each['airline']
