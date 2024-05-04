@@ -365,27 +365,34 @@
         const diffTime = Math.abs(endDate - startDate);
         const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
 
-        const startDateFormatted =
-          startDate.toLocaleDateString("zh-TW", {
-            year: "numeric",
-            month: "2-digit",
-            day: "2-digit",
-          }) +
-          " " +
-          startTimeSelect.value;
-        const endDateFormatted =
-          endDate.toLocaleDateString("zh-TW", {
-            year: "numeric",
-            month: "2-digit",
-            day: "2-digit",
-          }) +
-          " " +
-          endTimeSelect.value;
+        if (diffDays < 3 || diffDays > 30) {
+          // Display an error message if the duration is less than 3 days or more than 30 days
+          insurancePeriodDisplay.textContent = `最低投保日期為3天，最高投保日期為30天`;
+          document.getElementById("insuranceDays").value = ""; // Clear the previously set value
+        } else {
+          const startDateFormatted =
+            startDate.toLocaleDateString("zh-TW", {
+              year: "numeric",
+              month: "2-digit",
+              day: "2-digit",
+            }) +
+            " " +
+            startTimeSelect.value;
+          const endDateFormatted =
+            endDate.toLocaleDateString("zh-TW", {
+              year: "numeric",
+              month: "2-digit",
+              day: "2-digit",
+            }) +
+            " " +
+            endTimeSelect.value;
 
-        insurancePeriodDisplay.textContent = `共投保${diffDays}天，保期為 ${startDateFormatted} - ${endDateFormatted}`;
-        document.getElementById("insuranceDays").value = diffDays; // 將計算的天數賦值給隱藏輸入
+          insurancePeriodDisplay.textContent = `共投保${diffDays}天，保期為 ${startDateFormatted} - ${endDateFormatted}`;
+          document.getElementById("insuranceDays").value = diffDays; // Update the hidden input with the calculated days
+        }
       } else {
-        insurancePeriodDisplay.textContent = "";
+        insurancePeriodDisplay.textContent = ""; // Clear the text if dates are not selected properly
+        document.getElementById("insuranceDays").value = ""; // Clear the hidden input
       }
     }
 

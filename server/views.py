@@ -509,7 +509,7 @@ def fetch_insurance_amount():
     except Exception as e:
         current_app.logger.error(f"Catch an exception. + {e}", exc_info=True)
     try:
-        result = select_insurance_amount(plan, insurance_amount,insurance_company, insurance_days)
+        result = select_insurance_amount(plan, insurance_amount,insurance_company, insurance_days, logger=current_app.logger)
         current_app.logger.info(f"Insurance amount retrieved from MongoDB successfully")
         if result:
             price = result['insurance_premium']['price']
@@ -537,7 +537,7 @@ def fetch_insurance_content():
             insured_amount = request.form.get("insuredAmount")
             insurance_company = request.form.get("insuranceCompany")
             current_app.logger.info(f"Data received from fetch insurance content: {selected_inconvenience_insurance}, {plan}, {days}, {insured_amount}, {insurance_company}")
-            result = select_insurance_amount(plan, insured_amount,insurance_company, days)
+            result = select_insurance_amount(plan, insured_amount,insurance_company, days, logger=current_app.logger)
             content = result['travel_inconvenience_insurance']['content'][0][selected_inconvenience_insurance]
             response = {
                 'status': 'success',
@@ -568,7 +568,7 @@ def fetch_travel_insurance_content():
             insured_amount = request.form.get("insuredAmount")
             insurance_company = request.form.get("insuranceCompany")
             current_app.logger.info(f"Data received from fetch travel insurance content: {selected_insurance}, {plan}, {days}, {insured_amount}, {insurance_company}")
-            result = select_insurance_amount(plan, insured_amount,insurance_company, days)
+            result = select_insurance_amount(plan, insured_amount,insurance_company, days, logger=current_app.logger)
             content = result['travel_insurance']['content'][0][selected_insurance]
             necessities = content['necessities'] if 'necessities' in content and content['necessities'] else ''
             response = {
