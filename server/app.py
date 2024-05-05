@@ -37,6 +37,11 @@ def create_app():
         access_token = request.cookies.get('access_token')
         return {'logged_in': True if access_token else False}
     
+    @app.context_processor
+    def inject_streamlit_url():
+        # Add the URL for Streamlit
+        return {"streamlit_url": 'http://13.230.61.140/dashboard/'}
+        
     # Setup logger
     if not app.debug:
         log_path = os.path.join(os.getcwd(), 'server', 'logs')
