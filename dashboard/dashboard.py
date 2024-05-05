@@ -9,7 +9,7 @@ from datetime import datetime, timedelta
 import logging
 from logging.handlers import RotatingFileHandler
 
-log_path = os.path.join(os.getcwd(), 'dashboard', 'logs')
+log_path = os.path.join(os.getcwd(), 'logs')
 # Ensure the directory exists
 os.makedirs(log_path, exist_ok=True)
 # Initialize logging handler
