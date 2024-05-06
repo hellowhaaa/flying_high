@@ -40,7 +40,7 @@ def create_app():
     @app.context_processor
     def inject_streamlit_url():
         # Add the URL for Streamlit
-        return {"streamlit_url": 'http://13.230.61.140/dashboard/'}
+        return {"streamlit_url": 'https://www.flyinghigh.live/dashboard/'}
         
     # Setup logger
     if not app.debug:

@@ -14,7 +14,7 @@ import logging
 FORMAT = '%(asctime)s %(levelname)s: %(message)s'
 logging.basicConfig(level=logging.DEBUG, format=FORMAT)
 
-API_ENDPOINT  = 'http://13.230.61.140/send_arrive_email'
+API_ENDPOINT  = 'https://www.flyinghigh.live/send_arrive_email'
 
 
 def transform_result():

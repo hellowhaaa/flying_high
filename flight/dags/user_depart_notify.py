@@ -10,7 +10,7 @@ import pytz
 import requests
 import logging
 
-API_ENDPOINT  = 'http://13.230.61.140/send_depart_email'
+API_ENDPOINT  = 'https://www.flyinghigh.live/send_depart_email'
 
 FORMAT = '%(asctime)s %(levelname)s: %(message)s'
 logging.basicConfig(level=logging.DEBUG, format=FORMAT)
