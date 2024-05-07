@@ -8,7 +8,7 @@ from datetime import datetime,timedelta
 from dotenv import load_dotenv
 import re
 from geopy.geocoders import Nominatim
-from geopy.exc import GeocoderTimedOut
+from geopy.exc import GeocoderTimedOut,GeocoderUnavailable
 import time
 import pendulum
 from branca.element import Template, MacroElement, Element
@@ -79,22 +79,40 @@ def flight_data(destination, collection_name):
     )
     return list(result)
 
+# todo -------
 
-## get longitude and latitude
-useranget = "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Mobile Safari/537.36,gzip(gfe)"
-geolocator = Nominatim(user_agent=useranget)
-
-def get_location_list_by_address(address):
-    try:
-        location = geolocator.geocode(address)
+def get_location_list_by_address(address, attempt=1, max_attempts=5):
+    useranget = "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Mobile Safari/537.36,gzip(gfe)"
+    geolocator = Nominatim(user_agent=useranget)
+    try: 
+        location = geolocator.geocode(address, timeout=10)
         if location:
             return [location.latitude, location.longitude]
         else:
             return (None, None)
-    except GeocoderTimedOut:
-        return get_location_list_by_address(address) # retry if timeout
-    
-    
+    except (GeocoderTimedOut, GeocoderUnavailable) as e:
+        if attempt <= max_attempts:
+            time.sleep(2)
+            return get_location_list_by_address(address, attempt=attempt+1)
+        else:
+            raise e
+        
+
+# ## get longitude and latitude
+# useranget = "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Mobile Safari/537.36,gzip(gfe)"
+# geolocator = Nominatim(user_agent=useranget)
+
+# def get_location_list_by_address(address):
+#     try:
+#         location = geolocator.geocode(address)
+#         if location:
+#             return [location.latitude, location.longitude]
+#         else:
+#             return (None, None)
+#     except GeocoderTimedOut:
+#         return get_location_list_by_address(address) # retry if timeout
+
+
 def arrive_result(collection_name):
     destinations = []  
     for location in unique_arrive_destination_list:
