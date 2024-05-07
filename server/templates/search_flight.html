@@ -39,22 +39,71 @@
 </script>
 
 <script type="text/javascript">
+  // 動態加載 select2 的 CSS 樣式
+  const style = document.createElement("style");
+  style.innerHTML = `
+  /* 隱藏 select2 以防止加載時跳動 */
+  .select2-hidden {
+    visibility: hidden;
+  }
+
+  /* 自訂 select2  */
+  .select2-container .select2-selection--single {
+    height: 40px; 
+    padding: 0 16px; 
+    font-size: 20px;
+    line-height: 40px; /* 與高度一置, 讓文字置中 */
+    border-radius: 8px;
+    border: 1px solid #ccc;
+  }
+
+  .select2-container--default .select2-selection--single .select2-selection__rendered {
+    line-height: 38px; 
+  }
+
+  .select2-container--default .select2-selection--single .select2-selection__arrow {
+    height: 40px; /* 和 parent element 匹配 */
+  }
+`;
+  document.head.appendChild(style);
+
+  // 使用 JavaScript 初始化 select2
   $(document).ready(function () {
     fetch("/fetch_arrive_flight_code")
       .then((response) => response.json())
       .then((data) => {
-        $("#arrive_airlines").select2({
-          data: Object.keys(data).map((key) => ({ id: key, text: key })),
-        });
+        // 初始化 select2
+        $("#arrive_airlines")
+          .addClass("select2-hidden") // 隱藏 select2 以防止加載時跳動
+          .select2({
+            data: Object.keys(data).map((key) => ({ id: key, text: key })),
+          })
+          .on("select2:open", function () {
+            // 再打開下拉選單時調整 CSS 樣式
+            $(".select2-selection").css({
+              height: "40px",
+              padding: "0 16px",
+              "font-size": "20px",
+              "line-height": "40px",
+              "border-radius": "8px",
+              border: "1px solid #ccc",
+            });
+          });
 
+        // 下拉選單加載完後顯示
+        $("#arrive_airlines").removeClass("select2-hidden");
+
+        // listen 事件變化以更新 #arrive_flightCodes
         $("#arrive_airlines").on("change", function () {
           var selectedAirline = $(this).val();
           var flightCodes = data[selectedAirline] || [];
           $("#arrive_flightCodes")
+            .addClass("select2-hidden") // 先隐藏
             .empty()
             .select2({
               data: flightCodes.map((code) => ({ id: code, text: code })),
-            });
+            })
+            .removeClass("select2-hidden"); // 加載後顯示
         });
       })
       .catch((error) =>
@@ -78,11 +127,13 @@
   <form action="/arrive_flight_time" method="post">
     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
     <div class="container-lg .bg-primary-subtle text-white">
-      Flight <span id="emphasize">Arrive </span>at Taoyuan Airport Today
+      <h1>
+        Flight <span id="emphasize">Arrive </span>at Taoyuan Airport Today
+      </h1>
 
       <div class="input-group mb-3">
         <select
-          class="form-select"
+          class="form-select select-thicker"
           id="arrive_airlines"
           name="airline"
         ></select>
@@ -91,8 +142,9 @@
       <div class="form-group mb-3">
         <select
           id="arrive_flightCodes"
-          style="width: 300px"
+          style="width: 100%"
           name="flight_number"
+          class="form-control select-thicker"
         >
           <!-- Dropdown List Option -->
         </select>
@@ -113,23 +165,21 @@
 <div class="my-3">
   <form action="/depart_flight_time" method="post">
     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
-    <!-- 這遍 -->
     <div class="container-lg .bg-primary-subtle text-white">
-      Flight
-      <span id="emphasize">Depart</span>
-      from Taoyuan Airport Today
+      <h1>
+        Flight <span id="emphasize2">Depart </span>from Taoyuan Airport Today
+      </h1>
       <div class="input-group mb-3">
         <select
-          class="form-select"
+          class="form-select select-thicker"
           id="depart_airlines"
           name="airline"
         ></select>
       </div>
 
       <div class="form-group mb-3">
-        <label for="depart_flightCodes" class="form-label">Flight Number</label>
         <select
-          class="form-control"
+          class="form-control select-thicker"
           id="depart_flightCodes"
           style="width: 100%"
           name="flight_number"
