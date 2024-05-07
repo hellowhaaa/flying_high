@@ -99,6 +99,7 @@
         <h1 class="mb-4">我的保險</h1>
         <!-- Static Information -->
         <div id="static-info" class="static-info">
+          {% if user_info_dict%}
           <p class="mb-2">
             days: <span id="days-display">{{ user_info_dict['days'] }}</span>
           </p>
@@ -117,6 +118,9 @@
               >{{ user_info_dict['insured_amount'] }}</span
             >
           </p>
+          {% else %}
+          <h4>您尚未做設定</h4>
+          {% endif %}
           <button class="btn btn-custom-soft mt-3" onclick="toggleEdit(true)">
             編輯
           </button>
