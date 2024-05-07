@@ -166,18 +166,28 @@ def user_notify(current_user):
         current_app.logger.info(f"Token: {request.headers.get('X-CSRFToken')}")
         current_app.logger.info(f"Current User: {current_user}")
         user_info_dict = select_user_notify(current_user, logger=current_app.logger)
-        print(user_info_dict)
         return render_template('user_notify.html',user_info_dict = user_info_dict)
     except Exception as e:
         current_app.logger.error(f"An error occurred: {str(e)}", exc_info=True)
         return jsonify({"status": "error", "message": "An internal error occurred"}), 500
 
+#TODO:
 @token_required
 def user_flight(current_user):
     try:
         current_app.logger.info(f"Token: {request.headers.get('X-CSRFToken')}")
         current_app.logger.info(f"Current User: {current_user}")
-        return render_template('user_flight.html')
+        
+        user_info_dict = select_user_flight(current_user, logger=current_app.logger)
+        taiwan_tz = pytz.timezone('Asia/Taipei')
+        
+        depart_taiwan_date = user_info_dict['depart_taiwan_date'].replace(tzinfo=pytz.utc).astimezone(taiwan_tz)
+        user_info_dict['depart_taiwan_date'] = depart_taiwan_date.strftime('%Y-%m-%d')
+        
+        arrive_taiwan_date = user_info_dict['arrive_taiwan_date'].replace(tzinfo=pytz.utc).astimezone(taiwan_tz)
+        user_info_dict['arrive_taiwan_date'] = arrive_taiwan_date.strftime('%Y-%m-%d')
+        
+        return render_template('user_flight.html', user_info_dict=user_info_dict)
     except Exception as e:
         current_app.logger.error(f"An error occurred: {str(e)}", exc_info=True)
         return jsonify({"status": "error", "message": "An internal error occurred"}), 500
