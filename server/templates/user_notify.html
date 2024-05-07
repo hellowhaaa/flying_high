@@ -290,7 +290,10 @@
       .then((response) => response.json())
       .then((data) => {
         alert("Flight information saved successfully!");
-        toggleEdit(false);
+        if (data.status === "success" && data.redirect_url) {
+          window.location.href = data.redirect_url;
+        }
+        // toggleEdit(false);
       })
       .catch((error) => {
         console.error("Error:", error);

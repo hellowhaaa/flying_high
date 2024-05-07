@@ -171,7 +171,7 @@ def user_notify(current_user):
         current_app.logger.error(f"An error occurred: {str(e)}", exc_info=True)
         return jsonify({"status": "error", "message": "An internal error occurred"}), 500
 
-#TODO:
+
 @token_required
 def user_flight(current_user):
     try:
@@ -230,10 +230,7 @@ def update_insurance(current_user):
             current_app.logger.info(f"Data received from update insurance page: {insurance_company}, {plan}, {numeric_part}, {day_part}")
             update_insurance_result = update_user_insurance(current_user,insurance_company,plan, numeric_part, day_part, logger=current_app.logger)
             current_app.logger.info(f"Update Insurance Result: {update_insurance_result}")
-            response = {
-                "status": "success"
-            }
-            return jsonify(response)
+            return redirect(url_for('user_insurance'))
         return render_template('homepage.html')
     except Exception as e:
         current_app.logger.error(f"An error occurred: {str(e)}", exc_info=True)
@@ -272,7 +269,7 @@ def update_flight_info(current_user):
         current_app.logger.error(f"An error occurred: {str(e)}", exc_info=True)
         return jsonify({"status": "error", "message": "An internal error occurred"}), 500
 
- 
+#TODO:
 @token_required
 def update_notify(current_user):
     try:
@@ -283,7 +280,10 @@ def update_notify(current_user):
             hsr = request.form.get('hsr_station')
             result = update_user_notify(current_user,flight_change,flight_delay,hsr, logger=current_app.logger)
             current_app.logger.info(f"Update Notification: {result}")
-            return jsonify({"success": True, "message": "Flight information updated successfully."})
+            response = {"status": 'success', 
+                        "message": "Flight information updated successfully.",
+                        "redirect_url": url_for('user_notify')}
+            return jsonify(response)
         return render_template("homepage.html")
     except Exception as e:
         current_app.logger.error(f"An error occurred: {str(e)}", exc_info=True)
