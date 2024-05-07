@@ -74,6 +74,22 @@
     border-color: #b3c4ff;
     box-shadow: 0 6px 10px rgba(0, 0, 0, 0.15);
   }
+  .btn-cancel-soft {
+    background-color: #e6e6e6b7;
+    border: 1px solid #cccccc;
+    border-radius: 8px;
+    color: #333333;
+    padding: 8px 16px;
+    box-shadow: 0 3px 5px rgba(0, 0, 0, 0.1);
+    text-transform: uppercase;
+    transition: all 0.2s;
+    font-weight: normal;
+  }
+  .btn-cancel-soft:hover {
+    background-color: #d6d6d6;
+    border-color: #b3b3b3;
+    box-shadow: 0 6px 10px rgba(0, 0, 0, 0.15);
+  }
 </style>
 
 <div class="container-fluid">
@@ -100,35 +116,31 @@
       <div class="py-4 px-md-5">
         <h1 class="mb-4">我的航班</h1>
 
-        <!-- Static display state 從  Mongodb 撈出來的資料顯示 -->
-        <div class="static-info mb-3">
+        <!-- static info -->
+        <div id="static-info" class="static-info">
           <p class="mb-2">
             起飛班機日期：
-            <span id="username-display"
-              >{{ user_info_dict['depart_taiwan_date'] }}</span
-            >
+            <span>{{ user_info_dict['depart_taiwan_date'] }}</span>
           </p>
           <p class="mb-2">
             起飛班機：
-            <span id="email-display"
-              >{{ user_info_dict['flight_depart_taoyuan'] }}</span
-            >
+            <span>{{ user_info_dict['flight_depart_taoyuan'] }}</span>
           </p>
           <p class="mb-2">
             抵達班機日期：
-            <span id="address-display"
-              >{{ user_info_dict['arrive_taiwan_date'] }}</span
-            >
+            <span>{{ user_info_dict['arrive_taiwan_date'] }}</span>
           </p>
           <p class="mb-2">
             抵達班機：
-            <span id="address-display"
-              >{{ user_info_dict['flight_arrive_taoyuan'] }}</span
-            >
+            <span>{{ user_info_dict['flight_arrive_taoyuan'] }}</span>
           </p>
+          <button class="btn btn-custom mt-3" onclick="toggleEdit(true)">
+            編輯
+          </button>
         </div>
 
-        <form id="flightForm">
+        <!-- 编辑表单 -->
+        <form id="flightForm" style="display: none">
           <div class="row mb-3">
             <div class="col-md-6">
               <label for="startDate" class="form-label">旅遊開始日期:</label>
@@ -149,6 +161,7 @@
               />
             </div>
           </div>
+
           <p>到達班機</p>
           <div class="input-group mb-3">
             <select
@@ -157,17 +170,15 @@
               name="arriveFlight"
             ></select>
           </div>
-
           <div class="form-group mb-3">
             <select
               class="form-control"
               id="arrive_flightCodes"
               style="width: 100%"
               name="arriveFlightNumber"
-            >
-              <!-- Dropdown List Option -->
-            </select>
+            ></select>
           </div>
+
           <p>起飛班機</p>
           <div class="input-group mb-3">
             <select
@@ -176,7 +187,6 @@
               name="departFlight"
             ></select>
           </div>
-
           <div class="form-group mb-3">
             <select
               class="form-control"
@@ -188,26 +198,34 @@
 
           <button
             type="button"
-            class="btn-custom"
-            onclick="submitFlightInfo()"
-            style="min-width: 120px"
-            Ensure
-            consistent
-            width
+            class="btn btn-cancel-soft"
+            onclick="toggleEdit(false)"
           >
-            Save Changes
+            取消
+          </button>
+          <button
+            type="button"
+            class="btn btn-custom"
+            onclick="submitFlightInfo()"
+          >
+            儲存
           </button>
         </form>
       </div>
     </div>
   </div>
   <script>
-    function validateInput(input) {
-      let value = input.value.replace(/\D/g, "");
-      if (value.startsWith("0") && value.length > 1) {
-        value = value.substr(1);
+    function toggleEdit(editMode) {
+      const staticInfo = document.getElementById("static-info");
+      const flightForm = document.getElementById("flightForm");
+
+      if (editMode) {
+        staticInfo.style.display = "none";
+        flightForm.style.display = "block";
+      } else {
+        staticInfo.style.display = "block";
+        flightForm.style.display = "none";
       }
-      input.value = value;
     }
 
     function submitFlightInfo() {
@@ -227,6 +245,7 @@
         .then((data) => {
           console.log("Success:", data);
           alert("Flight information saved successfully!");
+          toggleEdit(false);
         })
         .catch((error) => {
           console.error("Error:", error);
