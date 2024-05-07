@@ -100,17 +100,18 @@
         <h1 class="mb-4">通知設定</h1>
         <!-- 靜態資料 -->
         <div id="static-info" class="static-info">
+          {% if user_info_dict%}
           <p class="mb-2">
-            是否收到航班改變的email通知: {% if user_info_dict['flight_change']
-            is false %}
+            是否收到航班改變的email通知: {% if not
+            user_info_dict['flight_change'] %}
             <span>否</span>
             {% else %}
             <span>是</span>
             {% endif %}
           </p>
           <p class="mb-2">
-            當回國航班delay是否 email 通知提醒訂車票: {% if
-            user_info_dict['flight_delay'] is false %}
+            當回國航班delay是否 email 通知提醒訂車票: {% if not
+            user_info_dict['flight_delay'] %}
             <span>否</span>
             {% else %}
             <span>是</span>
@@ -120,6 +121,9 @@
             住家附近高鐵站:
             <span>{{ user_info_dict['hsr_station'] }}</span>
           </p>
+          {% else %}
+          <h4>您尚未做設定</h4>
+          {% endif %}
           <button class="btn btn-custom-soft mt-3" onclick="toggleEdit(true)">
             編輯
           </button>
