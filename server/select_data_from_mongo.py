@@ -186,4 +186,21 @@ def select_user_insurance(username, logger):
         return None
     
     
+def select_user_notify(username, logger):
+    logger.info("Start Fetching User Notify from MongoDB")
+    try:
+        url = os.getenv("MONGODB_URI_FLY")
+        client = MongoClient(url)
+        filter={
+        'username': username
+        }
+        result = client['flying_high']['user_notify'].find_one(
+        filter=filter
+        )
+        return result
+    except Exception as e:
+        logger.error(f"Error in select_user_notify: {str(e)}")
+        return None
+    
+    
     

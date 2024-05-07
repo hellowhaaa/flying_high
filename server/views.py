@@ -165,7 +165,9 @@ def user_notify(current_user):
     try:
         current_app.logger.info(f"Token: {request.headers.get('X-CSRFToken')}")
         current_app.logger.info(f"Current User: {current_user}")
-        return render_template('user_notify.html')
+        user_info_dict = select_user_notify(current_user, logger=current_app.logger)
+        print(user_info_dict)
+        return render_template('user_notify.html',user_info_dict = user_info_dict)
     except Exception as e:
         current_app.logger.error(f"An error occurred: {str(e)}", exc_info=True)
         return jsonify({"status": "error", "message": "An internal error occurred"}), 500
