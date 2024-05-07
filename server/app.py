@@ -44,15 +44,11 @@ def create_app():
         
     # Setup logger
     if not app.debug:
-        # 获取当前文件所在目录的父目录
         current_dir = os.path.dirname(os.path.abspath(__file__))
         project_root = os.path.dirname(current_dir)
-        # 创建 'logs' 文件夹在 'server' 目录下
         log_path = os.path.join(project_root, 'server', 'logs')
         os.makedirs(log_path, exist_ok=True)
         print("log_path:", log_path)
-
-        # 初始化日志处理器
         file_handler = RotatingFileHandler(os.path.join(log_path, 'app.log'), maxBytes=10240, backupCount=3)
         file_handler.setFormatter(logging.Formatter(
             '%(asctime)s %(levelname)s: %(message)s [in %(pathname)s:%(lineno)d]'
