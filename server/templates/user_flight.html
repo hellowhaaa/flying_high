@@ -139,7 +139,7 @@
           </button>
         </div>
 
-        <!-- 编辑表单 -->
+        <!-- flight form -->
         <form id="flightForm" style="display: none">
           <div class="row mb-3">
             <div class="col-md-6">
@@ -245,7 +245,12 @@
         .then((data) => {
           console.log("Success:", data);
           alert("Flight information saved successfully!");
-          toggleEdit(false);
+          // Redirect to the desired URL
+          if (data.status === "success" && data.redirect_url) {
+            window.location.href = data.redirect_url;
+          }
+
+          // toggleEdit(false);
         })
         .catch((error) => {
           console.error("Error:", error);

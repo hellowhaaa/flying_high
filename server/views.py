@@ -263,9 +263,9 @@ def update_flight_info(current_user):
             current_app.logger.info(f"Update Flight Info: {update_flight_info}")
             response = {
                 "status": "success",
-                "data": "Flight Information Updated Successfully."
-            }
-            
+                "data": "Flight Information Updated Successfully.",
+                "redirect_url": url_for('user_flight')
+            }  
             return jsonify(response)
         return render_template('homepage.html')
     except Exception as e:
