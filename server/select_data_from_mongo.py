@@ -234,7 +234,8 @@ def select_depart_flight_difference(depart_taiwan_date, flight_depart_taoyuan,lo
         }
         }
         result = client['flying_high']['flight_depart2'].find_one(
-        filter=filter
+        filter=filter,
+        sort=[('updated_at', DESCENDING)]
         )
         return result
     except Exception as e:
