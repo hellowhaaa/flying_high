@@ -292,6 +292,9 @@ services:
   selenium:
     container_name: remote_chromedriver
     image: seleniarm/standalone-chromium:latest
+    environment:
+      SE_NODE_MAX_SESSIONS: 2
+      SE_NODE_OVERRIDE_MAX_SESSIONS: True
     ports:
       - 4444:4444
     restart: always
