@@ -101,21 +101,26 @@
         <div id="static-info" class="static-info">
           {% if user_info_dict%}
           <p class="mb-2">
-            days: <span id="days-display">{{ user_info_dict['days'] }}</span>
-          </p>
-          <p class="mb-2">
-            insurance_company:
+            投保公司:
             <span id="insurance-company-display"
-              >{{ user_info_dict['insurance_company'] }}</span
+              >{% if user_info_dict['insurance_company'] == 'fubung' %} 富邦人壽
+              {% elif user_info_dict['insurance_company'] == 'guotai'%} 國泰人壽
+              {% endif %}</span
             >
           </p>
           <p class="mb-2">
-            plan: <span id="plan-display">{{ user_info_dict['plan'] }}</span>
+            投保天數:
+            <span id="days-display">{{ user_info_dict['days'] }} 天</span>
+          </p>
+
+          <p class="mb-2">
+            投保方案:
+            <span id="plan-display">{{ user_info_dict['plan'] }}</span>
           </p>
           <p class="mb-2">
-            insured_amount:
+            投保金額:
             <span id="insured-amount-display"
-              >{{ user_info_dict['insured_amount'] }}</span
+              >{{ user_info_dict['insured_amount'] }} 萬</span
             >
           </p>
           {% else %}

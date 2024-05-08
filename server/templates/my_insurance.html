@@ -86,7 +86,7 @@
         <h3>投保資訊</h3>
         {% if user_insurance.insurance_company == 'fubung' %}
         <p>投保公司：富邦人壽</p>
-        {% else %}
+        {% elif user_insurance.insurance_company == 'guotai'%}
         <p>投保公司：國泰人壽</p>
         {% endif %}
         <p>方案: {{ user_insurance.plan }}</p>
