@@ -269,7 +269,7 @@ def update_flight_info(current_user):
         current_app.logger.error(f"An error occurred: {str(e)}", exc_info=True)
         return jsonify({"status": "error", "message": "An internal error occurred"}), 500
 
-#TODO:
+
 @token_required
 def update_notify(current_user):
     try:
@@ -481,7 +481,7 @@ def arrive_flight_time():
         flash('No flight found. Please search another flight.', 'alert-danger')
         return redirect(url_for('search_flight'))
 
-
+# TODO: Add a route to fetch user's flight code
 @token_required
 def my_insurance(current_user):
     try:
@@ -495,7 +495,17 @@ def my_insurance(current_user):
             insurance_content = select_insurance_amount(plan, insured_amount,insurance_company, days, logger=current_app.logger)
             current_app.logger.info(f"Insurance Content Retrieved from MongoDB Successfully")
             insurance_content["insurance_company"] = insurance_company
-            return render_template('my_insurance.html', user_insurance = user_insurance, insurance_content= insurance_content)
+            
+            # !-- start register flight information
+            user_flight = select_user_flight(current_user, logger=current_app.logger)
+            depart_taiwan_date = user_flight['depart_taiwan_date']
+            flight_depart_taoyuan = user_flight['flight_depart_taoyuan']
+            depart_flight = select_depart_flight_difference(depart_taiwan_date, flight_depart_taoyuan,logger=current_app.logger)
+            taiwan_tz = pytz.timezone('Asia/Taipei')
+            depart_taiwan_date.replace(tzinfo=pytz.utc).astimezone(taiwan_tz)
+            depart_taiwan_date = depart_taiwan_date.strftime('%Y-%m-%d')
+            return render_template('my_insurance.html', user_insurance = user_insurance, insurance_content= insurance_content, 
+                                depart_flight = depart_flight,flight_depart_taoyuan=flight_depart_taoyuan,depart_taiwan_date=depart_taiwan_date)
         else:
             return redirect(url_for('user_insurance'))
     except Exception as e:

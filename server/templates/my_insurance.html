@@ -88,6 +88,25 @@
         <p>方案: {{ user_insurance.plan }}</p>
         <p>投保額度: {{ user_insurance.insured_amount }} 萬</p>
         <p>投保天數: {{ user_insurance.days }} 天</p>
+
+        <div>
+          <h3>登錄航班資訊</h3>
+          <p>登錄日期: {{ depart_taiwan_date }}</p>
+          <p>登錄班機: {{ flight_depart_taoyuan }}</p>
+          {% if depart_flight.time_difference.time_difference_min > 0 %}
+          <p>
+            起飛時間差：晚 {{ depart_flight.time_difference.time_difference_min
+            }} 分鐘
+          </p>
+          {% elif depart_flight.time_difference.time_difference_min < 0 %}
+          <p>
+            起飛時間差：提早 {{
+            depart_flight.time_difference.time_difference_min | abs }} 分鐘
+          </p>
+          {% else %}
+          <p>起飛時間差：準時</p>
+          {% endif %}
+        </div>
       </div>
 
       <!-- 不便險 card -->

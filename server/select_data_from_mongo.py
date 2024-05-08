@@ -203,7 +203,7 @@ def select_user_notify(username, logger):
         return None
     
 def select_user_flight(username, logger):
-    logger.info("Start Fetching User Notify from MongoDB")
+    logger.info("Start Fetching User Flight from MongoDB")
     try:
         url = os.getenv("MONGODB_URI_FLY")
         client = MongoClient(url)
@@ -218,5 +218,29 @@ def select_user_flight(username, logger):
         logger.error(f"Error in select_user_notify: {str(e)}")
         return None
     
+def select_depart_flight_difference(depart_taiwan_date, flight_depart_taoyuan,logger):
+    logger.info("Start Fetching Depart Flight Difference from MongoDB")
+    try:
+        url = os.getenv("MONGODB_URI_FLY")
+        client = MongoClient(url)
+        filter={
+            'airline': {
+                '$elemMatch': {
+                    'airline_code': flight_depart_taoyuan
+                }
+            },
+            'updated_at': {
+            '$gt': depart_taiwan_date
+        }
+        }
+        result = client['flying_high']['flight_depart2'].find_one(
+        filter=filter
+        )
+        return result
+    except Exception as e:
+        logger.error(f"Error in select_depart_flight_difference: {str(e)}")
+        return None
+    
+
     
     
