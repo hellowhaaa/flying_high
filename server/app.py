@@ -6,7 +6,8 @@ from views import (sign_up, login, logout, dashboard, insurance,search_flight,
                     user_notify, fetch_insurance_content, fetch_travel_insurance_content,
                     user_flight, fetch_depart_flight_code, fetch_arrive_flight_code,
                     update_flight_info, update_notify, setup_routes, flight_map, 
-                    fetch_user_arrive_flight_code, fetch_user_depart_flight_code)
+                    fetch_user_arrive_flight_code, fetch_user_depart_flight_code,
+                    error_handlers)
 import logging
 from logging.handlers import RotatingFileHandler
 import os
@@ -57,7 +58,8 @@ def create_app():
         app.logger.addHandler(file_handler)
         app.logger.setLevel(logging.INFO)
         app.logger.info('App startup')
-        
+    # 註冊錯誤處理器
+    error_handlers(app)
     # Define routes
     # user ----
     app.add_url_rule('/user/log_in', view_func=login, methods=['GET', 'POST'])

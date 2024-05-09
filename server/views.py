@@ -14,15 +14,14 @@ from flask_mail import Message
 import pytz
 
 
-def register_error_handlers(app):
+def error_handlers(app):
     @app.errorhandler(404)
     def not_found_error(error):
         return render_template('404.html'), 404
 
     @app.errorhandler(500)
     def internal_error(error):
-        return jsonify({"status": "error", "message": "An internal error occurred"}), 500
-
+        return render_template('500.html'), 500
 
 
 def encode_auth_token(username):
@@ -105,7 +104,7 @@ def sign_up():
         return render_template('sign_up.html', form=form)
     except Exception as e:
         current_app.logger.error(f"An error occurred: {str(e)}", exc_info=True)
-        return jsonify({"status": "error", "message": "An internal error occurred"}), 500
+        abort(500)
     
 
 
@@ -131,7 +130,7 @@ def login():
         return render_template('login.html')
     except Exception as e:
         current_app.logger.error(f"An error occurred: {str(e)}", exc_info=True)
-        return jsonify({"status": "error", "message": "An internal error occurred"}), 500
+        abort(500)
     
 
 def logout():
@@ -142,7 +141,7 @@ def logout():
         return response
     except Exception as e:
         current_app.logger.error(f"An error occurred: {str(e)}", exc_info=True)
-        return jsonify({"status": "error", "message": "An internal error occurred"}), 500
+        abort(500)
     
 
 
@@ -155,7 +154,7 @@ def user_insurance(current_user):
         return render_template('user_insurance.html', user_info_dict=user_insurance)
     except Exception as e:
         current_app.logger.error(f"An error occurred: {str(e)}", exc_info=True)
-        return jsonify({"status": "error", "message": "An internal error occurred"}), 500
+        abort(500)
 
 @token_required
 def user_info(current_user):
@@ -166,7 +165,7 @@ def user_info(current_user):
         return render_template('user_info.html',user_info_dict=user_info_dict)
     except Exception as e:
         current_app.logger.error(f"An error occurred: {str(e)}", exc_info=True)
-        return jsonify({"status": "error", "message": "An internal error occurred"}), 500
+        abort(500)
 
 @token_required
 def user_notify(current_user):
@@ -177,7 +176,7 @@ def user_notify(current_user):
         return render_template('user_notify.html',user_info_dict = user_info_dict)
     except Exception as e:
         current_app.logger.error(f"An error occurred: {str(e)}", exc_info=True)
-        return jsonify({"status": "error", "message": "An internal error occurred"}), 500
+        abort(500)
 
 
 @token_required
@@ -198,7 +197,7 @@ def user_flight(current_user):
         return render_template('user_flight.html', user_info_dict=user_info_dict)
     except Exception as e:
         current_app.logger.error(f"An error occurred: {str(e)}", exc_info=True)
-        return jsonify({"status": "error", "message": "An internal error occurred"}), 500
+        abort(500)
 
 
 def update_user():
@@ -304,7 +303,7 @@ def index():
         return render_template('homepage.html')
     except Exception as e:
         current_app.logger.error(f"An error occurred: {str(e)}", exc_info=True)
-        return jsonify({"status": "error", "message": "An internal error occurred"}), 500
+        abort(500)
 
 
 def search_flight():
@@ -312,7 +311,7 @@ def search_flight():
         return render_template('search_flight.html')
     except Exception as e:
         current_app.logger.error(f"An error occurred: {str(e)}", exc_info=True)
-        return jsonify({"status": "error", "message": "An internal error occurred"}), 500
+        abort(500)
 
 
 def setup_routes(app, csrf):
@@ -519,7 +518,7 @@ def my_insurance(current_user):
             return redirect(url_for('user_insurance'))
     except Exception as e:
         current_app.logger.error(f"An error occurred: {str(e)}", exc_info=True)
-        return jsonify({"status": "error", "message": "An internal error occurred"}), 500
+        abort(500)
 
 
 def insurance():
@@ -527,7 +526,7 @@ def insurance():
         return render_template('insurance.html')
     except Exception as e:
         current_app.logger.error(f"An error occurred: {str(e)}", exc_info=True)
-        return jsonify({"status": "error", "message": "An internal error occurred"}), 500
+        abort(500)
 
 
 def fetch_insurance_amount():
@@ -730,4 +729,4 @@ def flight_map():
         return render_template('map_with_layers.html')
     except Exception as e:
         current_app.logger.error(f"An error occurred: {str(e)}", exc_info=True)
-        return jsonify({"status": "error", "message": "An internal error occurred"}), 500
+        abort(500)
