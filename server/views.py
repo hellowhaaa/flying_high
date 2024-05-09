@@ -14,6 +14,16 @@ from flask_mail import Message
 import pytz
 
 
+def register_error_handlers(app):
+    @app.errorhandler(404)
+    def not_found_error(error):
+        return render_template('404.html'), 404
+
+    @app.errorhandler(500)
+    def internal_error(error):
+        return jsonify({"status": "error", "message": "An internal error occurred"}), 500
+
+
 
 def encode_auth_token(username):
     try:
@@ -57,40 +67,41 @@ def token_required(f):
 
 def sign_up():
     try:
-        url = os.getenv("MONGODB_URI_FLY")
-        client = MongoClient(url)
-        collection = client['flying_high']['user']
-        # Form Init
-        form = RegisterForm(request.form)
+        mongo_client = MongoClient(os.getenv("MONGODB_URI_FLY"))
+        db = mongo_client['flying_high']
+        users_collection = db['user']
+        form = RegisterForm()
         if request.method == 'POST':
             current_app.logger.info("Sign up post request received")
             if form.validate():
                 username = form.username.data
-                if same_username(collection, username):
+                if same_username(users_collection, username):
                     flash('Username already exists')
                     return redirect(url_for('sign_up'))
                 email = form.email.data
                 address = form.address.data
                 password = form.password.data
-                form.set_password(password)  # Hashes the password and stores it in the form
-                user = create_user(username, form.password_hash, email, address)
+                user = create_user(username, password, email, address)  # 使用哈希密碼
                 try:
-                    collection.insert_one(user)
+                    # 將新用戶插入 MongoDB
+                    users_collection.insert_one(user)
                     current_app.logger.info(f"User saved: {user['username']}")
                 except Exception as e:
                     current_app.logger.error(f"Error saving user: {e}", exc_info=True)
+                    flash('An error occurred while saving the user. Please try again.', 'danger')
+                    return redirect(url_for('sign_up'))
+                
+                # 設置訪問令牌
                 token = encode_auth_token(username)
-                # Storing the token in session or cookie
-                current_app.logger.info(f"Token: {token}")
                 response = make_response(redirect(url_for('search_flight')))
-                response.set_cookie('access_token', f'Bearer {token}')
-                # Redirect to homepage after successful login
+                response.set_cookie('access_token', f'Bearer {token}', path='/')
                 flash('You have been logged in!', 'success')
                 return response
             else:
                 for fieldName, errorMessages in form.errors.items():
                     for err in errorMessages:
                         current_app.logger.error(f"Error in {fieldName}: {err}")
+                flash('Please correct the errors in the form.', 'danger')
         return render_template('sign_up.html', form=form)
     except Exception as e:
         current_app.logger.error(f"An error occurred: {str(e)}", exc_info=True)
@@ -98,23 +109,20 @@ def sign_up():
     
 
 
-
 def login():
     try:
+        mongo_client = MongoClient(os.getenv("MONGODB_URI_FLY"))
+        db = mongo_client['flying_high']
+        users_collection = db['user']
         if request.method == 'POST':
-            url = os.getenv("MONGODB_URI_FLY")
-            client = MongoClient(url)
-            collection = client['flying_high']['user']
             username = request.form.get('username')
             password = request.form.get('password')
-            user = check_user_credentials(collection,username, password)
-            if user: # check password
+            user = check_user_credentials(users_collection, username, password)
+            if user:
                 current_app.logger.info(f"User Logged In: {user}")
                 token = encode_auth_token(username)
-                # Storing the token in session or cookie
-                current_app.logger.info(f"Token: {token}")
                 response = make_response(redirect(url_for('search_flight')))
-                response.set_cookie('access_token', f'Bearer {token}')
+                response.set_cookie('access_token', f'Bearer {token}', path='/')
                 flash('You have been logged in!', 'success')
                 return response
             else:
