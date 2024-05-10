@@ -52,6 +52,7 @@
     color: white;
   }
   #result {
+    display: none;
     position: absolute;
     top: 80%; /* 或其他適合您布局的值 */
     left: 40%;
@@ -61,6 +62,25 @@
     background: rgba(0, 0, 0, 0.5); /* 輕微背景色增加可讀性 */
     padding: 10px;
     border-radius: 8px;
+  }
+
+  .dropdown {
+    min-width: 150px;
+    max-width: 250px;
+  }
+
+  .dropdown-toggle {
+    width: 100%;
+    text-align: center;
+    vertical-align: middle;
+    padding: 0.5rem 1rem;
+    opacity: 0.75;
+    min-height: 40px;
+  }
+
+  .btn-secondary {
+    padding: 0.5rem 1rem;
+    opacity: 0.75;
   }
 </style>
 
@@ -111,7 +131,7 @@
               />
             </div>
             <!-- 下拉選單 方案 -->
-            <div class="dropdown mb-3 col-md-2">
+            <div class="dropdown mb-3 col-md-3">
               <button
                 class="btn btn-secondary dropdown-toggle opacity-75"
                 type="button"
@@ -131,7 +151,7 @@
               <input type="hidden" id="selectedPlan" name="plan" />
             </div>
             <!-- 拉選單 保險額度 -->
-            <div class="dropdown mb-3 col-md-2">
+            <div class="dropdown mb-3 col-md-1">
               <button
                 class="btn btn-secondary dropdown-toggle opacity-75"
                 type="button"
@@ -221,7 +241,7 @@
       </div>
     </div>
   </form>
-  <p id="result">Here will display the result.</p>
+  <p id="result"></p>
 </div>
 
 {% endblock %} {% block scripts %}
@@ -411,6 +431,7 @@
     .addEventListener("click", function (event) {
       event.preventDefault();
       const formData = new FormData(document.getElementById("insuranceForm"));
+      const resultElement = document.getElementById("result"); // 確保變數指向正確的元素
 
       // 使用fetch API 發送 AJAX 請求
       fetch("/fetch_insurance_amount", {
@@ -427,6 +448,7 @@
           } else {
             alert("沒有找到數據");
           }
+          resultElement.style.display = "block";
         })
         .catch((error) => {
           console.error("Error:", error);
