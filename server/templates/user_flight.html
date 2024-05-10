@@ -118,6 +118,7 @@
 
         <!-- static info -->
         <div id="static-info" class="static-info">
+          {% if user_info_dict%}
           <p class="mb-2">
             起飛班機日期：
             <span>{{ user_info_dict['depart_taiwan_date'] }}</span>
@@ -134,6 +135,9 @@
             抵達班機：
             <span>{{ user_info_dict['flight_arrive_taoyuan'] }}</span>
           </p>
+          {% else %}
+          <h4>您尚未做設定</h4>
+          {% endif %}
           <button class="btn btn-custom mt-3" onclick="toggleEdit(true)">
             編輯
           </button>
