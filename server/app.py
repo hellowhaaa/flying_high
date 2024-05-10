@@ -1,18 +1,17 @@
 from flask import Flask, request
 from flask_wtf import CSRFProtect
-from views import (sign_up, login, logout, dashboard, insurance,search_flight,
-                    index,arrive_flight_time,fetch_insurance_amount, depart_flight_time,
-                    user_insurance, user_info, update_user, update_insurance, my_insurance,
-                    user_notify, fetch_insurance_content, fetch_travel_insurance_content,
-                    user_flight, fetch_depart_flight_code, fetch_arrive_flight_code,
-                    update_flight_info, update_notify, setup_routes, flight_map, 
-                    fetch_user_arrive_flight_code, fetch_user_depart_flight_code,
-                    error_handlers)
+from views import (sign_up, login, logout, dashboard, insurance, search_flight, index, arrive_flight_time,
+                   fetch_insurance_amount, depart_flight_time, user_insurance, user_info, update_user,
+                   update_insurance, my_insurance, user_notify, fetch_insurance_content, fetch_travel_insurance_content,
+                   user_flight, fetch_depart_flight_code, fetch_arrive_flight_code, update_flight_info,
+                   update_notify, setup_routes, flight_map, fetch_user_arrive_flight_code,
+                   fetch_user_depart_flight_code, error_handlers)
 import logging
 from logging.handlers import RotatingFileHandler
 import os
 from flask_mail import Mail
 from dotenv import load_dotenv
+
 
 def create_app():
     env_path = os.path.join(os.getcwd(), 'server', '.env')
@@ -75,7 +74,6 @@ def create_app():
     app.add_url_rule('/user/update_insurance', view_func=update_insurance, methods=['POST'])
     app.add_url_rule('/user/update_flight_info', view_func=update_flight_info, methods=['POST'])
     app.add_url_rule('/user/update_notify', view_func=update_notify, methods=['POST'])
-    
 
     # flight ---
     app.add_url_rule('/search_flight', view_func=search_flight, methods=['GET', 'POST'])
@@ -85,27 +83,24 @@ def create_app():
     app.add_url_rule('/fetch_arrive_flight_code', view_func=fetch_arrive_flight_code, methods=['GET'])
     app.add_url_rule('/fetch_user_depart_flight_code', view_func=fetch_user_depart_flight_code, methods=['GET'])
     app.add_url_rule('/fetch_user_arrive_flight_code', view_func=fetch_user_arrive_flight_code, methods=['GET'])
- 
-    
-    
-    
+
     # insurance
     app.add_url_rule('/insurance', view_func=insurance, methods=['GET', 'POST'])
     app.add_url_rule('/my_insurance', view_func=my_insurance, methods=['GET', 'POST'])
     app.add_url_rule('/fetch_insurance_amount', view_func=fetch_insurance_amount, methods=['POST'])
     app.add_url_rule('/fetch_insurance_content', view_func=fetch_insurance_content, methods=['POST','GET'])
     app.add_url_rule('/fetch_travel_insurance_content', view_func=fetch_travel_insurance_content, methods=['POST','GET'])
-    
-    
+
     # dashboard
     app.add_url_rule('/dashboard', view_func=dashboard, methods=['GET', 'POST'])
     app.add_url_rule('/', view_func=index, methods=['GET', 'POST'])
-    
-    
+
     # map
     app.add_url_rule('/flight_map', view_func=flight_map, methods=['GET', 'POST'])
     
     return app
+
+
 if __name__ == '__main__':
     app = create_app()
     app.run(debug=True)

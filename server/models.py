@@ -33,6 +33,7 @@ def create_user(username, password, email, address):
 def same_username(collection, username):
     return collection.find_one({'username': username}) is not None
 
+
 def check_user_credentials(collection, username, password):
     user = collection.find_one({'username': username})
     if user and check_password_hash(user['password'], password):

@@ -37,9 +37,10 @@ def send_email():
         print("data", (email, scheduled_depart_time, status))
         print("x")
         msg = Message(subject="Hello",
-                    sender=app.config.get("MAIL_USERNAME"),
-                    recipients=[email], # replace with your email for testing
-                    body=f"Hi! {username}  your flight {airline_code} 's time has been changed. Your flight's scheduled_depart_time {scheduled_depart_time} which status is now {status}. ")
+                      sender=app.config.get("MAIL_USERNAME"),
+                      recipients=[email],  # replace with your email for testing
+                      body=f"Hi! {username}  your flight {airline_code} 's time has been changed. \
+                      Your flight's scheduled_depart_time {scheduled_depart_time} which status is now {status}. ")
         mail.send(msg)
         response_data = {
             "status": "Success"}

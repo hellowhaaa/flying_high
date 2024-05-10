@@ -15,7 +15,7 @@ def get_arrive_flight_time(flight, logger):
         taiwan_tz = pytz.timezone('Asia/Taipei')
         tw_now = datetime.now(taiwan_tz)
         tw_midnight = taiwan_tz.localize(datetime(tw_now.year, tw_now.month, tw_now.day, 0, 0, 0))
-        utc_midnight = tw_midnight.astimezone(pytz.utc)  # UTC Time    
+        utc_midnight = tw_midnight.astimezone(pytz.utc)  # UTC Time
         filter={
             'airline': {
                 '$elemMatch': {
@@ -23,8 +23,8 @@ def get_arrive_flight_time(flight, logger):
                 }
             },
             'updated_at': {
-            '$gt': utc_midnight
-        }
+                '$gt': utc_midnight
+            }
         }
         result = client['flying_high']['flight_arrive2'].find_one(
         filter=filter,
@@ -34,6 +34,7 @@ def get_arrive_flight_time(flight, logger):
     except Exception as e:
         logger.error(f"Error in get_arrive_flight_time: {str(e)}")
         return None
+
 
 def get_depart_flight_time(flight, logger):
     logger.info("Start Fetching Depart Flight Time from MongoDB")
@@ -53,8 +54,8 @@ def get_depart_flight_time(flight, logger):
                 }
             },
             'updated_at': {
-            '$gt': utc_midnight
-        }
+                '$gt': utc_midnight
+            }
         }
         result = client['flying_high']['flight_depart2'].find_one(
         filter=filter,
@@ -65,8 +66,9 @@ def get_depart_flight_time(flight, logger):
         logger.error(f"Error in get_depart_flight_time: {str(e)}")
         return None
 
+
 def select_today_depart_flight_code(logger):
-    logger.info("Start Fetching Todays's Depart Flight Time from MongoDB")
+    logger.info("Start Fetching Today's Depart Flight Time from MongoDB")
     try:
         url = os.getenv("MONGODB_URI_FLY")
         client = MongoClient(url)
@@ -76,8 +78,8 @@ def select_today_depart_flight_code(logger):
         utc_midnight = tw_midnight.astimezone(pytz.utc)
         filter={
             'updated_at': {
-            '$gt': utc_midnight
-        }
+                '$gt': utc_midnight
+            }
         }
         result = client['flying_high']['flight_depart2'].find(
         filter=filter
@@ -87,8 +89,9 @@ def select_today_depart_flight_code(logger):
         logger.error(f"Error in select_today_depart_flight_code: {str(e)}")
         return None
 
+
 def select_today_arrive_flight_code(logger):
-    logger.info("Start Fetching Todays's Arrive Flight Time from MongoDB")
+    logger.info("Start Fetching Today's Arrive Flight Time from MongoDB")
     try:
         url = os.getenv("MONGODB_URI_FLY")
         client = MongoClient(url)
@@ -98,8 +101,8 @@ def select_today_arrive_flight_code(logger):
         utc_midnight = tw_midnight.astimezone(pytz.utc)
         filter={
             'updated_at': {
-            '$gt': utc_midnight
-        }
+                '$gt': utc_midnight
+            }
         }
         result = client['flying_high']['flight_arrive2'].find(
         filter=filter
@@ -108,6 +111,7 @@ def select_today_arrive_flight_code(logger):
     except Exception as e:
         logger.error(f"Error in select_today_arrive_flight_code: {str(e)}")
         return None
+
 
 def select_user_depart_flight_code(logger):
     logger.info("Start Fetching User's All Depart Flight Time from MongoDB")
@@ -120,6 +124,7 @@ def select_user_depart_flight_code(logger):
         logger.error(f"Error in select_user_depart_flight_code: {str(e)}")
         return None
 
+
 def select_user_arrive_flight_code(logger):
     logger.info("Start Fetching User's All Arrive Flight Time from MongoDB")
     try:
@@ -130,8 +135,6 @@ def select_user_arrive_flight_code(logger):
     except Exception as e:
         logger.error(f"Error in select_user_arrive_flight_code: {str(e)}")
         return None
-        
-
 
 
 def select_insurance_amount(plan, insurance_amount,insurance_company, insurance_days, logger):
@@ -141,17 +144,18 @@ def select_insurance_amount(plan, insurance_amount,insurance_company, insurance_
         client = MongoClient(url)
         insurance_amount = int(insurance_amount) * 10000 if int(insurance_amount) < 3000 else insurance_amount
         filter={
-        'insured_amount.price': insurance_amount, 
-        'plan.plan_name': plan,
-        'days': int(insurance_days)
+            'insured_amount.price': insurance_amount,
+            'plan.plan_name': plan,
+            'days': int(insurance_days)
         }
         result = client['flying_high']['insurance_'+insurance_company].find_one(
-            filter = filter
+            filter=filter
         )  
         return result
     except Exception as e:
         logger.error(f"Error in select_insurance_amount: {str(e)}")
         return None
+
 
 def select_user_information(username, logger):
     logger.info("Start Fetching User Information from MongoDB")
@@ -159,7 +163,7 @@ def select_user_information(username, logger):
         url = os.getenv("MONGODB_URI_FLY")
         client = MongoClient(url)
         filter={
-        'username': username
+            'username': username
         }
         result = client['flying_high']['user'].find_one(
         filter=filter
@@ -169,13 +173,14 @@ def select_user_information(username, logger):
         logger.error(f"Error in select_user_information: {str(e)}")
         return None
 
+
 def select_user_insurance(username, logger):
     logger.info("Start Fetching User Insurance from MongoDB")
     try:
         url = os.getenv("MONGODB_URI_FLY")
         client = MongoClient(url)
         filter={
-        'username': username
+            'username': username
         }
         result = client['flying_high']['user_insurance'].find_one(
         filter=filter
@@ -192,7 +197,7 @@ def select_user_notify(username, logger):
         url = os.getenv("MONGODB_URI_FLY")
         client = MongoClient(url)
         filter={
-        'username': username
+            'username': username
         }
         result = client['flying_high']['user_notify'].find_one(
         filter=filter
@@ -201,14 +206,15 @@ def select_user_notify(username, logger):
     except Exception as e:
         logger.error(f"Error in select_user_notify: {str(e)}")
         return None
-    
+
+
 def select_user_flight(username, logger):
     logger.info("Start Fetching User Flight from MongoDB")
     try:
         url = os.getenv("MONGODB_URI_FLY")
         client = MongoClient(url)
         filter={
-        'username': username
+            'username': username
         }
         result = client['flying_high']['user_flight'].find_one(
         filter=filter
@@ -217,7 +223,8 @@ def select_user_flight(username, logger):
     except Exception as e:
         logger.error(f"Error in select_user_notify: {str(e)}")
         return None
-    
+
+
 def select_depart_flight_difference(depart_taiwan_date, flight_depart_taoyuan,logger):
     logger.info("Start Fetching Depart Flight Difference from MongoDB")
     try:
@@ -230,7 +237,7 @@ def select_depart_flight_difference(depart_taiwan_date, flight_depart_taoyuan,lo
                 }
             },
             'updated_at': {
-            '$gt': depart_taiwan_date
+                '$gt': depart_taiwan_date
         }
         }
         result = client['flying_high']['flight_depart2'].find_one(
@@ -241,7 +248,3 @@ def select_depart_flight_difference(depart_taiwan_date, flight_depart_taoyuan,lo
     except Exception as e:
         logger.error(f"Error in select_depart_flight_difference: {str(e)}")
         return None
-    
-
-    
-    
