@@ -1,6 +1,6 @@
 from flask import Flask, request
 from flask_wtf import CSRFProtect
-from views import (sign_up, login, logout, dashboard, insurance, search_flight, index, arrive_flight_time,
+from views import (sign_up, login, logout, insurance, search_flight, index, arrive_flight_time,
                    fetch_insurance_amount, depart_flight_time, user_insurance, user_info, update_user,
                    update_insurance, my_insurance, user_notify, fetch_insurance_content, fetch_travel_insurance_content,
                    user_flight, fetch_depart_flight_code, fetch_arrive_flight_code, update_flight_info,
@@ -39,7 +39,6 @@ def create_app():
     
     @app.context_processor
     def inject_streamlit_url():
-        # Add the URL for Streamlit
         return {"streamlit_url": 'https://www.flyinghigh.live/dashboard/'}
         
     # Setup logger
@@ -57,7 +56,8 @@ def create_app():
         app.logger.addHandler(file_handler)
         app.logger.setLevel(logging.INFO)
         app.logger.info('App startup')
-    # 註冊錯誤處理器
+        
+    # Register error handlers
     error_handlers(app)
     # Define routes
     # user ----
@@ -91,8 +91,7 @@ def create_app():
     app.add_url_rule('/fetch_insurance_content', view_func=fetch_insurance_content, methods=['POST','GET'])
     app.add_url_rule('/fetch_travel_insurance_content', view_func=fetch_travel_insurance_content, methods=['POST','GET'])
 
-    # dashboard
-    app.add_url_rule('/dashboard', view_func=dashboard, methods=['GET', 'POST'])
+    # index
     app.add_url_rule('/', view_func=index, methods=['GET', 'POST'])
 
     # map

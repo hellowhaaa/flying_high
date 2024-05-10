@@ -1,6 +1,6 @@
 # views.py
 from flask import (request, redirect, url_for, render_template, flash, 
-                    current_app,jsonify, abort, session, make_response)
+                    current_app,jsonify, abort, make_response)
 from models import RegisterForm, create_user, same_username, check_user_credentials
 from select_data_from_mongo import *
 from update_data_to_mongo import *
@@ -488,7 +488,7 @@ def arrive_flight_time():
         flash('No flight found. Please search another flight.', 'alert-danger')
         return redirect(url_for('search_flight'))
 
-# TODO: Add a route to fetch user's flight code
+
 @token_required
 def my_insurance(current_user):
     try:
@@ -718,11 +718,6 @@ def fetch_user_arrive_flight_code():
         current_app.logger.error(f"An error occurred: {str(e)}", exc_info=True)
         return jsonify({'status': 'error', 'message': 'An internal error occurred'}), 500
 
-
-
-def dashboard():  
-    streamlit_url = "http://localhost:8501"
-    return render_template('dashboard.html', streamlit_url=streamlit_url)
 
 def flight_map():
     try:
