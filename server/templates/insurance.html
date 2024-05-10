@@ -54,12 +54,12 @@
   #result {
     display: none;
     position: absolute;
-    top: 80%; /* 或其他適合您布局的值 */
-    left: 40%;
-    transform: translateY(-110%);
-    z-index: 2000; /* 確保其在最上層 */
-    color: white; /* 確保文字顯示為白色 */
-    background: rgba(0, 0, 0, 0.5); /* 輕微背景色增加可讀性 */
+    top: 72%;
+    left: 32%;
+    transform: translateY(-50%);
+    z-index: 2000;
+    color: rgb(0, 0, 0);
+    font-size: 1.3rem;
     padding: 10px;
     border-radius: 8px;
   }
@@ -408,7 +408,7 @@
     }, 2000); // 2 秒後自動隱藏
   }
 
-  //   // 動態生成 算 旅遊天數 -------------------------------------
+  // 動態生成 算 旅遊天數 -------------------------------------
   document.addEventListener("DOMContentLoaded", function () {
     const startDateInput = document.getElementById("startDate");
     const startTimeSelect = document.getElementById("startTime");
@@ -426,34 +426,27 @@
         const diffTime = Math.abs(endDate - startDate);
         const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
 
-        if (diffDays < 3 || diffDays > 30) {
-          // Display an error message if the duration is less than 3 days or more than 30 days
-          insurancePeriodDisplay.textContent = `最低投保日期為3天，最高投保日期為30天`;
-          document.getElementById("insuranceDays").value = ""; // Clear the previously set value
+        if (diffDays < 3 || diffDays > 9) {
+          insurancePeriodDisplay.style.color = "red";
+          insurancePeriodDisplay.textContent = `最低投保日期為3天，最高投保日期為9天`;
         } else {
-          const startDateFormatted =
-            startDate.toLocaleDateString("zh-TW", {
-              year: "numeric",
-              month: "2-digit",
-              day: "2-digit",
-            }) +
-            " " +
-            startTimeSelect.value;
-          const endDateFormatted =
-            endDate.toLocaleDateString("zh-TW", {
-              year: "numeric",
-              month: "2-digit",
-              day: "2-digit",
-            }) +
-            " " +
-            endTimeSelect.value;
+          insurancePeriodDisplay.style.color = "inherit";
+          const startDateFormatted = `${startDate.toLocaleDateString("zh-TW", {
+            year: "numeric",
+            month: "2-digit",
+            day: "2-digit",
+          })} ${startTimeSelect.value}`;
+          const endDateFormatted = `${endDate.toLocaleDateString("zh-TW", {
+            year: "numeric",
+            month: "2-digit",
+            day: "2-digit",
+          })} ${endTimeSelect.value}`;
 
           insurancePeriodDisplay.textContent = `共投保${diffDays}天，保期為 ${startDateFormatted} - ${endDateFormatted}`;
-          document.getElementById("insuranceDays").value = diffDays; // Update the hidden input with the calculated days
         }
       } else {
-        insurancePeriodDisplay.textContent = ""; // Clear the text if dates are not selected properly
-        document.getElementById("insuranceDays").value = ""; // Clear the hidden input
+        insurancePeriodDisplay.style.color = "inherit";
+        insurancePeriodDisplay.textContent = "";
       }
     }
 
