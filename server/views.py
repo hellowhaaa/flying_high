@@ -508,7 +508,6 @@ def my_insurance(current_user):
             depart_taiwan_date = user_flight['depart_taiwan_date']
             flight_depart_taoyuan = user_flight['flight_depart_taoyuan']
             depart_flight = select_depart_flight_difference(depart_taiwan_date, flight_depart_taoyuan,logger=current_app.logger)
-            depart_taiwan_date = depart_flight['created_at']
             taiwan_tz = pytz.timezone('Asia/Taipei')
             depart_taiwan_date.replace(tzinfo=pytz.utc).astimezone(taiwan_tz)
             depart_taiwan_date = depart_taiwan_date.strftime('%Y-%m-%d')
