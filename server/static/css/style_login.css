@@ -29,17 +29,13 @@
   display: flex;
   justify-content: center;
   align-items: center;
-  background-color: rgba(0, 0, 0, 0.7); /* Add a semi-transparent background */
 }
 
 .flash-messages .alert {
-  pointer-events: auto;
-  margin-top: 10px; /* Added some space from the top */
-  width: auto;
-  max-width: 600px; /* Ensure it doesn't span too wide */
-  padding: 15px; /* More padding for better readability */
-  border-radius: 5px; /* Rounded corners for better look */
-  font-size: 16px; /* Larger text for readability */
-  color: white; /* Text color */
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* Subtle shadow */
+  background-color: #e2e3e5;
+  border-color: #d6d8db;
+  color: #000;
+  margin: 1rem auto;
+  max-width: 400px;
+  border-radius: 8px;
 }
