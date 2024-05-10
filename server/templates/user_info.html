@@ -1,8 +1,38 @@
 {% extends "layout.html" %} {% block content %}
-<div class="container-fluid">
+
+<style>
+  .container-fluid-full {
+    background-color: #f1f1f1;
+    min-height: 100vh;
+  }
+
+  .sidebar {
+    background-color: #f8f9fa;
+    padding-top: 20px;
+    min-height: 100vh;
+    margin: 0;
+    text-align: center;
+  }
+
+  .sidebar .nav-link {
+    color: #414350;
+    font-size: 1.2em;
+    padding: 15px 10px;
+    transition: all 0.2s;
+  }
+
+  /* Main Content */
+  .content {
+    background-color: #ffffff;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 3px 8px rgba(0, 0, 0, 0.1);
+  }
+</style>
+<div class="container-fluid-full">
   <div class="row">
     <!-- Sidebar -->
-    <div class="col-md-2 bg-light sidebar py-5">
+    <div class="col-md-2 sidebar">
       <ul class="nav flex-column">
         <li class="nav-item">
           <a class="nav-link" href="info.html">我的資料</a>
@@ -20,7 +50,7 @@
     </div>
 
     <!-- Main Content -->
-    <div class="col-md-10">
+    <div class="col-md-10 content">
       <div class="py-4 px-md-5">
         <h1 class="mb-4">我的資料</h1>
         <div class="user-info">

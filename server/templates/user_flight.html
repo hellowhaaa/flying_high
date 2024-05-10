@@ -58,6 +58,7 @@
 </script>
 {% endblock %} {% block content %}
 <style>
+  /* Buttons */
   .btn-custom {
     background-color: #f0f4ff9a;
     border: 1px solid #c7d2ff;
@@ -69,11 +70,13 @@
     transition: all 0.2s;
     font-weight: normal;
   }
+
   .btn-custom:hover {
     background-color: #d8e2ff;
     border-color: #b3c4ff;
     box-shadow: 0 6px 10px rgba(0, 0, 0, 0.15);
   }
+
   .btn-cancel-soft {
     background-color: #e6e6e6b7;
     border: 1px solid #cccccc;
@@ -85,17 +88,71 @@
     transition: all 0.2s;
     font-weight: normal;
   }
+
   .btn-cancel-soft:hover {
     background-color: #d6d6d6;
     border-color: #b3b3b3;
     box-shadow: 0 6px 10px rgba(0, 0, 0, 0.15);
   }
+
+  /* Sidebar Container */
+  .container-fluid-full {
+    background-color: #f1f1f1;
+    min-height: 100vh;
+  }
+
+  .sidebar {
+  background-color: #f8f9fa;
+  padding-top: 20px;
+  min-height: 100vh;
+  margin: 0;
+  text-align: center; 
+}
+
+.sidebar .nav-link {
+  color: #414350; 
+  font-size: 1.2em;
+  padding: 15px 10px; 
+  transition: all 0.2s;
+}
+
+
+
+  /* Main Content */
+  .content {
+    background-color: #ffffff;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 3px 8px rgba(0, 0, 0, 0.1);
+  }
+
+  .flash-messages {
+    position: fixed;
+    top: 10px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 1050;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+
+  .flash-messages .alert {
+    background-color: #e2e3e5;
+    border-color: #d6d8db;
+    color: #000;
+    margin: 1rem auto;
+    max-width: 400px;
+    border-radius: 8px;
+    padding: 10px 15px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  }
 </style>
 
-<div class="container-fluid">
+<div class="container-fluid-full">
   <div class="row">
     <!-- Sidebar -->
-    <div class="col-md-2 bg-light sidebar py-5">
+    <div class="col-md-2 sidebar">
       <ul class="nav flex-column">
         <li class="nav-item">
           <a class="nav-link" href="info.html">我的資料</a>
@@ -112,11 +169,9 @@
       </ul>
     </div>
     <!-- Content -->
-    <div class="col-md-10">
+    <div class="col-md-10 content">
       <div class="py-4 px-md-5">
         <h1 class="mb-4">我的航班</h1>
-
-        <!-- static info -->
         <div id="static-info" class="static-info">
           {% if user_info_dict%}
           <p class="mb-2">
@@ -142,8 +197,6 @@
             編輯
           </button>
         </div>
-
-        <!-- flight form -->
         <form id="flightForm" style="display: none">
           <div class="row mb-3">
             <div class="col-md-6">
@@ -165,7 +218,6 @@
               />
             </div>
           </div>
-
           <p>到達班機</p>
           <div class="input-group mb-3">
             <select
@@ -182,7 +234,6 @@
               name="arriveFlightNumber"
             ></select>
           </div>
-
           <p>起飛班機</p>
           <div class="input-group mb-3">
             <select
@@ -199,7 +250,6 @@
               name="departFlightNumber"
             ></select>
           </div>
-
           <button
             type="button"
             class="btn btn-cancel-soft"
@@ -219,6 +269,7 @@
     </div>
     <div class="flash-messages" id="flashMessages"></div>
   </div>
+</div>
   <script>
     function showFlashMessage(message, type = "success") {
       // Create a new alert div
