@@ -97,11 +97,7 @@
                     >富邦人壽</a
                   >
                 </li>
-                <li>
-                  <a class="dropdown-item" href="#" data-company="shinkong"
-                    >新光人壽</a
-                  >
-                </li>
+
                 <li>
                   <a class="dropdown-item" href="#" data-company="guotai"
                     >國泰人壽</a
@@ -321,9 +317,15 @@
       if (e.target.tagName === "A") {
         const selectedCompany = e.target.textContent;
         selectedInsuranceCompany.value = e.target.dataset.company; // Set the hidden input value
-        insuranceCompanyDropdown.textContent = selectedCompany; // Update button text
+        document.getElementById("insuranceCompanyDropdown").textContent =
+          selectedCompany; // Update button text
+
         // Update the plan dropdown based on the selected company
         updateDropdown(planDropdownMenu, planOptions[e.target.dataset.company]);
+
+        // Reset the plan dropdown button to its default state
+        planDropdownButton.textContent = "方案";
+        selectedPlanInput.value = "";
       }
     });
 
@@ -396,9 +398,7 @@
       }
     }
 
-    //
-
-    //     // 當日期或時間改變時，更新保險期間
+    // 當日期或時間改變時，更新保險期間
     startDateInput.addEventListener("change", updateInsurancePeriod);
     startTimeSelect.addEventListener("change", updateInsurancePeriod);
     endDateInput.addEventListener("change", updateInsurancePeriod);
