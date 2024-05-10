@@ -82,6 +82,26 @@
     padding: 0.5rem 1rem;
     opacity: 0.75;
   }
+
+  .error-popup {
+    color: #333333;
+    background-color: #ea95a9cf;
+    padding: 5px 10px;
+    border-radius: 5px;
+    border: 1px solid #f34663;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    position: absolute;
+    z-index: 1000;
+    display: none;
+    transition: opacity 0.5s, transform 0.5s;
+    transform: scale(0.9);
+  }
+
+  .error-popup.show {
+    display: block;
+    opacity: 1;
+    transform: scale(1);
+  }
 </style>
 
 <div class="container">
@@ -369,6 +389,25 @@
     }
   });
 
+  function showErrorPopup(element, message) {
+    const errorEl = document.createElement("div");
+    errorEl.className = "error-popup show";
+    errorEl.textContent = message;
+
+    // 設置位置在元素的右側
+    const rect = element.getBoundingClientRect();
+    errorEl.style.top = `${rect.top + window.scrollY}px`;
+    errorEl.style.left = `${rect.right + window.scrollX + 10}px`;
+    document.body.appendChild(errorEl);
+
+    // 短暫顯示後淡出並移除
+    setTimeout(() => {
+      errorEl.classList.remove("show");
+      errorEl.style.opacity = 0;
+      setTimeout(() => errorEl.remove(), 500);
+    }, 2000); // 2 秒後自動隱藏
+  }
+
   //   // 動態生成 算 旅遊天數 -------------------------------------
   document.addEventListener("DOMContentLoaded", function () {
     const startDateInput = document.getElementById("startDate");
@@ -429,31 +468,72 @@
   document
     .getElementById("submitBtn")
     .addEventListener("click", function (event) {
-      event.preventDefault();
-      const formData = new FormData(document.getElementById("insuranceForm"));
-      const resultElement = document.getElementById("result"); // 確保變數指向正確的元素
+      event.preventDefault(); // 防止表單提交
 
-      // 使用fetch API 發送 AJAX 請求
-      fetch("/fetch_insurance_amount", {
-        method: "POST",
-        body: formData,
-      })
-        .then((response) => response.json()) // parse response as JSON
-        .then((data) => {
-          console.log(data);
-          if (data.status === "success") {
-            document.getElementById(
-              "result"
-            ).textContent = `預估保費：${data.data.insurance_price}`;
-          } else {
-            alert("沒有找到數據");
-          }
-          resultElement.style.display = "block";
+      const insuranceCompanyDropdown = document.getElementById(
+        "insuranceCompanyDropdown"
+      );
+      const planDropdownButton = document.getElementById("planDropdown");
+      const insuranceAmountButton = document.getElementById(
+        "insuranceAmountButton"
+      );
+      const startDateInput = document.getElementById("startDate");
+      const endDateInput = document.getElementById("endDate");
+      let formValid = true;
+
+      // 檢查是否選擇了保險公司
+      if (document.getElementById("selectedInsuranceCompany").value === "") {
+        showErrorPopup(insuranceCompanyDropdown, "請選擇保險公司！");
+        formValid = false;
+      }
+
+      // 檢查是否選擇了方案
+      if (document.getElementById("selectedPlan").value === "") {
+        showErrorPopup(planDropdownButton, "請選擇方案！");
+        formValid = false;
+      }
+
+      // 檢查是否選擇了保險額度
+      if (document.getElementById("selectedInsuranceAmount").value === "") {
+        showErrorPopup(insuranceAmountButton, "請選擇保險額度！");
+        formValid = false;
+      }
+
+      // 檢查是否選擇了旅遊開始和結束日期
+      if (startDateInput.value === "") {
+        showErrorPopup(startDateInput, "請選擇旅遊開始日期！");
+        formValid = false;
+      }
+      if (endDateInput.value === "") {
+        showErrorPopup(endDateInput, "請選擇旅遊結束日期！");
+        formValid = false;
+      }
+
+      // 如果表單有效，繼續執行保單試算邏輯
+      if (formValid) {
+        const formData = new FormData(document.getElementById("insuranceForm"));
+        const resultElement = document.getElementById("result");
+
+        // 使用 fetch 發送請求
+        fetch("/fetch_insurance_amount", {
+          method: "POST",
+          body: formData,
         })
-        .catch((error) => {
-          console.error("Error:", error);
-          alert("請求失敗");
-        });
+          .then((response) => response.json()) // 解析回應為 JSON
+          .then((data) => {
+            console.log(data);
+            if (data.status === "success") {
+              resultElement.textContent = `預估保費：${data.data.insurance_price}`;
+            } else {
+              resultElement.textContent = "沒有找到數據";
+            }
+            resultElement.style.display = "block";
+          })
+          .catch((error) => {
+            console.error("Error:", error);
+            alert("請求失敗");
+          });
+      }
     });
 </script>
 {% endblock %}
