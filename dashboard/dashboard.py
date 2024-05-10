@@ -62,8 +62,8 @@ def get_on_time_performance_by_week(week):
         logger.info(f'Get on-time performance by week successfully')
         df = pd.DataFrame({
             'Week': week,
-            'All on_time depart flights':[result[0]['on_time_flights']],
-            'On_Time_Performance': [result[0]['on_time_flights']/result[0]['total_flights']],
+            'All On Time Depart Flights':[result[0]['on_time_flights']],
+            'On Time Performance': [result[0]['on_time_flights']/result[0]['total_flights']],
             'All Delay flights': [result[0]['delayed_flights']]
         })
         logger.info(f'Get data frame successfully')
@@ -345,14 +345,14 @@ def load_airlines(collection):
         
 def setup_sidebar():
     try:
-        st.sidebar.header('FlightFinder')
+        st.sidebar.header('Get Flight Punctuality')
         # fill out the dropdown in sidebar
-        origin = st.sidebar.selectbox('Origin', ['Taoyuan Airport', 'Song Shan Airport'])
+        # origin = st.sidebar.selectbox('Origin', ['Taoyuan Airport', 'Song Shan Airport'])
         destination = st.sidebar.selectbox('Destination', st.session_state.destinations)
         airline = st.sidebar.selectbox('Airline', st.session_state.airlines)
-        weeks = st.sidebar.selectbox('Week', ['1', '2', '3', '4'])
+        weeks = st.sidebar.selectbox('Within weeks', ['1', '2', '3', '4'])
         submit = st.sidebar.button('Submit')
-        return weeks, origin, destination, airline, submit
+        return weeks, destination, airline, submit
     except Exception as e:
         logger.error(f'Error setting up sidebar: {e}')
         return None, None, None, None, None
@@ -367,11 +367,11 @@ def main():
         load_airlines(collection)
 
         # Setting Sidebar
-        st.sidebar.header('FlightFinder')
-        weeks = st.sidebar.selectbox('Week', ['1', '2', '3', '4'])
-        origin = st.sidebar.selectbox('Origin', ['Taoyuan Airport', 'Song Shan Airport'])
-        destination = st.sidebar.selectbox('Destination', st.session_state.destinations)
-        airline = st.sidebar.selectbox('Airline', st.session_state.airlines)
+        st.sidebar.header('Get Flight Punctuality')
+        weeks = st.sidebar.selectbox('Within weeks', ['1', '2', '3', '4'])
+        # origin = st.sidebar.selectbox('Origin', ['Taoyuan Airport', 'Song Shan Airport'])
+        destination = st.sidebar.selectbox('To Specific Destination', st.session_state.destinations)
+        airline = st.sidebar.selectbox('With Specific Airline', st.session_state.airlines)
         submit = st.sidebar.button('Submit')
         if submit:
             # Display data as a table
@@ -379,33 +379,37 @@ def main():
             data_all = get_airline_on_time_performance(airline)
             all_flights = select_airlines_all(weeks)
             all_destinations = get_destination_on_time_performance(destination)
-            
-            st.title('All flight data for the week')
-            st.markdown(f'flights departing from Taoyuan Airport within <span style="color:red; font-size:20px;">{weeks} weeks</span>', unsafe_allow_html=True)
-            st.dataframe(data)
-            st.dataframe(all_flights)
+            if weeks == '1':
+                word = 'week'
+            else:
+                word = 'weeks'
+            st.subheader(f"All flights' On time performance for the past {weeks} {word}")
+            st.dataframe(data, width=600)
+            st.dataframe(all_flights, width=600)
             
             # Show the airline's on-time performance
-            st.markdown(f'Displaying flight data for <span style="color:blue; font-size:20px;">{airline} </span>', unsafe_allow_html=True)
+            st.subheader(f"{airline}")
+            # st.markdown(f'flight data for <span style="color:blue; font-size:20px;">{airline} </span>', unsafe_allow_html=True)
             col1, col2 = st.columns([3, 1])  # Creates two columns, plot in the narrower one
             with col1:
                 fig, ax = plt.subplots()
                 ax.plot(data_all['Week Starting'], data_all['On-Time Performance (%)'], marker='o')
                 ax.set_xlabel('Date')
                 ax.set_ylabel('On-Time Performance (%)')
-                ax.set_title('Weeks On-Time Performance')
+                ax.set_title('Each Week On-Time Performance')
                 fig.set_size_inches(5, 3)
                 st.pyplot(fig)
                 
             # Show the destination's on-time performance
-            st.markdown(f'Displaying all flight data from {origin} to <span style="color:blue; font-size:20px;">{destination} </span>', unsafe_allow_html=True)
+            st.subheader(f"{destination}")
+            # st.markdown(f'Flight data to <span style="color:blue; font-size:20px;">{destination} </span>', unsafe_allow_html=True)
             col3, col4 = st.columns([3, 1])
             with col3:
                 fig, ax = plt.subplots()
                 ax.plot(all_destinations['Week Starting'], all_destinations['On-Time Performance (%)'], marker='o')
                 ax.set_xlabel('Date')
                 ax.set_ylabel('On-Time Performance (%)')
-                ax.set_title('Weeks On-Time Performance')
+                ax.set_title('Each Week On-Time Performance')
                 fig.set_size_inches(5, 3)
                 st.pyplot(fig)
     except Exception as e:
