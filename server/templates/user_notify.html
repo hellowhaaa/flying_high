@@ -74,6 +74,36 @@
     border-color: #b3c4ff;
     box-shadow: 0 6px 10px rgba(0, 0, 0, 0.15);
   }
+
+  .flash-messages {
+    position: fixed;
+    top: 0;
+    right: 0;
+    left: 0;
+    z-index: 1050;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+
+  .flash-messages .alert {
+    background-color: #e2e3e5;
+    border-color: #d6d8db;
+    color: #000;
+    margin: 1rem auto;
+    max-width: 400px;
+    border-radius: 8px;
+    padding: 1rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .alert-close {
+    cursor: pointer;
+    font-size: 1.2rem;
+    margin-left: 1rem;
+  }
 </style>
 <div class="container-fluid">
   <div class="row">
@@ -253,9 +283,37 @@
       </div>
     </div>
   </div>
+  <div class="flash-messages" id="flashMessages"></div>
 </div>
 
 <script>
+  function showFlashMessage(message, isSuccess = true) {
+    const flashMessagesDiv = document.getElementById("flashMessages");
+
+    // Create an alert element
+    const alertDiv = document.createElement("div");
+    alertDiv.className = `alert alert-${isSuccess ? "success" : "danger"}`;
+    alertDiv.innerHTML = `
+      <span>${message}</span>
+      <span class="alert-close">&times;</span>
+    `;
+
+    // Add click event to close the alert
+    alertDiv.querySelector(".alert-close").onclick = () => {
+      flashMessagesDiv.removeChild(alertDiv);
+    };
+
+    // Append the alert to the flash messages container
+    flashMessagesDiv.appendChild(alertDiv);
+
+    // Remove the alert automatically after a delay (e.g., 5 seconds)
+    setTimeout(() => {
+      if (flashMessagesDiv.contains(alertDiv)) {
+        flashMessagesDiv.removeChild(alertDiv);
+      }
+    }, 5000); // Adjust the timeout duration as needed
+  }
+
   function toggleEdit(editMode) {
     const staticInfo = document.getElementById("static-info");
     const flightForm = document.getElementById("flightForm");
@@ -289,15 +347,22 @@
     })
       .then((response) => response.json())
       .then((data) => {
-        alert("Flight information saved successfully!");
-        if (data.status === "success" && data.redirect_url) {
-          window.location.href = data.redirect_url;
+        // Show success message if successful, otherwise show failure message
+        if (data.status === "success") {
+          showFlashMessage("Flight information saved successfully!", true);
+          if (data.redirect_url) {
+            window.location.href = data.redirect_url;
+          }
+        } else {
+          showFlashMessage("Failed to save flight information.", false);
         }
-        // toggleEdit(false);
       })
       .catch((error) => {
         console.error("Error:", error);
-        alert("Failed to save flight information.");
+        showFlashMessage(
+          "An error occurred while saving flight information.",
+          false
+        );
       });
   }
 </script>

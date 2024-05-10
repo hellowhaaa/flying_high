@@ -217,8 +217,32 @@
         </form>
       </div>
     </div>
+    <div class="flash-messages" id="flashMessages"></div>
   </div>
   <script>
+    function showFlashMessage(message, type = "success") {
+      // Create a new alert div
+      const alertDiv = document.createElement("div");
+      alertDiv.className = `alert alert-${type} alert-dismissible fade show`;
+      alertDiv.setAttribute("role", "alert");
+
+      // Add the message
+      alertDiv.innerHTML = `
+    ${message}
+    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+  `;
+
+      // Append the alert to the flash messages container
+      const flashMessagesContainer = document.getElementById("flashMessages");
+      flashMessagesContainer.appendChild(alertDiv);
+
+      // Automatically remove after 3 seconds
+      setTimeout(() => {
+        alertDiv.classList.remove("show");
+        setTimeout(() => alertDiv.remove(), 500);
+      }, 3000);
+    }
+
     function toggleEdit(editMode) {
       const staticInfo = document.getElementById("static-info");
       const flightForm = document.getElementById("flightForm");
@@ -247,18 +271,29 @@
       })
         .then((response) => response.json())
         .then((data) => {
-          console.log("Success:", data);
-          alert("Flight information saved successfully!");
-          // Redirect to the desired URL
-          if (data.status === "success" && data.redirect_url) {
-            window.location.href = data.redirect_url;
-          }
+          if (data.status === "success") {
+            showFlashMessage(
+              "Flight information saved successfully!",
+              "success"
+            );
 
-          // toggleEdit(false);
+            // Redirect to the desired URL
+            if (data.redirect_url) {
+              window.location.href = data.redirect_url;
+            }
+          } else {
+            showFlashMessage(
+              "Failed to save flight information. Please try again.",
+              "danger"
+            );
+          }
         })
         .catch((error) => {
           console.error("Error:", error);
-          alert("Failed to save flight information.");
+          showFlashMessage(
+            "An error occurred while saving flight information.",
+            "danger"
+          );
         });
     }
   </script>
