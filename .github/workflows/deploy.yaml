@@ -19,29 +19,28 @@ jobs:
           chmod 600 ~/.ssh/id_rsa
           ssh-keyscan ${{ secrets.EC2_PUBLIC_IP }} >> ~/.ssh/known_hosts
 
-
-      - name: Create .env for dynamically
-        env: 
-          ENV: ${{ secret.ENV }}
-          EC2_USERNAME: ${{ secret.EC2_USERNAME }}
+      - name: Create .env dynamically
+        env:
+          ENV: ${{ secrets.ENV }}
+          EC2_USERNAME: ${{ secrets.EC2_USERNAME }}
         run: |
           echo "ENV=${ENV}" >> env
           echo "EC2_USERNAME=${EC2_USERNAME}" >> env
-      
-      -name: copy file to remote server
+
+      - name: Copy files to remote server
         env:
-          EC2_HOST: ${{ secret.EC2_HOST }}
-          EC2_USERNAME: ${{ secret.EC2_USERNAME }}
+          EC2_HOST: ${{ secrets.EC2_HOST }}
+          EC2_USERNAME: ${{ secrets.EC2_USERNAME }}
         run: |
           scp -r ./server ./map ./dashboard $EC2_USERNAME@$EC2_HOST:/home/$EC2_USERNAME/
 
-      -name: Run Bash script To Deploy APP
+      - name: Run Bash script to deploy app
         env:
-          EC2_HOST: ${{ secret.EC2_HOST }}
-          EC2_USERNAME: ${{ secret.EC2_USERNAME }}
+          EC2_HOST: ${{ secrets.EC2_HOST }}
+          EC2_USERNAME: ${{ secrets.EC2_USERNAME }}
         run: |
           ssh -o StrictHostKeyChecking=no $EC2_USERNAME@$EC2_HOST "chmod +x ./deploy.sh && ./deploy.sh"
 
-      -name: Clean up SSH key
+      - name: Clean up SSH key
         if: always()
         run: rm -f ~/.ssh/id_rsa
