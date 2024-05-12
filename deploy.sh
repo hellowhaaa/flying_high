@@ -10,10 +10,12 @@ echo "moving files to app folder"
 sudo mv ./server ./map ./dashboard /home/ec2-user/production
 
 # Navigate to the app directory
-cd /home/ec2-user/production/server
 sudo mv env .env 
+sudo cp .env /home/ec2-user/production/server
 sudo cp .env /home/ec2-user/production/map
 sudo cp .env /home/ec2-user/production/dashboard
+cd /home/ec2-user/production/server
+
 
 sudo apt-get update
 echo "installing python and pip"
