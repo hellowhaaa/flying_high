@@ -17,9 +17,9 @@ sudo cp .env /home/ec2-user/production/dashboard
 cd /home/ec2-user/production/server
 
 
-sudo apt-get update
+sudo yum update
 echo "installing python and pip"
-sudo apt-get install -y python3 python3-pip
+sudo yum install -y python3 python3-pip
 
 # Install application dependencies from requirements.txt
 echo "Install application dependencies from requirements.txt"
