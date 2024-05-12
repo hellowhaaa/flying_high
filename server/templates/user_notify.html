@@ -1,0 +1,397 @@
+{% extends "layout.html" %} {% block content %}
+<style>
+  .outer {
+    position: relative;
+    min-height: 60vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+  .insurance-info {
+    position: absolute;
+    background: rgba(255, 255, 255, 0.879);
+    padding: 2rem;
+    border-radius: 1rem;
+    box-shadow: 0 0 1rem rgba(0, 0, 0, 0.1);
+    width: 75%;
+    min-height: 400px;
+    transform: translateY(10px);
+  }
+  .container {
+    position: relative;
+  }
+  .dropdown-btn {
+    background-color: #f7f9fc; /* Light grey background */
+    border: 1px solid #d1d8e0; /* Light blue border */
+    border-radius: 8px;
+    color: #4f6ea8; /* Medium blue text */
+    padding: 10px 20px;
+    width: 100%;
+    max-width: 300px;
+    text-align: left;
+    cursor: pointer;
+    transition: all 0.3s;
+    font-weight: normal;
+  }
+  .dropdown-btn:hover {
+    background-color: #e9efff; /* Light blue background on hover */
+    border-color: #b5c9ff; /* Darker blue border on hover */
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* Soft shadow */
+  }
+  .dropdown-menu-custom {
+    width: 100%;
+    max-width: 300px; /* Ensure it matches the button's width */
+  }
+  .btn-cancel-soft {
+    background-color: #e6e6e6b7;
+    border: 1px solid #cccccc;
+    border-radius: 8px;
+    color: #333333;
+    padding: 8px 16px;
+    box-shadow: 0 3px 5px rgba(0, 0, 0, 0.1);
+    text-transform: uppercase;
+    transition: all 0.2s;
+    font-weight: normal;
+  }
+  .btn-cancel-soft:hover {
+    background-color: #d6d6d6;
+    border-color: #b3b3b3;
+    box-shadow: 0 6px 10px rgba(0, 0, 0, 0.15);
+  }
+  .btn-custom-soft {
+    background-color: #f0f4ff9a;
+    border: 1px solid #c7d2ff;
+    border-radius: 8px;
+    color: #4f6ea8;
+    padding: 8px 16px;
+    box-shadow: 0 3px 5px rgba(0, 0, 0, 0.1);
+    text-transform: uppercase;
+    transition: all 0.2s;
+    font-weight: normal;
+  }
+  .btn-custom-soft:hover {
+    background-color: #d8e2ff;
+    border-color: #b3c4ff;
+    box-shadow: 0 6px 10px rgba(0, 0, 0, 0.15);
+  }
+
+  .flash-messages {
+    position: fixed;
+    top: 0;
+    right: 0;
+    left: 0;
+    z-index: 1050;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+
+  .flash-messages .alert {
+    background-color: #e2e3e5;
+    border-color: #d6d8db;
+    color: #000;
+    margin: 1rem auto;
+    max-width: 400px;
+    border-radius: 8px;
+    padding: 1rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .alert-close {
+    cursor: pointer;
+    font-size: 1.2rem;
+    margin-left: 1rem;
+  }
+
+  .container-fluid-full {
+    background-color: #f1f1f1;
+    min-height: 100vh;
+  }
+
+  .sidebar {
+    background-color: #f8f9fa;
+    padding-top: 20px;
+    min-height: 100vh;
+    margin: 0;
+    text-align: center;
+  }
+
+  .sidebar .nav-link {
+    color: #414350;
+    font-size: 1.2em;
+    padding: 15px 10px;
+    transition: all 0.2s;
+  }
+
+  /* Main Content */
+  .content {
+    background-color: #ffffff;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 3px 8px rgba(0, 0, 0, 0.1);
+  }
+</style>
+<div class="container-fluid-full">
+  <div class="row">
+    <!-- Sidebar -->
+    <div class="col-md-2 sidebar">
+      <ul class="nav flex-column">
+        <li class="nav-item">
+          <a class="nav-link" href="info.html">我的資料</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link active" href="insurance.html">我的保險</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link active" href="notify.html">通知設定</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link active" href="flight.html">我的航班</a>
+        </li>
+      </ul>
+    </div>
+    <!-- Content -->
+    <div class="col-md-10 content">
+      <div class="py-4 px-md-5">
+        <h1 class="mb-4">通知設定</h1>
+        <!-- 靜態資料 -->
+        <div id="static-info" class="static-info">
+          {% if user_info_dict%}
+          <p class="mb-2">
+            是否收到航班改變的email通知: {% if not
+            user_info_dict['flight_change'] %}
+            <span>否</span>
+            {% else %}
+            <span>是</span>
+            {% endif %}
+          </p>
+          <p class="mb-2">
+            當回國航班delay是否 email 通知提醒訂車票: {% if not
+            user_info_dict['flight_delay'] %}
+            <span>否</span>
+            {% else %}
+            <span>是</span>
+            {% endif %}
+          </p>
+          <p class="mb-2">
+            住家附近高鐵站:
+            <span>{{ user_info_dict['hsr_station'] }}</span>
+          </p>
+          {% else %}
+          <h4>您尚未做設定</h4>
+          {% endif %}
+          <button class="btn btn-custom-soft mt-3" onclick="toggleEdit(true)">
+            編輯
+          </button>
+        </div>
+
+        <!-- 表單 -->
+        <form id="flightForm" style="display: none">
+          <div class="row mb-3">
+            <div class="col-md-6">
+              <input
+                class="form-check-input"
+                type="checkbox"
+                value="1"
+                id="flight_change"
+                name="flight_change"
+              />
+              <label class="form-check-label" for="flight_change">
+                是否收到航班改變的email通知
+              </label>
+            </div>
+          </div>
+          <div class="row mb-3">
+            <div class="col-md-6">
+              <input
+                class="form-check-input"
+                type="checkbox"
+                value="1"
+                id="flight_delay"
+                name="flight_delay"
+              />
+              <label class="form-check-label" for="flight_delay">
+                當回國航班delay是否 email 通知提醒訂車票
+              </label>
+            </div>
+          </div>
+
+          <!-- 高鐵站下拉選單 -->
+          <div class="dropdown mb-3">
+            <button
+              class="dropdown-btn dropdown-toggle"
+              type="button"
+              id="hsrDropdown"
+              data-bs-toggle="dropdown"
+              aria-expanded="false"
+            >
+              選擇最近的高鐵站
+            </button>
+            <ul
+              class="dropdown-menu dropdown-menu-custom"
+              aria-labelledby="hsrDropdown"
+              id="hsrMenu"
+            >
+              <li>
+                <a class="dropdown-item" onclick="selectStation('南港')"
+                  >南港</a
+                >
+              </li>
+              <li>
+                <a class="dropdown-item" onclick="selectStation('台北')"
+                  >台北</a
+                >
+              </li>
+              <li>
+                <a class="dropdown-item" onclick="selectStation('板橋')"
+                  >板橋</a
+                >
+              </li>
+              <li>
+                <a class="dropdown-item" onclick="selectStation('新竹')"
+                  >新竹</a
+                >
+              </li>
+              <li>
+                <a class="dropdown-item" onclick="selectStation('苗栗')"
+                  >苗栗</a
+                >
+              </li>
+              <li>
+                <a class="dropdown-item" onclick="selectStation('台中')"
+                  >台中</a
+                >
+              </li>
+              <li>
+                <a class="dropdown-item" onclick="selectStation('彰化')"
+                  >彰化</a
+                >
+              </li>
+              <li>
+                <a class="dropdown-item" onclick="selectStation('雲林')"
+                  >雲林</a
+                >
+              </li>
+              <li>
+                <a class="dropdown-item" onclick="selectStation('嘉義')"
+                  >嘉義</a
+                >
+              </li>
+              <li>
+                <a class="dropdown-item" onclick="selectStation('台南')"
+                  >台南</a
+                >
+              </li>
+              <li>
+                <a class="dropdown-item" onclick="selectStation('左營')"
+                  >左營</a
+                >
+              </li>
+            </ul>
+            <input type="hidden" name="hsr_station" id="hsr_station" />
+          </div>
+
+          <button
+            type="button"
+            class="btn btn-cancel-soft"
+            onclick="toggleEdit(false)"
+          >
+            取消
+          </button>
+          <button
+            type="button"
+            class="btn btn-custom-soft"
+            onclick="submitFlightInfo()"
+          >
+            儲存
+          </button>
+        </form>
+      </div>
+    </div>
+  </div>
+  <div class="flash-messages" id="flashMessages"></div>
+</div>
+
+<script>
+  function showFlashMessage(message, isSuccess = true) {
+    const flashMessagesDiv = document.getElementById("flashMessages");
+
+    // Create an alert element
+    const alertDiv = document.createElement("div");
+    alertDiv.className = `alert alert-${isSuccess ? "success" : "danger"}`;
+    alertDiv.innerHTML = `
+      <span>${message}</span>
+      <span class="alert-close">&times;</span>
+    `;
+
+    // Add click event to close the alert
+    alertDiv.querySelector(".alert-close").onclick = () => {
+      flashMessagesDiv.removeChild(alertDiv);
+    };
+
+    // Append the alert to the flash messages container
+    flashMessagesDiv.appendChild(alertDiv);
+
+    // Remove the alert automatically after a delay (e.g., 5 seconds)
+    setTimeout(() => {
+      if (flashMessagesDiv.contains(alertDiv)) {
+        flashMessagesDiv.removeChild(alertDiv);
+      }
+    }, 5000); // Adjust the timeout duration as needed
+  }
+
+  function toggleEdit(editMode) {
+    const staticInfo = document.getElementById("static-info");
+    const flightForm = document.getElementById("flightForm");
+
+    if (editMode) {
+      staticInfo.style.display = "none";
+      flightForm.style.display = "block";
+    } else {
+      staticInfo.style.display = "block";
+      flightForm.style.display = "none";
+    }
+  }
+
+  function selectStation(station) {
+    document.getElementById("hsrDropdown").textContent = station;
+    document.getElementById("hsr_station").value = station;
+  }
+
+  function submitFlightInfo() {
+    const formData = new FormData(document.getElementById("flightForm"));
+
+    fetch("/user/update_notify", {
+      method: "POST",
+      body: formData,
+      headers: {
+        Accept: "application/json",
+        "X-CSRFToken": document
+          .querySelector('meta[name="csrf-token"]')
+          .getAttribute("content"),
+      },
+    })
+      .then((response) => response.json())
+      .then((data) => {
+        // Show success message if successful, otherwise show failure message
+        if (data.status === "success") {
+          showFlashMessage("Flight information saved successfully!", true);
+          if (data.redirect_url) {
+            window.location.href = data.redirect_url;
+          }
+        } else {
+          showFlashMessage("Failed to save flight information.", false);
+        }
+      })
+      .catch((error) => {
+        console.error("Error:", error);
+        showFlashMessage(
+          "An error occurred while saving flight information.",
+          false
+        );
+      });
+  }
+</script>
+{% endblock %}

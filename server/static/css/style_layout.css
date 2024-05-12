@@ -6,27 +6,45 @@
   z-index: 1050;
   display: flex;
   justify-content: center;
-  align-items: center; /* Add a semi-transparent background */
+  align-items: center;
 }
 
 flash-messages .alert {
-  position: relative; /* Enable relative positioning for the close button */
-  pointer-events: auto;
-  margin-top: 10px; /* Added some space from the top */
-  width: auto;
-  max-width: 600px; /* Ensure it doesn't span too wide */
-  padding: 15px; /* More padding for better readability */
-  padding-right: 40px; /* Increase right padding to accommodate the close button */
-  border-radius: 5px; /* Rounded corners for better look */
-  font-size: 16px; /* Larger text for readability */
-  color: rgb(24, 21, 21); /* Text color */
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* Subtle shadow */
-  background-color: #f8f9faa4; /* Light background for the alert */
+  background-color: #e2e3e5;
+  border-color: #d6d8db;
+  color: #000;
+  margin: 1rem auto;
+  max-width: 400px;
+  border-radius: 8px;
 }
 
 .flash-messages .btn-close {
   position: absolute;
-  top: 50%; /* Center vertically */
-  right: 0px; /* Position towards the right inside the alert */
-  transform: translateY(-50%); /* Adjust vertical position to be centered */
+  top: 50%;
+  right: 0px;
+  transform: translateY(-50%);
+}
+
+.navbar-nav {
+  display: flex;
+  gap: 7px;
+  margin-left: 0;
+}
+
+.nav-item {
+  margin-right: 10px;
+}
+
+.nav-link {
+  color: #555;
+  transition: all 0.2s ease;
+}
+
+.nav-link:hover {
+  color: #000;
+  text-decoration: underline;
+}
+
+.navbar-brand {
+  color: #000;
 }

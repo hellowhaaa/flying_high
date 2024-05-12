@@ -168,7 +168,7 @@ def crawl_data():
         
 def insert_mongodb_atlas():
     load_dotenv()
-    uri = os.getenv("MONGODB_URI")
+    uri = os.getenv("MONGODB_URI_FLY")
     client = MongoClient(uri)
     # try:
     #     conn.admin.command('ping')

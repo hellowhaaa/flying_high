@@ -1,4 +1,100 @@
-{% extends "layout.html" %} {% block content %}
+{% extends "layout.html" %} {% block homepage %}
+
+<script
+  src="https://code.jquery.com/jquery-2.1.1.min.js"
+  type="text/javascript"
+></script>
+<link
+  href="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.1/css/select2.min.css"
+  rel="stylesheet"
+/>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.1/js/select2.min.js"></script>
+<!-- <script type="text/javascript">
+  $(document).ready(function () {
+    var country = [
+      "Australia",
+      "Bangladesh",
+      "Denmark",
+      "Hong Kong",
+      "Indonesia",
+      "Netherlands",
+      "New Zealand",
+      "South Africa",
+    ];
+    $("#country").select2({
+      data: country,
+    });
+  });
+</script> -->
+
+<script type="text/javascript">
+  $(document).ready(function () {
+    fetch("/fetch_depart_flight_code")
+      .then((response) => response.json())
+      .then((data) => {
+        $("#depart_airlines").select2({
+          data: Object.keys(data).map((key) => ({ id: key, text: key })),
+        });
+
+        $("#depart_airlines").on("change", function () {
+          var selectedAirline = $(this).val();
+          var flightCodes = data[selectedAirline] || [];
+          $("#depart_flightCodes")
+            .empty()
+            .select2({
+              data: flightCodes.map((code) => ({ id: code, text: code })),
+            });
+        });
+      })
+      .catch((error) =>
+        console.error("Error fetching the airline data:", error)
+      );
+  });
+</script>
+
+<script type="text/javascript">
+  $(document).ready(function () {
+    fetch("/fetch_arrive_flight_code")
+      .then((response) => response.json())
+      .then((data) => {
+        $("#arrive_airlines").select2({
+          data: Object.keys(data).map((key) => ({ id: key, text: key })),
+        });
+
+        $("#arrive_airlines").on("change", function () {
+          var selectedAirline = $(this).val();
+          var flightCodes = data[selectedAirline] || [];
+          $("#arrive_flightCodes")
+            .empty()
+            .select2({
+              data: flightCodes.map((code) => ({ id: code, text: code })),
+            });
+        });
+      })
+      .catch((error) =>
+        console.error("Error fetching the airline data:", error)
+      );
+  });
+</script>
+
+{% endblock %} {% block content %}
 <h1>主頁</h1>
+<h1>DropDown with Search using jQuery</h1>
+<div>
+  <select id="depart_airlines" style="width: 300px">
+    <!-- Dropdown List Option -->
+  </select>
+  <select id="depart_flightCodes" style="width: 300px">
+    <!-- Dropdown List Option -->
+  </select>
+</div>
+<div>
+  <select id="arrive_airlines" style="width: 300px">
+    <!-- Dropdown List Option -->
+  </select>
+  <select id="arrive_flightCodes" style="width: 300px">
+    <!-- Dropdown List Option -->
+  </select>
+</div>
 
 {% endblock %}

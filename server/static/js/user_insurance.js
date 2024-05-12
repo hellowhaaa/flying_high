@@ -1,7 +1,13 @@
 document.addEventListener("DOMContentLoaded", function () {
-  const insuranceCompanyMenu = document.getElementById("insuranceCompanyMenu");
+  const insuranceCompanyMenu = document.getElementById(
+    "insuranceCompanyDropdown"
+  ).nextElementSibling;
   const planDropdownButton = document.getElementById("planDropdown");
-  const planMenu = document.getElementById("planMenu");
+  const planDropdownMenu = document.getElementById("planMenu");
+  const insuranceAmountButton = document.getElementById(
+    "insuranceAmountDropdown"
+  );
+  const insuranceAmountMenu = document.getElementById("insuranceAmountMenu");
 
   const planOptions = {
     fubung: ["S方案", "M方案", "L方案", "XL方案"],
@@ -13,122 +19,117 @@ document.addEventListener("DOMContentLoaded", function () {
     ],
   };
 
-  // Handle insurance company selection
   insuranceCompanyMenu.addEventListener("click", function (event) {
     if (event.target.tagName === "A") {
       const selectedCompany = event.target.textContent;
-      const companyData = event.target.getAttribute("data-company");
-      // Update the button text with the selected company name
-      document.getElementById("insuranceCompanyDropdown").textContent =
-        selectedCompany;
-
-      planDropdownButton.textContent = "選擇方案"; // Reset
-      updatePlanDropdown(planOptions[companyData] || []);
-      document.getElementById("insurance-company-edit").value = companyData;
+      insuranceCompanyDropdown.textContent = selectedCompany; // Update dropdown button text
+      updateDropdown(
+        planDropdownMenu,
+        planOptions[event.target.dataset.company]
+      );
     }
   });
 
-  // Update plan dropdown based on company
-  function updatePlanDropdown(plans) {
-    planMenu.innerHTML = "";
-    plans.forEach((plan) => {
+  function updateDropdown(dropdown, options) {
+    dropdown.innerHTML = ""; // Clear previous options
+    options.forEach((option) => {
       const li = document.createElement("li");
       const a = document.createElement("a");
       a.className = "dropdown-item";
-      a.textContent = plan;
-      a.onclick = () => {
-        planDropdownButton.textContent = plan;
-        document.getElementById("plan-edit").value = plan;
-      };
+      a.textContent = option;
+      a.href = "#";
+      a.addEventListener("click", function (e) {
+        e.preventDefault();
+        planDropdownButton.textContent = option; // Update dropdown button text
+        if (insuranceAmountsByPlan[option]) {
+          updateInsuranceAmountOptions(insuranceAmountsByPlan[option]);
+        }
+      });
       li.appendChild(a);
-      planMenu.appendChild(li);
+      dropdown.appendChild(li);
     });
   }
 
-  // Dynamic insurance amount dropdown
-  const insuranceAmountMenu = document.getElementById("insuranceAmountMenu");
-  const insuranceAmountDropdown = document.getElementById(
-    "insuranceAmountDropdown"
-  );
+  const insuranceAmountsByPlan = {
+    S方案: { min: 200, max: 1500, step: 100 },
+    M方案: { min: 300, max: 1500, step: 100 },
+    L方案: { min: 600, max: 1500, step: 100 },
+    XL方案: { min: 1200, max: 1500, step: 100 },
+    "海外輕鬆型(T2)": { min: 200, max: 1500, step: 100 },
+    "海外安心型(T2)": { min: 200, max: 400, step: 100 },
+    "賞櫻限定型(Z)": { min: 500, max: 1500, step: 100 },
+    "早鳥豪華型(U2)": { min: 300, max: 1500, step: 100 },
+  };
 
-  for (let amount = 200; amount <= 1500; amount += 100) {
-    const li = document.createElement("li");
-    const a = document.createElement("a");
-    a.className = "dropdown-item";
-    a.textContent = `${amount}萬`;
-    a.onclick = () => {
-      insuranceAmountDropdown.textContent = `${amount}萬`;
-      document.getElementById("insured-amount-edit").value = `${amount}`;
-    };
-    li.appendChild(a);
-    insuranceAmountMenu.appendChild(li);
+  function updateInsuranceAmountOptions({ min, max, step }) {
+    insuranceAmountMenu.innerHTML = ""; // Clear previous options
+    for (let amount = min; amount <= max; amount += step) {
+      const li = document.createElement("li");
+      const a = document.createElement("a");
+      a.className = "dropdown-item";
+      a.textContent = `${amount}萬`;
+      a.href = "#";
+      a.addEventListener("click", function (e) {
+        e.preventDefault();
+        insuranceAmountButton.textContent = `${amount}萬`; // Update dropdown button text
+        document.getElementById("selectedInsuranceAmount").value = amount;
+      });
+      li.appendChild(a);
+      insuranceAmountMenu.appendChild(li);
+    }
   }
+});
 
-  // Dynamic days insured dropdown
+document.addEventListener("DOMContentLoaded", function () {
+  const daysDropdownButton = document.getElementById("daysDropdown");
   const daysMenu = document.getElementById("daysMenu");
-  const daysDropdown = document.getElementById("daysDropdown");
 
   for (let day = 3; day <= 30; day++) {
     const li = document.createElement("li");
     const a = document.createElement("a");
     a.className = "dropdown-item";
     a.textContent = `${day}天`;
-    a.onclick = () => {
-      daysDropdown.textContent = `${day}天`;
-      document.getElementById("days-edit").value = day;
-    };
+    a.href = "#";
+    a.addEventListener("click", function (e) {
+      e.preventDefault();
+      daysDropdownButton.textContent = `${day}天`; // Update dropdown button text
+      document.getElementById("days-edit").value = day; // Update the hidden input to reflect selected day
+    });
     li.appendChild(a);
     daysMenu.appendChild(li);
   }
 });
 
-function toggleEdit(editMode) {
-  const displayInfo = document.querySelector(".static-info");
-  const editInfo = document.querySelector(".editable-info");
+document.addEventListener("DOMContentLoaded", function () {
+  const submitBtn = document.getElementById("submitBtn");
+  submitBtn.addEventListener("click", function (event) {
+    event.preventDefault();
+    console.log("Submit button clicked.");
 
-  if (editMode) {
-    displayInfo.style.display = "none";
-    editInfo.style.display = "block";
-  } else {
-    displayInfo.style.display = "block";
-    editInfo.style.display = "none";
-  }
-}
+    const formData = new FormData(document.getElementById("insuranceForm"));
 
-function submitChanges() {
-  const insuranceCompany = document.getElementById(
-    "insurance-company-edit"
-  ).value;
-  const plan = document.getElementById("plan-edit").value;
-  const insuredAmount = document.getElementById("insured-amount-edit").value;
-  const days = document.getElementById("days-edit").value;
+    console.log("Form data prepared:", Object.fromEntries(formData.entries()));
 
-  const data = {
-    insurance_company: insuranceCompany,
-    plan: plan,
-    insured_amount: insuredAmount,
-    days: days,
-  };
-
-  fetch("/user/update_insurance", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify(data),
-  })
-    .then((response) => response.json())
-    .then((data) => {
-      console.log("Success:", data);
-      document.getElementById("insurance-company-edit").textContent =
-        insuranceCompany;
-      document.getElementById("plan-edit").textContent = plan;
-      document.getElementById("insured-amount-edit").textContent =
-        insuredAmount;
-      document.getElementById("days-edit").textContent = days;
-      toggleEdit(false);
+    fetch("/user/update_insurance", {
+      method: "POST",
+      body: formData,
+      headers: {
+        "X-CSRFToken": document
+          .querySelector('meta[name="csrf-token"]')
+          .getAttribute("content"),
+      },
     })
-    .catch((error) => {
-      console.error("Error:", error);
-    });
-}
+      .then((response) => {
+        console.log("Received response:", response);
+        return response.json();
+      })
+      .then((data) => {
+        console.log("Success:", data);
+        alert("Submission successful!");
+      })
+      .catch((error) => {
+        console.error("Error during fetch:", error);
+        alert("Failed to submit data.");
+      });
+  });
+});

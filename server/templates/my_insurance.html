@@ -1,0 +1,560 @@
+{% extends "layout.html" %} {% block content %}
+<style>
+  .background-image {
+    background-image: url("{{ url_for('static', filename='images/cabin_dark.jpg') }}");
+    opacity: 0.8;
+    height: 100vh;
+    width: 100vw;
+    background-position: center center;
+    background-repeat: no-repeat;
+    background-size: cover;
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: -1;
+  }
+
+  .outer {
+    position: relative;
+    min-height: 90vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    z-index: 1;
+  }
+
+  .section-title {
+    font-size: 24px;
+    color: white;
+    text-shadow: 1px 1px 4px黑色;
+    margin-bottom: 20px;
+    text-align: center;
+  }
+
+  .info-box {
+    background: rgba(255, 255, 255, 0.9);
+    border-radius: 10px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    padding: 1.5rem;
+    width: 100%;
+    max-width: 350px;
+    text-align: left;
+  }
+
+  .info-box-body h3 {
+    text-align: center;
+    margin-bottom: 1rem;
+  }
+
+  .card-row {
+    display: flex;
+    justify-content: space-around;
+    flex-wrap: wrap;
+    gap: 1rem;
+    width: 100%;
+    max-width: 1200px;
+    margin-top: 2rem;
+  }
+
+  .btn-custom {
+    background-color: #007bff;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    padding: 0.5rem 1rem;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+  }
+
+  .btn-custom:hover {
+    background-color: #0056b3;
+  }
+
+  .necessities-heading {
+    color: red;
+  }
+</style>
+
+<div class="container">
+  <div class="background-image"></div>
+  <div class="outer">
+    <h3 class="section-title">查看保單</h3>
+    <div class="card-row">
+      <!-- 投保資訊card-->
+      <div class="info-box">
+        <h3>投保資訊</h3>
+        {% if user_insurance.insurance_company == 'fubung' %}
+        <p>投保公司：富邦人壽</p>
+        {% elif user_insurance.insurance_company == 'guotai'%}
+        <p>投保公司：國泰人壽</p>
+        {% endif %}
+        <p>方案: {{ user_insurance.plan }}</p>
+        <p>投保額度: {{ user_insurance.insured_amount }} 萬</p>
+        <p>投保天數: {{ user_insurance.days }} 天</p>
+
+        <div>
+          <h3>登錄航班資訊</h3>
+
+          <p>登錄日期: {{ depart_taiwan_date }}</p>
+          <p>登錄班機: {{ flight_depart_taoyuan }}</p>
+          {% if depart_flight%} {% if
+          depart_flight.time_difference.time_difference_min > 0 %}
+          <p>
+            起飛時間差：晚 {{ depart_flight.time_difference.time_difference_min
+            }} 分鐘
+          </p>
+          {% elif depart_flight.time_difference.time_difference_min < 0 %}
+          <p>
+            起飛時間差：提早 {{
+            depart_flight.time_difference.time_difference_min | abs }} 分鐘
+          </p>
+          {% else %}
+          <p>起飛時間差：準時</p>
+          {% endif %} {% else %}
+          <p>起飛時間差：尚未起飛</p>
+          {% endif %}
+        </div>
+      </div>
+
+      <!-- 不便險 card -->
+      <div class="info-box">
+        <h3>不便險</h3>
+        <form id="convenienceForm">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+          <input
+            type="hidden"
+            name="insuranceCompany"
+            value="{{ user_insurance.insurance_company }}"
+          />
+          <input type="hidden" name="plan" value="{{ user_insurance.plan }}" />
+          <input
+            type="hidden"
+            name="insuredAmount"
+            value="{{ user_insurance.insured_amount }}"
+          />
+          <input type="hidden" name="days" value="{{ user_insurance.days }}" />
+
+          <div class="dropdown mb-3">
+            <button
+              class="btn btn-secondary dropdown-toggle"
+              type="button"
+              id="convenienceDropdown"
+              data-bs-toggle="dropdown"
+              aria-expanded="false"
+            >
+              不便險
+            </button>
+            <ul class="dropdown-menu" aria-labelledby="convenienceDropdown">
+              <li>
+                <button
+                  type="button"
+                  class="dropdown-item"
+                  data-option="trip_cancel"
+                >
+                  旅程取消
+                </button>
+              </li>
+              <li>
+                <button
+                  type="button"
+                  class="dropdown-item"
+                  data-option="flight_delay"
+                >
+                  班機延誤
+                </button>
+              </li>
+              <li>
+                <button
+                  type="button"
+                  class="dropdown-item"
+                  data-option="trip_change"
+                >
+                  旅程更改
+                </button>
+              </li>
+              <li>
+                <button
+                  type="button"
+                  class="dropdown-item"
+                  data-option="baggage_delay"
+                >
+                  行李延誤
+                </button>
+              </li>
+              <li>
+                <button
+                  type="button"
+                  class="dropdown-item"
+                  data-option="baggage_damage"
+                >
+                  行李損失
+                </button>
+              </li>
+              <li>
+                <button
+                  type="button"
+                  class="dropdown-item"
+                  data-option="file_damage"
+                >
+                  旅行文件損失
+                </button>
+              </li>
+            </ul>
+            <input
+              type="hidden"
+              id="selectedConvenienceOption"
+              name="convenienceOption"
+            />
+          </div>
+          <button
+            type="submit"
+            class="btn btn-primary"
+            id="submitConvenienceBtn"
+          >
+            提交
+          </button>
+        </form>
+        <p id="pay_type"></p>
+        <p id="price"></p>
+        <p id="name"></p>
+        <p id="count"></p>
+        <p id="necessities"></p>
+        <p id="explain" style="display: none">範例：等待...</p>
+        <button id="toggleExplainBtn" style="display: none">查看範例</button>
+        <p id="description" style="display: none">保險內容：等待...</p>
+        <button id="toggleDescriptionBtn" style="display: none">
+          查看保險內容
+        </button>
+      </div>
+
+      <!-- 旅平險 card -->
+      <div class="info-box">
+        <h3>旅平險</h3>
+        <form id="travelInsuranceForm">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+          <input
+            type="hidden"
+            name="insuranceCompany"
+            value="{{ user_insurance.insurance_company }}"
+          />
+          <input type="hidden" name="plan" value="{{ user_insurance.plan }}" />
+          <input
+            type="hidden"
+            name="insuredAmount"
+            value="{{ user_insurance.insured_amount }}"
+          />
+          <input type="hidden" name="days" value="{{ user_insurance.days }}" />
+
+          <div class="dropdown mb-3">
+            <button
+              class="btn btn-secondary dropdown-toggle"
+              type="button"
+              id="travelInsuranceDropdown"
+              data-bs-toggle="dropdown"
+              aria-expanded="false"
+            >
+              旅平險
+            </button>
+            <ul class="dropdown-menu" aria-labelledby="travelInsuranceDropdown">
+              <li>
+                <button
+                  type="button"
+                  class="dropdown-item"
+                  data-option="sudden_illness"
+                >
+                  海外突發疾病健康
+                </button>
+              </li>
+              <li>
+                <button
+                  type="button"
+                  class="dropdown-item"
+                  data-option="medical_insurance"
+                >
+                  傷害醫療費用
+                </button>
+              </li>
+              <li>
+                <button
+                  type="button"
+                  class="dropdown-item"
+                  data-option="Death_disability"
+                >
+                  旅行平安保險
+                </button>
+              </li>
+            </ul>
+            <input
+              type="hidden"
+              id="selectedTravelOption"
+              name="travelInsuranceOption"
+            />
+          </div>
+          <button
+            type="submit"
+            class="btn btn-primary"
+            id="submitTravelInsuranceBtn"
+          >
+            提交
+          </button>
+        </form>
+        <p id="pay_type2"></p>
+        <p id="price2"></p>
+        <p id="name2"></p>
+        <p id="count2"></p>
+        <p id="necessities2"></p>
+        <p id="description2" style="display: none">保險內容：等待...</p>
+        <button id="toggleDescriptionBtn2" style="display: none">
+          查看保險內容
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  document
+    .getElementById("toggleDescriptionBtn")
+    .addEventListener("click", function () {
+      var description = document.getElementById("description");
+      if (description.style.display === "none") {
+        description.style.display = "block";
+        this.textContent = "隱藏";
+      } else {
+        description.style.display = "none";
+        // 恢復查看更多保險內容
+        this.textContent = "查看更多保險內容";
+      }
+    });
+
+  document
+    .getElementById("toggleDescriptionBtn2")
+    .addEventListener("click", function () {
+      var description2 = document.getElementById("description2");
+      if (description2.style.display === "none") {
+        description2.style.display = "block";
+        this.textContent = "隱藏";
+      } else {
+        description2.style.display = "none";
+        // 恢復查看更多保險內容
+        this.textContent = "查看更多保險內容";
+      }
+    });
+
+  document
+    .getElementById("toggleExplainBtn")
+    .addEventListener("click", function () {
+      var explain = document.getElementById("explain");
+      if (explain.style.display === "none") {
+        explain.style.display = "block"; // 顯示範例
+        this.textContent = "隱藏範例"; // 變更button 為“隐藏範例”
+      } else {
+        explain.style.display = "none"; // 隐藏範例
+        this.textContent = "查看範例"; // 恢復button 為“查看範例”
+      }
+    });
+
+  document.querySelectorAll(".dropdown-item").forEach((item) => {
+    item.addEventListener("click", function () {
+      const parentDropdown = this.closest(".dropdown");
+      const dropdownButtonId = parentDropdown.querySelector(
+        'button[data-bs-toggle="dropdown"]'
+      ).id;
+      const optionText = this.textContent;
+      const optionValue = this.getAttribute("data-option");
+      const hiddenInputId = parentDropdown.querySelector(
+        'input[type="hidden"]'
+      ).id;
+
+      document.getElementById(dropdownButtonId).textContent = optionText; // 更新button的文字
+      document.getElementById(hiddenInputId).value = optionValue; // 更新隐藏的input的值
+    });
+  });
+
+  document
+    .getElementById("submitConvenienceBtn")
+    .addEventListener("click", function (event) {
+      event.preventDefault();
+      const formData = new FormData(document.getElementById("convenienceForm"));
+      var csrftoken = document
+        .querySelector('meta[name="csrf-token"]')
+        .getAttribute("content");
+
+      fetch("/fetch_insurance_content", {
+        method: "POST",
+        body: formData,
+        headers: {
+          "X-CSRF-Token": csrftoken,
+        },
+      })
+        .then((response) => response.json())
+        .then((data) => {
+          console.log(data);
+          if (data.status === "success") {
+            document.getElementById("description").style.display = "none";
+            document.getElementById("toggleDescriptionBtn").style.display =
+              "inline-block";
+            document.getElementById(
+              "description"
+            ).textContent = `保險內容：${data.data.description}`;
+
+            document.getElementById("explain").style.display = "none";
+            document.getElementById("toggleExplainBtn").style.display =
+              "inline-block";
+            document.getElementById(
+              "explain"
+            ).textContent = `範例：${data.data.explain}`;
+            document.getElementById(
+              "pay_type"
+            ).textContent = `支付類型：${data.data.pay_type}`;
+            document.getElementById(
+              "price"
+            ).textContent = `理賠金額：${data.data.price}`;
+            document.getElementById(
+              "name"
+            ).textContent = `保險名：${data.data.name}`;
+            document.getElementById(
+              "count"
+            ).textContent = `理賠最高次數：${data.data.count}`;
+
+            let necessitiesHtml =
+              '<span class="necessities-heading">理賠需準備文件：</span><ul>';
+            const { necessities } = data.data;
+
+            if (Array.isArray(necessities)) {
+              necessities.forEach((item) => {
+                if (typeof item === "object" && item !== null) {
+                  for (let key in item) {
+                    if (Array.isArray(item[key])) {
+                      necessitiesHtml += `<li>${key}：<ul>`;
+                      item[key].forEach((doc) => {
+                        necessitiesHtml += `<li>${doc}</li>`;
+                      });
+                      necessitiesHtml += "</ul></li>";
+                    } else {
+                      necessitiesHtml += `<li>${key}: ${item[key]}</li>`;
+                    }
+                  }
+                } else {
+                  necessitiesHtml += `<li>${item}</li>`;
+                }
+              });
+            } else if (typeof necessities === "string") {
+              necessitiesHtml += `<li> 理賠申請書 </li>`;
+              necessitiesHtml += `<li> 保單或投保憑證影本 </li>`;
+              necessitiesHtml += `<li> 身分證明文件 </li>`;
+            } else if (necessities && typeof necessities === "object") {
+              for (let key in necessities) {
+                necessitiesHtml += `<li>${key}: ${necessities[key]}</li>`;
+              }
+            }
+
+            necessitiesHtml += "</ul>";
+            document.getElementById("necessities").innerHTML = necessitiesHtml;
+            // document.getElementById("necessities").style.color = "red";
+            // document.getElementById("necessities").style.fontSize = "larger";
+          } else {
+            alert("沒有找到數據");
+          }
+        })
+        .catch((error) => {
+          console.error("Error:", error);
+          alert("請求失敗");
+        });
+    });
+  //  這邊開始請求 旅平險 －－－－－－－－－－－－－－
+
+  document
+    .getElementById("submitTravelInsuranceBtn")
+    .addEventListener("click", function (event) {
+      event.preventDefault();
+      const formData = new FormData(
+        document.getElementById("travelInsuranceForm")
+      );
+
+      fetch("/fetch_travel_insurance_content", {
+        method: "POST",
+        body: formData,
+      })
+        .then((response) => response.json())
+        .then((data) => {
+          console.log(data);
+          if (data.status === "success") {
+            document.getElementById(
+              "pay_type2"
+            ).textContent = `支付類型：${data.data.pay_type}`;
+            document.getElementById(
+              "price2"
+            ).textContent = `理賠金額：${data.data.price}`;
+            document.getElementById(
+              "name2"
+            ).textContent = `保險名：${data.data.name}`;
+            document.getElementById("count2").textContent = `理賠最高次數：1`;
+            // document.getElementById(
+            //   "description2"
+            // ).textContent = `保險內容：${data.data.description}`;
+            document.getElementById("description2").style.display = "none"; // 確保保險內容一開始是隐藏的
+            document.getElementById("toggleDescriptionBtn2").style.display =
+              "inline-block"; // 顯示按钮
+            document.getElementById(
+              "description2"
+            ).textContent = `保險內容：${data.data.description}`; // 設置保險內容
+
+            // document.getElementById(
+            //   "necessities2"
+            // ).textContent = `理賠需準備文件：${data.data.necessities}`;
+
+            let necessitiesHtml =
+              '<span class="necessities-heading">理賠需準備文件：</span><ul>';
+            const { necessities } = data.data;
+
+            if (Array.isArray(necessities)) {
+              necessities.forEach((item) => {
+                if (typeof item === "object" && item !== null) {
+                  // Assume it's an object with keys and array values
+                  for (let key in item) {
+                    if (Array.isArray(item[key])) {
+                      necessitiesHtml += `<li>${key}：<ul>`;
+                      item[key].forEach((doc) => {
+                        necessitiesHtml += `<li>${doc}</li>`;
+                      });
+                      necessitiesHtml += "</ul></li>";
+                    } else {
+                      // Handle case where item[key] is not an array
+                      necessitiesHtml += `<li>${key}: ${item[key]}</li>`;
+                    }
+                  }
+                } else {
+                  // Handle case where item is not an object (e.g., a string)
+                  necessitiesHtml += `<li>${item}</li>`;
+                }
+              });
+            } else if (typeof necessities === "string") {
+              // Handle case where necessities is a simple string
+              necessitiesHtml += `<li> 理賠申請書 </li>`;
+              necessitiesHtml += `<li> 保單或投保憑證影本 </li>`;
+              necessitiesHtml += `<li> 身分證明文件 </li>`;
+            } else if (necessities && typeof necessities === "object") {
+              // Handle case where necessities is a single object (not in an array)
+              for (let key in necessities) {
+                necessitiesHtml += `<li>${key}: ${necessities[key]}</li>`;
+              }
+            }
+
+            necessitiesHtml += "</ul>";
+            document.getElementById("necessities2").innerHTML = necessitiesHtml;
+          } else {
+            alert("沒有找到數據");
+          }
+        })
+        .catch((error) => {
+          console.error("Error:", error);
+          alert("請求失敗");
+        });
+    });
+</script>
+{% endblock %} {% block scripts %}
+<!----------------- 保單試算  button end----------------- -->
+
+{% endblock %}

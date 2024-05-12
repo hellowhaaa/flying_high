@@ -31,9 +31,29 @@ insurance/.env
 
 # server folder
 server/__pycache__/
+server/logs/
+server/templates/map_*.html
 
 # streamlit folder
 .streamlit/
 
-# logs folder
-server/logs/
+# script
+.scp.sh
+.scp_ubuntu.sh
+.scp_linux_after_restructure.sh
+
+# email_notify folder
+
+email_notify/config/
+email_notify/logs/
+email_notify/plugins/
+email_notify/.env
+email_notify/dags/__pycache__
+email_notify/dags/.env
+
+# map folder
+map/create_latitude.py
+map/dags/__pycache__/
+
+logs/
+.env

@@ -114,7 +114,7 @@ services:
     <<: *airflow-common
     command: webserver
     ports:
-      - "8080:8080"
+      - "8081:8080"
     healthcheck:
       test: ["CMD", "curl", "--fail", "http://localhost:8080/health"]
       interval: 30s
@@ -289,21 +289,6 @@ services:
       <<: *airflow-common-depends-on
       airflow-init:
         condition: service_completed_successfully
-  selenium:
-    container_name: remote_chromedriver
-    image: seleniarm/standalone-chromium:latest
-    environment:
-      SE_NODE_MAX_SESSIONS: 2
-      SE_NODE_OVERRIDE_MAX_SESSIONS: True
-    ports:
-      - 4444:4444
-    restart: always
-  # selenium:
-  #   container_name: remote_chromedriver
-  #   image: seleniarm/standalone-chromium:latest
-  #   ports:
-  #     - 4444:4444
-  #   restart: always
 
 volumes:
   postgres-db-volume:

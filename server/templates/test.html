@@ -1,0 +1,21 @@
+<!-- Static display state from MongoDB fetched data -->
+<div class="static-info mb-3">
+  <p class="mb-2">
+    投保公司:
+    <span id="insurance-company-display"
+      >{{ user_info_dict['insurance_company'] }}</span
+    >
+  </p>
+  <p class="mb-2">
+    投保方案: <span id="plan-display">{{ user_info_dict['plan'] }}</span>
+  </p>
+  <p class="mb-2">
+    投保額度:
+    <span id="insured-amount-display">
+      {{ user_info_dict['insured_amount'] }}</span
+    >
+  </p>
+  <p class="mb-2">
+    投保天數: <span id="days-display">{{ user_info_dict['days'] }}</span>
+  </p>
+</div>

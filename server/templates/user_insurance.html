@@ -1,48 +1,112 @@
-{% extends "layout.html" %} {% block content %}
+{% extends "layout.html" %}{% block content %}
 <style>
   .outer {
     position: relative;
-    min-height: 60vh; /* Set to the height of the viewport */
+    min-height: 60vh;
     display: flex;
-    justify-content: center; /* Center horizontally */
-    align-items: center; /* Center vertically */
+    justify-content: center;
+    align-items: center;
   }
   .insurance-info {
-    position: absolute; /* Allows absolute positioning inside */
-    background: rgba(
-      255,
-      255,
-      255,
-      0.879
-    ); /* Semi-transparent white background */
+    position: absolute;
+    background: rgba(255, 255, 255, 0.879);
     padding: 2rem;
-    border-radius: 1rem; /* Rounded corners */
-    box-shadow: 0 0 1rem rgba(0, 0, 0, 0.1); /* Soft shadow */
+    border-radius: 1rem;
+    box-shadow: 0 0 1rem rgba(0, 0, 0, 0.1);
     width: 75%;
-    min-height: 400px; /* Ensures that there's enough space for positioning */
+    min-height: 400px;
     transform: translateY(10px);
   }
   .container {
-    position: relative; /* Allows absolute positioning inside */
-  }
-  .insurance-title {
     position: relative;
-    top: -220px;
-    left: 0px;
-    color: white;
   }
-  .my-insurance {
-    position: relative;
-    top: -210px;
-    left: 50px;
-    color: white;
+  .dropdown-btn {
+    background-color: #f7f9fc;
+    border: 1px solid #d1d8e0;
+    border-radius: 8px;
+    color: #4f6ea8;
+    padding: 10px 20px;
+    width: 100%;
+    max-width: 300px;
+    text-align: left;
+    cursor: pointer;
+    transition: all 0.3s;
+    font-weight: normal;
+  }
+  .dropdown-btn:hover {
+    background-color: #e9efff;
+    border-color: #b5c9ff;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  }
+  .dropdown-menu-custom {
+    width: 100%;
+    max-width: 300px;
+  }
+  .btn-cancel-soft {
+    background-color: #e6e6e6b7;
+    border: 1px solid #cccccc;
+    border-radius: 8px;
+    color: #333333;
+    padding: 8px 16px;
+    box-shadow: 0 3px 5px rgba(0, 0, 0, 0.1);
+    text-transform: uppercase;
+    transition: all 0.2s;
+    font-weight: normal;
+  }
+  .btn-cancel-soft:hover {
+    background-color: #d6d6d6;
+    border-color: #b3b3b3;
+    box-shadow: 0 6px 10px rgba(0, 0, 0, 0.15);
+  }
+  .btn-custom-soft {
+    background-color: #f0f4ff9a;
+    border: 1px solid #c7d2ff;
+    border-radius: 8px;
+    color: #4f6ea8;
+    padding: 8px 16px;
+    box-shadow: 0 3px 5px rgba(0, 0, 0, 0.1);
+    text-transform: uppercase;
+    transition: all 0.2s;
+    font-weight: normal;
+  }
+  .btn-custom-soft:hover {
+    background-color: #d8e2ff;
+    border-color: #b3c4ff;
+    box-shadow: 0 6px 10px rgba(0, 0, 0, 0.15);
+  }
+  .container-fluid-full {
+    background-color: #f1f1f1;
+    min-height: 100vh;
+  }
+
+  .sidebar {
+    background-color: #f8f9fa;
+    padding-top: 20px;
+    min-height: 100vh;
+    margin: 0;
+    text-align: center;
+  }
+
+  .sidebar .nav-link {
+    color: #414350;
+    font-size: 1.2em;
+    padding: 15px 10px;
+    transition: all 0.2s;
+  }
+
+  /* Main Content */
+  .content {
+    background-color: #ffffff;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 3px 8px rgba(0, 0, 0, 0.1);
   }
 </style>
 
-<div class="container-fluid">
+<div class="container-fluid-full">
   <div class="row">
     <!-- Sidebar -->
-    <div class="col-md-2 bg-light sidebar py-5">
+    <div class="col-md-2 sidebar">
       <ul class="nav flex-column">
         <li class="nav-item">
           <a class="nav-link" href="info.html">我的資料</a>
@@ -50,90 +114,325 @@
         <li class="nav-item">
           <a class="nav-link active" href="insurance.html">我的保險</a>
         </li>
+        <li class="nav-item">
+          <a class="nav-link active" href="notify.html">通知設定</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link active" href="flight.html">我的航班</a>
+        </li>
       </ul>
     </div>
-
-    <!-- Main Content -->
-    <div class="col-md-10">
+    <div class="col-md-10 content">
       <div class="py-4 px-md-5">
         <h1 class="mb-4">我的保險</h1>
-        <div class="user-info">
-          <!-- Static display state from MongoDB fetched data -->
-          <div class="static-info mb-3">
-            <p class="mb-2">
-              投保公司: <span id="insurance-company-display">{{ user_info_dict['insurance_company'] }}</span>
-            </p>
-            <p class="mb-2">
-              投保方案: <span id="plan-display">{{ user_info_dict['plan'] }}</span>
-            </p>
-            <p class="mb-2">
-              投保額度: <span id="insured-amount-display"> {{ user_info_dict['insured_amount'] }}</span>
-            </p>
-            <p class="mb-2">
-              投保天數: <span id="days-display">{{ user_info_dict['days'] }}</span>
-            </p>
-            <button class="btn btn-secondary mt-3" onclick="toggleEdit(true)">編輯</button>
-          </div>
-
-          <!-- Editable input state -->
-          <div class="editable-info" style="display: none">
-            <div class="mb-3">
-              <label for="insurance-company-edit" class="form-label">投保公司:</label>
-              <button class="btn btn-secondary opacity-50 dropdown-toggle" type="button" id="insuranceCompanyDropdown" data-bs-toggle="dropdown" aria-expanded="false">選擇保險公司</button>
-              <ul class="dropdown-menu" aria-labelledby="insuranceCompanyDropdown" id="insuranceCompanyMenu">
-                <li><a class="dropdown-item" href="#" data-company="fubung">富邦</a></li>
-                <li><a class="dropdown-item" href="#" data-company="guotai">國泰</a></li>
-              </ul>
-              <input type="hidden" id="insurance-company-edit" name="insurance_company" value="{{ user_info_dict['insurance_company'] }}"
-              autocomplete="insurance_company">
-            </div>
-
-            <div class="mb-3">
-              <label for="plan-edit" class="form-label">投保方案:</label>
-              <button class="btn btn-secondary opacity-50 dropdown-toggle" type="button" id="planDropdown" data-bs-toggle="dropdown" aria-expanded="false">選擇方案</button>
-              <ul class="dropdown-menu" aria-labelledby="planDropdown" id="planMenu">
-                <!-- Filled dynamically -->
-              </ul>
-              <input type="hidden" id="plan-edit" name="plan">
-            </div>
-
-            <div class="mb-3">
-              <label for="insured-amount-edit" class="form-label">投保額度:</label>
-              <button class="btn btn-secondary opacity-50 dropdown-toggle" type="button" id="insuranceAmountDropdown" data-bs-toggle="dropdown" aria-expanded="false">選擇額度</button>
-              <ul class="dropdown-menu" aria-labelledby="insuranceAmountDropdown" id="insuranceAmountMenu">
-                <!-- Filled dynamically -->
-              </ul>
-              <input type="hidden" id="insured-amount-edit" name="insured_amount">
-            </div>
-
-            <div class="mb-3">
-              <label for="days-edit" class="form-label">投保天數:</label>
-              <button class="btn btn-secondary opacity-50 dropdown-toggle" type="button" id="daysDropdown" data-bs-toggle="dropdown" aria-expanded="false">選擇天數</button>
-              <ul class="dropdown-menu" aria-labelledby="daysDropdown" id="daysMenu">
-                <!-- Filled dynamically -->
-              </ul>
-              <input type="hidden" id="days-edit" name="days">
-            </div>
-            <button
-              type="button"
-              class="btn btn-success"
-              onclick="submitChanges()"
+        <!-- Static Information -->
+        <div id="static-info" class="static-info">
+          {% if user_info_dict%}
+          <p class="mb-2">
+            投保公司:
+            <span id="insurance-company-display"
+              >{% if user_info_dict['insurance_company'] == 'fubung' %} 富邦人壽
+              {% elif user_info_dict['insurance_company'] == 'guotai'%} 國泰人壽
+              {% endif %}</span
             >
-              儲存
-            </button>
-            <button class="btn btn-secondary opacity-50 ms-2" onclick="toggleEdit(false)">
-              取消
-            </button>
-          </div>
+          </p>
+          <p class="mb-2">
+            投保天數:
+            <span id="days-display">{{ user_info_dict['days'] }} 天</span>
+          </p>
+
+          <p class="mb-2">
+            投保方案:
+            <span id="plan-display">{{ user_info_dict['plan'] }}</span>
+          </p>
+          <p class="mb-2">
+            投保金額:
+            <span id="insured-amount-display"
+              >{{ user_info_dict['insured_amount'] }} 萬</span
+            >
+          </p>
+          {% else %}
+          <h4>您尚未做設定</h4>
+          {% endif %}
+          <button class="btn btn-custom-soft mt-3" onclick="toggleEdit(true)">
+            編輯
+          </button>
         </div>
+        <form
+          id="edit-form"
+          action="{{url_for('update_insurance')}}"
+          method="POST"
+          style="display: none"
+        >
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+          <input
+            type="hidden"
+            name="insurance_company"
+            id="selectedInsuranceCompany"
+          />
+          <input type="hidden" name="insurance_plan" id="selectedPlan" />
+          <input
+            type="hidden"
+            name="insured_amount"
+            id="selectedInsuranceAmount"
+          />
+          <input type="hidden" name="days" id="selectedDays" />
+
+          <!-- 保險公司下拉選單 -->
+          <div class="dropdown mb-3">
+            <button
+              class="dropdown-btn dropdown-toggle"
+              type="button"
+              id="insuranceCompanyDropdown"
+              data-bs-toggle="dropdown"
+              aria-expanded="false"
+            >
+              選擇保險公司
+            </button>
+            <ul
+              class="dropdown-menu dropdown-menu-custom"
+              aria-labelledby="insuranceCompanyDropdown"
+              id="insuranceCompanyMenu"
+            >
+              <li>
+                <a class="dropdown-item" data-company="fubung">富邦人壽</a>
+              </li>
+              <li>
+                <a class="dropdown-item" data-company="guotai">國泰人壽</a>
+              </li>
+            </ul>
+          </div>
+          <div class="dropdown mb-3">
+            <button
+              class="dropdown-btn dropdown-toggle"
+              type="button"
+              id="planDropdown"
+              data-bs-toggle="dropdown"
+              aria-expanded="false"
+            >
+              選擇方案
+            </button>
+            <ul
+              class="dropdown-menu dropdown-menu-custom"
+              aria-labelledby="planDropdown"
+              id="planMenu"
+            ></ul>
+          </div>
+          <div class="dropdown mb-3">
+            <button
+              class="dropdown-btn dropdown-toggle"
+              type="button"
+              id="insuranceAmountDropdown"
+              data-bs-toggle="dropdown"
+              aria-expanded="false"
+            >
+              選擇額度
+            </button>
+            <ul
+              class="dropdown-menu dropdown-menu-custom"
+              aria-labelledby="insuranceAmountDropdown"
+              id="insuranceAmountMenu"
+            ></ul>
+          </div>
+          <div class="dropdown mb-3">
+            <button
+              class="dropdown-btn dropdown-toggle"
+              type="button"
+              id="daysDropdown"
+              data-bs-toggle="dropdown"
+              aria-expanded="false"
+            >
+              選擇天數
+            </button>
+            <ul
+              class="dropdown-menu dropdown-menu-custom"
+              aria-labelledby="daysDropdown"
+              id="daysMenu"
+            >
+              <!-- Dynamically filled with JavaScript -->
+            </ul>
+          </div>
+          <button
+            type="button"
+            class="btn btn-cancel-soft"
+            onclick="toggleEdit(false)"
+          >
+            取消
+          </button>
+          <button type="submit" class="btn btn-custom-soft">儲存</button>
+        </form>
       </div>
     </div>
   </div>
 </div>
 
-      {% block user_insurance_script %}
-      <script src="../static/js/user_insurance.js"></script>
-      {% endblock %} {% endblock %}
-    </div>
-  </div>
-</div>
+{% block user_insurance_script %}
+
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+    const insuranceCompanyMenu = document.getElementById(
+      "insuranceCompanyDropdown"
+    ).nextElementSibling;
+    const planDropdownButton = document.getElementById("planDropdown");
+    const planDropdownMenu = document.getElementById("planMenu");
+    const insuranceAmountButton = document.getElementById(
+      "insuranceAmountDropdown"
+    );
+    const insuranceAmountMenu = document.getElementById("insuranceAmountMenu");
+
+    const planOptions = {
+      fubung: ["S方案", "M方案", "L方案", "XL方案"],
+      guotai: [
+        "海外輕鬆型(T2)",
+        "海外安心型(T2)",
+        "賞櫻限定型(Z)",
+        "早鳥豪華型(U2)",
+      ],
+    };
+
+    insuranceCompanyMenu.addEventListener("click", function (event) {
+      if (event.target.tagName === "A") {
+        const selectedCompany = event.target.textContent;
+        insuranceCompanyDropdown.textContent = selectedCompany; // Update dropdown button text
+        updateDropdown(
+          planDropdownMenu,
+          planOptions[event.target.dataset.company]
+        );
+      }
+    });
+
+    function updateDropdown(dropdown, options) {
+      dropdown.innerHTML = ""; // Clear previous options
+      options.forEach((option) => {
+        const li = document.createElement("li");
+        const a = document.createElement("a");
+        a.className = "dropdown-item";
+        a.textContent = option;
+        a.href = "#";
+        a.addEventListener("click", function (e) {
+          e.preventDefault();
+          planDropdownButton.textContent = option; // Update dropdown button text
+          if (insuranceAmountsByPlan[option]) {
+            updateInsuranceAmountOptions(insuranceAmountsByPlan[option]);
+          }
+        });
+        li.appendChild(a);
+        dropdown.appendChild(li);
+      });
+    }
+
+    const insuranceAmountsByPlan = {
+      S方案: { min: 200, max: 1500, step: 100 },
+      M方案: { min: 300, max: 1500, step: 100 },
+      L方案: { min: 600, max: 1500, step: 100 },
+      XL方案: { min: 1200, max: 1500, step: 100 },
+      "海外輕鬆型(T2)": { min: 200, max: 1500, step: 100 },
+      "海外安心型(T2)": { min: 200, max: 400, step: 100 },
+      "賞櫻限定型(Z)": { min: 500, max: 1500, step: 100 },
+      "早鳥豪華型(U2)": { min: 300, max: 1500, step: 100 },
+    };
+
+    function updateInsuranceAmountOptions({ min, max, step }) {
+      insuranceAmountMenu.innerHTML = ""; // Clear previous options
+      for (let amount = min; amount <= max; amount += step) {
+        const li = document.createElement("li");
+        const a = document.createElement("a");
+        a.className = "dropdown-item";
+        a.textContent = `${amount}萬`;
+        a.href = "#";
+        a.addEventListener("click", function (e) {
+          e.preventDefault();
+          insuranceAmountButton.textContent = `${amount}萬`; // Update dropdown button text
+          document.getElementById("selectedInsuranceAmount").value = amount;
+        });
+        li.appendChild(a);
+        insuranceAmountMenu.appendChild(li);
+      }
+    }
+  });
+  // 切换静态信息和编辑表单的显示
+  function toggleEdit(editMode) {
+    const staticInfo = document.getElementById("static-info");
+    const editForm = document.getElementById("edit-form");
+
+    if (editMode) {
+      // Display editable block, Hide static information
+      staticInfo.style.display = "none";
+      editForm.style.display = "block";
+    } else {
+      // Display static information, Hide editable block
+      staticInfo.style.display = "block";
+      editForm.style.display = "none";
+    }
+  }
+
+  document.addEventListener("DOMContentLoaded", function () {
+    const daysDropdownButton = document.getElementById("daysDropdown");
+    const daysMenu = document.getElementById("daysMenu");
+
+    for (let day = 3; day <= 30; day++) {
+      const li = document.createElement("li");
+      const a = document.createElement("a");
+      a.className = "dropdown-item";
+      a.textContent = `${day}天`;
+      a.href = "#";
+      a.addEventListener("click", function (e) {
+        e.preventDefault();
+        daysDropdownButton.textContent = `${day}天`; // Update dropdown button text
+        document.getElementById("days-edit").value = day; // Update the hidden input to reflect selected day
+      });
+      li.appendChild(a);
+      daysMenu.appendChild(li);
+    }
+  });
+
+  document.addEventListener("DOMContentLoaded", function () {
+    const insuranceCompanyMenu = document.getElementById(
+      "insuranceCompanyMenu"
+    );
+    const planDropdownMenu = document.getElementById("planMenu");
+    const insuranceAmountMenu = document.getElementById("insuranceAmountMenu");
+    const daysMenu = document.getElementById("daysMenu");
+
+    // 更新保險公司選擇
+    insuranceCompanyMenu.addEventListener("click", function (event) {
+      if (event.target.tagName === "A") {
+        document.getElementById("selectedInsuranceCompany").value =
+          event.target.dataset.company;
+        document.getElementById("insuranceCompanyDropdown").textContent =
+          event.target.textContent;
+      }
+    });
+
+    // 更新方案選擇
+    planDropdownMenu.addEventListener("click", function (event) {
+      if (event.target.tagName === "A") {
+        document.getElementById("selectedPlan").value =
+          event.target.textContent;
+        document.getElementById("planDropdown").textContent =
+          event.target.textContent;
+      }
+    });
+
+    // 更新保險額度選擇
+    insuranceAmountMenu.addEventListener("click", function (event) {
+      if (event.target.tagName === "A") {
+        document.getElementById("selectedInsuranceAmount").value =
+          event.target.textContent;
+        document.getElementById("insuranceAmountDropdown").textContent =
+          event.target.textContent;
+      }
+    });
+
+    // 更新天數選擇
+    daysMenu.addEventListener("click", function (event) {
+      if (event.target.tagName === "A") {
+        document.getElementById("selectedDays").value =
+          event.target.textContent;
+        document.getElementById("daysDropdown").textContent =
+          event.target.textContent;
+      }
+    });
+  });
+</script>
+{% endblock %} {% endblock %}
