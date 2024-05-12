@@ -23,7 +23,7 @@ sudo yum install -y python3 python3-pip
 
 # Install application dependencies from requirements.txt
 echo "Install application dependencies from requirements.txt"
-sudo pip install -r requirements.txt
+pip3 install -r requirements.txt
 
 # Update and install Nginx if not already installed
 # if ! command -v nginx > /dev/null; then
