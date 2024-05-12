@@ -8,6 +8,7 @@ import os
 from datetime import datetime, timedelta
 import logging
 from logging.handlers import RotatingFileHandler
+from streamlit_navigation_bar import st_navbar
 
 log_path = os.path.join(os.getcwd(), 'logs')
 # Ensure the directory exists
@@ -23,6 +24,46 @@ file_handler.setLevel(logging.INFO)
 logger = logging.getLogger('dashboard')
 logger.addHandler(file_handler)
 logger.setLevel(logging.INFO)
+def navbar():
+    st.markdown("""
+        <style>
+        .navbar {
+            display: flex;
+            justify-content: center;
+            
+            padding: 10px;
+        }
+        .navbar ul {
+            list-style: none;
+            display: flex;
+            gap: 20px;
+        }
+        .navbar li {
+            display: inline;
+        }
+        .navbar a {
+            text-decoration: none;
+            color: #4F4F4F	;
+            font-size: 18px;
+            font-weight: bold;
+        }
+        .navbar a:hover {
+            text-decoration: underline;
+        }
+        </style>
+        <nav class="navbar">
+            <ul>
+                <li><a href="#home">Home</a></li>
+                <li><a href="#features">Features</a></li>
+                <li><a href="#pricing">Pricing</a></li>
+                <li><a href="#dropdown">Dropdown</a></li>
+            </ul>
+        </nav>
+    """, unsafe_allow_html=True)
+
+# Display the navigation bar at the top of the Streamlit app
+
+
 
 def get_on_time_performance_by_week(week):
     try:
@@ -343,22 +384,24 @@ def load_airlines(collection):
     except Exception as e:
         logger.error(f'Error loading airlines: {e}')
         
-def setup_sidebar():
-    try:
-        st.sidebar.header('Get Flight Punctuality')
-        # fill out the dropdown in sidebar
-        # origin = st.sidebar.selectbox('Origin', ['Taoyuan Airport', 'Song Shan Airport'])
-        destination = st.sidebar.selectbox('Destination', st.session_state.destinations)
-        airline = st.sidebar.selectbox('Airline', st.session_state.airlines)
-        weeks = st.sidebar.selectbox('Within weeks', ['1', '2', '3', '4'])
-        submit = st.sidebar.button('Submit')
-        return weeks, destination, airline, submit
-    except Exception as e:
-        logger.error(f'Error setting up sidebar: {e}')
-        return None, None, None, None, None
+# def setup_sidebar():
+#     try:
+#         navbar()
+#         st.sidebar.header('Get Flight Punctuality')
+#         # fill out the dropdown in sidebar
+#         # origin = st.sidebar.selectbox('Origin', ['Taoyuan Airport', 'Song Shan Airport'])
+#         destination = st.sidebar.selectbox('Destination', st.session_state.destinations)
+#         airline = st.sidebar.selectbox('Airline', st.session_state.airlines)
+#         weeks = st.sidebar.selectbox('Within weeks', ['1', '2', '3', '4'])
+#         submit = st.sidebar.button('Submit')
+#         return weeks, destination, airline, submit
+#     except Exception as e:
+#         logger.error(f'Error setting up sidebar: {e}')
+#         return None, None, None, None, None
 
 def main():
     try:
+        
         db = init_db()
         collection = db['flight_depart2']
         
@@ -375,6 +418,7 @@ def main():
         submit = st.sidebar.button('Submit')
         if submit:
             # Display data as a table
+            navbar()
             data = get_on_time_performance_by_week(weeks)
             data_all = get_airline_on_time_performance(airline)
             all_flights = select_airlines_all(weeks)
@@ -412,6 +456,11 @@ def main():
                 ax.set_title('Each Week On-Time Performance')
                 fig.set_size_inches(5, 3)
                 st.pyplot(fig)
+        st.markdown("""
+<script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script>
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>
+""", unsafe_allow_html=True)
     except Exception as e:
         logger.error(f'Error in main: {e}')
     
