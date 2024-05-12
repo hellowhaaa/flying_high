@@ -1,25 +1,25 @@
+name: Deploy to EC2
+
 on:
   push:
     branches:
-      - main
-
-name: Deploy
+      - "16-CICD-PYTHON-WEBAPP" # This triggers the workflow on push to any branch
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout current branch
-        uses: actions/checkout@v4
+        uses: actions/checkout@v2
 
       - name: Set up SSH key and whitelist EC2 IP address
         run: |
           mkdir -p ~/.ssh
-          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
+          echo "${{ secrets.EC2_SSH_KEY }}" > ~/.ssh/id_rsa
           chmod 600 ~/.ssh/id_rsa
-          ssh-keyscan ${{ secrets.EC2_PUBLIC_IP }} >> ~/.ssh/known_hosts
+          ssh-keyscan ${{ secrets.EC2_HOST }} >> ~/.ssh/known_hosts
 
-      - name: Create .env dynamically
+      - name: Create .env file dynamically
         env:
           ENV: ${{ secrets.ENV }}
           EC2_USERNAME: ${{ secrets.EC2_USERNAME }}
@@ -34,7 +34,7 @@ jobs:
         run: |
           scp -r ./server ./map ./dashboard $EC2_USERNAME@$EC2_HOST:/home/$EC2_USERNAME/
 
-      - name: Run Bash script to deploy app
+      - name: Run Bash Script To Delpoy App
         env:
           EC2_HOST: ${{ secrets.EC2_HOST }}
           EC2_USERNAME: ${{ secrets.EC2_USERNAME }}
