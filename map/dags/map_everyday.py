@@ -1,20 +1,17 @@
 import folium
-from folium.plugins import MarkerCluster
-from folium import features
 import os
 from pymongo import MongoClient
 import pytz
-from datetime import datetime,timedelta
+from datetime import datetime
 from dotenv import load_dotenv
 import re
 from geopy.geocoders import Nominatim
 from geopy.exc import GeocoderTimedOut,GeocoderUnavailable
 import time
 import pendulum
-from branca.element import Template, MacroElement, Element
+from branca.element import Element
 load_dotenv()
 url = os.getenv("MONGODB_URI_FLY")
-print(url)
 client = MongoClient(url)
 
 db = client['flying_high']
@@ -98,21 +95,6 @@ def get_location_list_by_address(address, attempt=1, max_attempts=5):
             raise e
         
 
-# ## get longitude and latitude
-# useranget = "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Mobile Safari/537.36,gzip(gfe)"
-# geolocator = Nominatim(user_agent=useranget)
-
-# def get_location_list_by_address(address):
-#     try:
-#         location = geolocator.geocode(address)
-#         if location:
-#             return [location.latitude, location.longitude]
-#         else:
-#             return (None, None)
-#     except GeocoderTimedOut:
-#         return get_location_list_by_address(address) # retry if timeout
-
-
 def arrive_result(collection_name):
     destinations = []  
     for location in unique_arrive_destination_list:
@@ -147,7 +129,6 @@ def arrive_result(collection_name):
         time.sleep(1)
     return destinations # list
 
-# print(destinations)
 
 def depart_result(collection_name):
     destinations = []  
@@ -202,13 +183,68 @@ def task_map():
     current_date = datetime.now(taiwan_tz).strftime('%Y-%m-%d')
 
     date_html = f"""
-    <div style="position: absolute; top: 10px; left: 10px; z-index:9999; font-size:16px; 
+    <div style="position: absolute; bottom: 10px; left: 10px; z-index:9999; font-size:16px; 
                 background-color: white; padding: 5px; border: 2px solid black; border-radius: 5px;">
         Map created on: {current_date}
     </div>
     """
     
     date_element = Element(date_html)
+    map.get_root().html.add_child(date_element)
+    
+    style_and_navbar_html = """
+    <style>
+    .navbar-nav {
+        display: flex;
+        gap: 7px;
+        margin-left: 0;
+    }
+
+    .nav-item {
+        margin-right: 10px;
+    }
+
+    .nav-link {
+        color: #555;
+        transition: all 0.2s ease;
+    }
+
+    .nav-link:hover {
+        color: #000;
+        text-decoration: underline;
+    }
+
+    .navbar-brand {
+        color: #000;
+    }
+    </style>
+    <nav class="navbar-expand-sm bg-body-tertiary">
+      <div class="container-fluid">
+        <div class="row w-100">
+          <div class="col-2 d-flex justify-content-center align-items-center">
+            <a class="navbar-brand" href="/">Flying High</a>
+          </div>
+          <div class="col-9">
+            <ul class="navbar-nav d-flex justify-content-start">
+              <li class="nav-item">
+                <a class="nav-link" href="/search_flight">Search Flight</a>
+              </li>
+              <li class="nav-item">
+                <a class="nav-link" href="/insurance">Insurance</a>
+              </li>
+              <li class="nav-item">
+                <a class="nav-link" href="/flight_map">Flight Map</a>
+              </li>
+              <li class="nav-item">
+                <a class="nav-link" href="https://www.flyinghigh.live/dashboard/">Dashboard</a>
+              </li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </nav>
+    """
+    date_element = Element(style_and_navbar_html)
     map.get_root().html.add_child(date_element)
 
 
