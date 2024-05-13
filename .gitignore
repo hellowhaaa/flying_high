@@ -32,7 +32,7 @@ insurance/.env
 # server folder
 server/__pycache__/
 server/logs/
-server/templates/map_*.html
+
 
 # streamlit folder
 .streamlit/

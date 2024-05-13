@@ -32,16 +32,6 @@ conda activate myenv_py310
 # Confirm which Python is being used
 echo "Using Python at $(which python3)"
 
-# Navigate to the map directory
-cd /home/ec2-user/production/map/dags
-
-# Run Python script
-echo "Running map_everyday.py..."
-python3 map_everyday.py
-echo "map_everyday.py script executed."
-
-# Navigate to the server directory
-cd /home/ec2-user/production/server
 
 # kill the gunicorn process
 sudo pkill gunicorn
