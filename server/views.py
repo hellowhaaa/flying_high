@@ -300,7 +300,7 @@ def update_notify(current_user):
 
 def index():
     try:
-        return render_template('homepage.html')
+        return render_template('search_flight.html')
     except Exception as e:
         current_app.logger.error(f"An error occurred: {str(e)}", exc_info=True)
         abort(500)
