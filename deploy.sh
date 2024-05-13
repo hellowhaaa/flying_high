@@ -25,12 +25,23 @@ cd /home/ec2-user/production/server
 # echo "Install application dependencies from requirements.txt"
 # pip3 install -r requirements.txt
 
-echo "Activating the 'fly' environment..."
+echo "Activating the 'myenv_py310' environment..."
 source ~/miniconda3/etc/profile.d/conda.sh
 conda activate myenv_py310
 
 # Confirm which Python is being used
 echo "Using Python at $(which python3)"
+
+# Navigate to the map directory
+cd /home/ec2-user/production/map/dags
+
+# Run Python script
+echo "Running map_everyday.py..."
+python3 map_everyday.py
+echo "map_everyday.py script executed."
+
+# Navigate to the server directory
+cd /home/ec2-user/production/server
 
 # kill the gunicorn process
 sudo pkill gunicorn
@@ -41,3 +52,4 @@ echo "starting gunicorn"
 gunicorn --workers 2 --bind localhost:5000 'app:create_app()' --daemon
 
 echo "started gunicorn"
+
