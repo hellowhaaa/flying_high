@@ -66,6 +66,9 @@ def token_required(f):
 
 def sign_up():
     try:
+        load_dotenv()
+        google_url = os.getenv("GOOGLE_API_KEY")
+        print(google_url)
         mongo_client = MongoClient(os.getenv("MONGODB_URI_FLY"))
         db = mongo_client['flying_high']
         users_collection = db['user']
@@ -101,7 +104,7 @@ def sign_up():
                     for err in errorMessages:
                         current_app.logger.error(f"Error in {fieldName}: {err}")
                 flash('Please correct the errors in the form.', 'danger')
-        return render_template('sign_up.html', form=form)
+        return render_template('sign_up.html', form=form, google_url=google_url)
     except Exception as e:
         current_app.logger.error(f"An error occurred: {str(e)}", exc_info=True)
         abort(500)
