@@ -1,8 +1,6 @@
-from flask import Flask, render_template, abort, redirect, url_for, request
 from flask_wtf import FlaskForm
 from wtforms import StringField, SubmitField, PasswordField, EmailField
 from wtforms.validators import DataRequired, InputRequired
-from bson.objectid import ObjectId
 import datetime
 from werkzeug.security import generate_password_hash, check_password_hash
 
