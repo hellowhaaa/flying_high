@@ -62,6 +62,6 @@ sudo pkill gunicorn
 # # gunicorn --workers 3 --bind 0.0.0.0:8000 server:app &
 echo "starting gunicorn"
 # gunicorn --workers 2 --bind localhost:5000 app:app  server:app --daemon
-gunicorn --workers 2 --bind localhost:5000 'app:create_app()' --daemon
+sudo gunicorn --workers 2 --bind localhost:5000 'app:create_app()' --daemon
 
 echo "started gunicorn"
