@@ -24,7 +24,7 @@ jobs:
           ENV: ${{ secrets.ENV }}
           EC2_USERNAME: ${{ secrets.EC2_USERNAME }}
         run: |
-          echo "ENV=${ENV}" >> .env
+          echo "${ENV}" >> .env
           echo "EC2_USERNAME=${EC2_USERNAME}" >> .env
 
       - name: Copy files to remote server
