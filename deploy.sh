@@ -17,13 +17,21 @@ sudo cp .env /home/ec2-user/production/dashboard
 cd /home/ec2-user/production/server
 
 
-sudo yum update
-echo "installing python and pip"
-sudo yum install -y python3 python3-pip
+# sudo yum update
+# echo "installing python and pip"
+# sudo yum install -y python3 python3-pip
 
-# Install application dependencies from requirements.txt
-echo "Install application dependencies from requirements.txt"
-pip3 install -r requirements.txt
+# # Install application dependencies from requirements.txt
+# echo "Install application dependencies from requirements.txt"
+# pip3 install -r requirements.txt
+
+echo "Activating the 'fly' environment..."
+source ~/miniconda3/etc/profile.d/conda.sh
+conda activate myenv_py310
+
+# Confirm which Python is being used
+echo "Using Python at $(which python3)"
+
 
 # Update and install Nginx if not already installed
 # if ! command -v nginx > /dev/null; then
