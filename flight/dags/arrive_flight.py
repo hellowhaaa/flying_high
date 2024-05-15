@@ -152,7 +152,7 @@ def crawl_data():
             
             # Backup to S3
             taiwan_time_split = taiwan_title_time_element.split("機")[1].split(" (")[0].strip().split("/")
-            taiwan_time_file = f"depart/{taiwan_time_split[0]}-{taiwan_time_split[1]}-{taiwan_time_split[2]}"
+            taiwan_time_file = f"arrive/{taiwan_time_split[0]}-{taiwan_time_split[1]}-{taiwan_time_split[2]}"
             back_up_data = {
                 "taiwan_title_time": taiwan_title_time_element,
                 "airline": alphabet_ls,
