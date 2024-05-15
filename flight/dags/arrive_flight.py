@@ -16,10 +16,10 @@ from dotenv import load_dotenv
 import os
 import datetime
 import logging
-from airflow.utils.dates import days_ago
-
-from selenium import webdriver
 from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
+import boto3
+import json
+from botocore.exceptions import ClientError
 
 FORMAT = '%(asctime)s %(levelname)s: %(message)s'
 logging.basicConfig(level=logging.DEBUG, format=FORMAT)
@@ -63,7 +63,6 @@ def crawl_data():
                 WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, airline)))
                 airline_element = driver.find_element(By.XPATH, airline).text.strip()
                 flight2 = airline_element.split()
-                flight = airline_element
                 alphabet_ls= []
                 for i in range(len(flight2)):
                     airline_dict = {}
@@ -150,6 +149,30 @@ def crawl_data():
             except Exception as e:
                 logging.error(f"An exception occurred: {str(e)}", exc_info=True) 
             print('--------------------')
+            
+            # Backup to S3
+            taiwan_time_split = taiwan_title_time_element.split("機")[1].split(" (")[0].strip().split("/")
+            taiwan_time_file = f"depart/{taiwan_time_split[0]}-{taiwan_time_split[1]}-{taiwan_time_split[2]}"
+            back_up_data = {
+                "taiwan_title_time": taiwan_title_time_element,
+                "airline": alphabet_ls,
+                "scheduled_arrive_time": scheduled_arrive_time_element,
+                "actual_arrive_time": actual_arrive_time_element,
+                "destination": destination_element,
+                "terminal": terminal_element,
+                "gate": gate_element,
+                "status": status_element,
+            }
+            
+            try:
+                airline_code = ""
+                for flight in alphabet_ls:
+                    airline_code += flight['airline_code']
+                    airline_code += "_"
+                key = f"{taiwan_time_file}_{airline_code}.json"
+                backup_to_s3(key, back_up_data)
+            except Exception as e:
+                logging.error(f"An exception occurred: {str(e)}", exc_info=True)
     except Exception as e:
         logging.error(f"An exception occurred: {str(e)}", exc_info=True)         
     finally:
@@ -159,14 +182,53 @@ def insert_mongodb_atlas():
     load_dotenv()
     uri = os.getenv("MONGODB_URI_FLY")
     client = MongoClient(uri)
-    # try:
-    #     conn.admin.command('ping')
-    #     print("Pinged your deployment. You successfully connected to MongoDB!")
-    # except Exception as e:
-    #     print(e)
     db = client['flying_high']
     collection = db['flight_arrive2']
     return collection
+
+def backup_to_s3(key, back_up_data):
+    try:
+        load_dotenv()
+        bucket_name = os.getenv('BUCKET_NAME_flying_high')
+        aws_access_key = os.getenv('AWS_ACCESS_KEY')
+        aws_secret_access_key = os.getenv('AWS_SECRET_ACCESS_KEY')
+        bucket_region = os.getenv('S3_BUCKET_REGION')
+
+
+        # S3 客戶端配置
+        s3_client = boto3.client(
+            's3',
+            region_name=bucket_region,
+            aws_access_key_id=aws_access_key,
+            aws_secret_access_key=aws_secret_access_key
+        )
+        check_file_exists(s3_client, bucket_name, key)
+        exists = check_file_exists(s3_client, bucket_name, key)
+        create_or_update_json(bucket_name, key, back_up_data, exists,s3_client)
+    except Exception as e:
+        logging.error(f"An exception occurred: {str(e)}", exc_info=True)
+
+
+def check_file_exists(s3_client, bucket, key):
+    try:
+        s3_client.head_object(Bucket=bucket, Key=key)
+        return True
+    except ClientError as e:
+        return False
+    
+def create_or_update_json(bucket_name, key, data, exists, s3_client):
+    if not exists:
+        data['created_at'] = datetime.datetime.utcnow()  
+
+    data['updated_at'] = datetime.datetime.utcnow() 
+    json_data = json.dumps(data, ensure_ascii=False, default=str)
+
+    try:
+        s3_client.put_object(Body=json_data, Bucket=bucket_name, Key=key)
+        print("Data uploaded to S3 successfully!")
+    except Exception as e:
+        print(f"An error occurred: {str(e)}")
+
 
 
 default_args = {
@@ -201,5 +263,8 @@ with DAG(
         python_callable=crawl_data,
         dag = dag  
     )
+    
+    
+    
     
 (task_start >> task_arrive_flight >> task_end)
