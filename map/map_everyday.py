@@ -8,7 +8,6 @@ import re
 from geopy.geocoders import Nominatim
 from geopy.exc import GeocoderTimedOut,GeocoderUnavailable
 import time
-import pendulum
 from branca.element import Element
 load_dotenv()
 url = os.getenv("MONGODB_URI_FLY")
@@ -22,22 +21,25 @@ tw_now = datetime.now(taiwan_tz)
 tw_midnight = taiwan_tz.localize(datetime(tw_now.year, tw_now.month, tw_now.day, 0, 0, 0))
 utc_midnight = tw_midnight.astimezone(pytz.utc)
 
+def main():
+    # aggregate unique destination
+    pipeline = [
+        {
+            "$match": {
+                "updated_at": {"$gt": utc_midnight}  
+            }
+        },
+        {"$group": {"_id": "$destination"}},
+        {"$sort": {"_id": 1}} 
+    ]
 
+    # get unique destination list
+    unique_arrive_destinations = collection_arrive.aggregate(pipeline)
+    unique_depart_destinations = collection_depart.aggregate(pipeline)
+    unique_depart_destination_list = unique_destination_list(unique_depart_destinations)
+    unique_arrive_destination_list = unique_destination_list(unique_arrive_destinations)
+    task_map(unique_arrive_destination_list,unique_depart_destination_list)
 
-
-# aggregate unique destination
-pipeline = [
-    {
-        "$match": {
-            "updated_at": {"$gt": utc_midnight}  
-        }
-    },
-    {"$group": {"_id": "$destination"}},
-    {"$sort": {"_id": 1}} 
-]
-
-unique_arrive_destinations = collection_arrive.aggregate(pipeline)
-unique_depart_destinations = collection_depart.aggregate(pipeline)
 # extract chinese and () from destination
 def extract_chinese(text):
     chinese_part = re.findall(r'[\u4e00-\u9fff]+', text)
@@ -57,9 +59,6 @@ def unique_destination_list(unique_destinations):
     return unique_destination_list
 
 
-unique_depart_destination_list = unique_destination_list(unique_depart_destinations)
-unique_arrive_destination_list = unique_destination_list(unique_arrive_destinations)
-
 # get arrive flight data from mongodb everyday by destination
 def flight_data(destination, collection_name):
     url = os.getenv("MONGODB_URI_FLY")
@@ -75,8 +74,6 @@ def flight_data(destination, collection_name):
     filter=filter
     )
     return list(result)
-
-# todo -------
 
 def get_location_list_by_address(address, attempt=1, max_attempts=5):
     useranget = "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Mobile Safari/537.36,gzip(gfe)"
@@ -95,7 +92,7 @@ def get_location_list_by_address(address, attempt=1, max_attempts=5):
             raise e
         
 
-def arrive_result(collection_name):
+def arrive_result(collection_name,unique_arrive_destination_list):
     destinations = []  
     for location in unique_arrive_destination_list:
         # 乾淨的 city name 去拉經緯度
@@ -130,7 +127,7 @@ def arrive_result(collection_name):
     return destinations # list
 
 
-def depart_result(collection_name):
+def depart_result(collection_name, unique_depart_destination_list):
     destinations = []  
     for location in unique_depart_destination_list:
         # 乾淨的 city name 去拉經緯度
@@ -166,15 +163,15 @@ def depart_result(collection_name):
 
 
 
-def task_map():
+def task_map(unique_arrive_destination_list,unique_depart_destination_list):
     # -----------------------------------------
     # os.path.dirname(__file__) get current file path
     path = os.path.abspath(os.path.join(os.path.dirname(__file__),"../../server/templates"))
-    print(path)
     taoyuan_airport_coords = [25.080, 121.2325]
 
-    arrive_destinations = arrive_result('flight_arrive2')
-    depart_destinations = depart_result('flight_depart2')
+    arrive_destinations = arrive_result('flight_arrive2',unique_arrive_destination_list)
+    depart_destinations = depart_result('flight_depart2',unique_depart_destination_list)
+
 
 
     map = folium.Map(location=taoyuan_airport_coords, zoom_start=5, tiles='cartodbpositron')
@@ -321,10 +318,5 @@ def task_map():
         }
         </style>
     """))
-    
-    
-        
-
     map.save(f'{path}/map_with_layers.html')
-task_map()
 
