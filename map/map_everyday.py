@@ -9,41 +9,65 @@ from geopy.geocoders import Nominatim
 from geopy.exc import GeocoderTimedOut,GeocoderUnavailable
 import time
 from branca.element import Element
-load_dotenv()
-url = os.getenv("MONGODB_URI_FLY")
-client = MongoClient(url)
 
-db = client['flying_high']
-collection_arrive= db['flight_arrive2']
-collection_depart= db['flight_depart2']
-taiwan_tz = pytz.timezone('Asia/Taipei')
-tw_now = datetime.now(taiwan_tz)
-tw_midnight = taiwan_tz.localize(datetime(tw_now.year, tw_now.month, tw_now.day, 0, 0, 0))
-utc_midnight = tw_midnight.astimezone(pytz.utc)
 
 def main():
-    # aggregate unique destination
-    pipeline = [
-        {
-            "$match": {
-                "updated_at": {"$gt": utc_midnight}  
-            }
-        },
-        {"$group": {"_id": "$destination"}},
-        {"$sort": {"_id": 1}} 
-    ]
-
-    # get unique destination list
+    load_dotenv()
+    url = os.getenv("MONGODB_URI_FLY")
+    client = MongoClient(url)
+    db = client['flying_high']
+    collection_arrive = db['flight_arrive2']
+    collection_depart = db['flight_depart2']
+    pipeline = aggregate_unique_destination()
     unique_arrive_destinations = collection_arrive.aggregate(pipeline)
     unique_depart_destinations = collection_depart.aggregate(pipeline)
     unique_depart_destination_list = unique_destination_list(unique_depart_destinations)
     unique_arrive_destination_list = unique_destination_list(unique_arrive_destinations)
-    arrive_destinations = result('flight_arrive2',unique_arrive_destination_list, 'arrive')
-    depart_destinations = result('flight_depart2',unique_depart_destination_list, 'depart')
-    task_map(arrive_destinations,depart_destinations)
+    arrive_destinations = result('flight_arrive2', unique_arrive_destination_list, 'arrive')
+    depart_destinations = result('flight_depart2', unique_depart_destination_list, 'depart')
+    create_map(arrive_destinations, depart_destinations)
 
-# extract chinese and () from destination
+
+def utc_midnight():
+    """
+    Get 00:00 UTC Time from 00:00 AM in Taiwan Time
+    Return:
+        datetime object: UTC Time
+    """
+
+    taiwan_tz = pytz.timezone('Asia/Taipei')
+    tw_now = datetime.now(taiwan_tz)
+    tw_midnight = taiwan_tz.localize(datetime(tw_now.year, tw_now.month, tw_now.day, 0, 0, 0))
+    utc_mid_night = tw_midnight.astimezone(pytz.utc)
+    return utc_mid_night
+
+
+def aggregate_unique_destination():
+    """ 
+    Create an aggregation pipeline to get unique destinations
+    Return: 
+        list: pipeline list
+    """
+    
+    midnight = utc_midnight()
+    pipeline = [
+            {
+                "$match": {
+                    "updated_at": {"$gt": midnight}  
+                }
+            },
+            {"$group": {"_id": "$destination"}},
+            {"$sort": {"_id": 1}} 
+        ]
+    return pipeline
+
 def extract_chinese(text):
+    """ 
+    Extract Chinese characters from a string with ()
+    Return: 
+        str: Chinese characters only
+    """
+    
     chinese_part = re.findall(r'[\u4e00-\u9fff]+', text)
     if '(' in text:
         chinese_only = chinese_part[-1]
@@ -51,8 +75,17 @@ def extract_chinese(text):
         chinese_only = ''.join(chinese_part)
     return chinese_only
 
-# get unique destination list
+
 def unique_destination_list(unique_destinations):
+    """ 
+    Extract unique destinations from the aggregation result and extract Chinese characters
+    
+    Keyword arguments:
+        unique_destinations -- aggregate result    
+    Return: 
+        list: unique destinations list
+    """
+    
     unique_destination_list = []
     for destination in unique_destinations:
         if destination['_id'] is not None: # 排除 None
@@ -61,51 +94,80 @@ def unique_destination_list(unique_destinations):
     return unique_destination_list
 
 
-# get arrive flight data from mongodb everyday by destination
-def flight_data(destination, collection_name):
+
+def flight_data(location, collection_name):
+    """
+    Get flight data from mongodb collection everyday by destination
+    
+    Keyword arguments:
+        location (str): city name
+        collection_name (str): flight_depart2 or flight_arrive2
+    Return: 
+        list: everyday's each flight's collection in one list 
+    """
+    
     url = os.getenv("MONGODB_URI_FLY")
-    print(url)
     client = MongoClient(url)
+    midnight = utc_midnight()
     filter={
         'destination': {
-            '$regex': destination
+            '$regex': location
         },
-        "updated_at": {"$gt": utc_midnight} 
+        "updated_at": {"$gt": midnight} 
     }
     result = client['flying_high'][collection_name].find(
     filter=filter
     )
     return list(result)
 
-def get_location_list_by_address(address, attempt=1, max_attempts=5):
+
+def get_latitude_longitude_list(destination, attempt=1, max_attempts=5):
+    """ 
+    Get latitude and longitude from chinese city name
+    
+    Keyword arguments:
+        destination (str) -- city name
+        attempt (int)-- current attempt
+        max_attempts (int) -- max attempts
+    Return: 
+        list: latitude and longitude
+    """
+    
     useranget = "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Mobile Safari/537.36,gzip(gfe)"
     geolocator = Nominatim(user_agent=useranget)
     try: 
-        location = geolocator.geocode(address, timeout=10)
-        if location:
-            return [location.latitude, location.longitude]
+        destination = geolocator.geocode(destination, timeout=10)
+        if destination:
+            return [destination.latitude, destination.longitude]
         else:
             return (None, None)
     except (GeocoderTimedOut, GeocoderUnavailable) as e:
         if attempt <= max_attempts:
             time.sleep(2)
-            return get_location_list_by_address(address, attempt=attempt+1)
+            return get_latitude_longitude_list(destination, attempt=attempt+1)
         else:
             raise e
-        
-#!------ Refactor -----!
 
 
-def result(collection_name, unique_destination_list,status):
+def result(collection_name, unique_destination_list, status):
+    """
+    Clean duplicate data and create a dictionary with destination, latitude and longitude, and flight details
+    
+    Keyword arguments:
+        collection_name (str)-- flight_depart2 or flight_arrive2
+        unique_destination_list (list) -- unique destinations list
+        status -- depart or arrive
+    Return: 
+        list: destination dictionary
+    """
     destinations = []  
-    for location in unique_destination_list:
-        # 乾淨的 city name 去拉經緯度
-        location_data = get_location_list_by_address(location)
-        if location_data:
-            flight_collection = flight_data(location, collection_name)
+    for destination in unique_destination_list:
+        latitude_longitude_list = get_latitude_longitude_list(destination)
+        if latitude_longitude_list:
+            each_flight_collection = flight_data(destination, collection_name)
             flight_details = []
             seen = set()  # Set to track unique flights
-            for collection in flight_collection:
+            for collection in each_flight_collection:
                 airlines_list = collection['airline']
                 airline_names = [airline['airline_name'] + airline['airline_code'] for airline in airlines_list]
                 flight_tuple = (collection[f'scheduled_{status}_time'], tuple(airline_names))
@@ -116,29 +178,38 @@ def result(collection_name, unique_destination_list,status):
                         'airlines': airline_names
                     })
 
-            if not any(dest['destination'] == location for dest in destinations):
+            if not any(dest['destination'] == destination for dest in destinations):
                 destinations.append({
-                    'destination': location,
-                    'latitude_longitude': location_data,
+                    'destination': destination,
+                    'latitude_longitude': latitude_longitude_list,
                     'flights': flight_details
                 })
                 print("destinations--->",destinations)
             else:
-                print(f"Destination {location} already exists in the dictionary.")
+                print(f"Destination {destination} already exists in the dictionary.")
         else:
-            print(f"Could not fetch data for {location}")
+            print(f"Could not fetch data for {destination}")
         time.sleep(1)
     return destinations # list
 
 
-def task_map(arrive_destinations,depart_destinations):
-    # -----------------------------------------
-    # os.path.dirname(__file__) get current file path
+def create_map(arrive_destinations,depart_destinations):
+    """
+    Create a map with folium and add markers and lines 
+    Keyword arguments:
+        arrive_destinations (dict)
+        depart_destinations (dict)  
+    """
+    # html file path
     path = os.path.abspath(os.path.join(os.path.dirname(__file__),"../server/templates"))
+    
+    # Create a map centered on Taoyuan Airport
     taoyuan_airport_coords = [25.080, 121.2325]
-
+    
+    # create map instance
     map = folium.Map(location=taoyuan_airport_coords, zoom_start=5, tiles='cartodbpositron')
-    # 設置台灣當天時間 顯示在map最上面
+    
+    # Set Taiwan's current date to display at the top of the map
     taiwan_tz = pytz.timezone('Asia/Taipei')
     current_date = datetime.now(taiwan_tz).strftime('%Y-%m-%d')
 
@@ -152,6 +223,8 @@ def task_map(arrive_destinations,depart_destinations):
     date_element = Element(date_html)
     map.get_root().html.add_child(date_element)
     
+    
+    # Add a navbar to the map
     style_and_navbar_html = """
     <style>
     .navbar-nav {
@@ -207,8 +280,7 @@ def task_map(arrive_destinations,depart_destinations):
     date_element = Element(style_and_navbar_html)
     map.get_root().html.add_child(date_element)
 
-
-
+    # FeatureGroup
     arrivals = folium.FeatureGroup(name='Arrivals to Taoyuan')
     departures = folium.FeatureGroup(name='Departures from Taoyuan')
 
@@ -261,26 +333,6 @@ def task_map(arrive_destinations,depart_destinations):
 
     # add LayerControl
     map.add_child(folium.LayerControl())
-
-    style_function = """
-        function(feature) {
-            return {color: feature.properties.color};
-        };
-    """
-    highlight_function = """
-        function(feature) {
-            return {weight: 10, color: 'red'};
-        };
-    """
-
-    map.get_root().html.add_child(folium.Element("""
-        <style>
-        .leaflet-interactive:hover {
-            stroke-width: 10px;
-            stroke-color: #red !important;
-        }
-        </style>
-    """))
     map.save(f'{path}/map_with_layers.html')
 
 if __name__ == '__main__':
