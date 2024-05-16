@@ -38,8 +38,8 @@ def main():
     unique_depart_destinations = collection_depart.aggregate(pipeline)
     unique_depart_destination_list = unique_destination_list(unique_depart_destinations)
     unique_arrive_destination_list = unique_destination_list(unique_arrive_destinations)
-    arrive_destinations = arrive_result('flight_arrive2',unique_arrive_destination_list)
-    depart_destinations = depart_result('flight_depart2',unique_depart_destination_list)
+    arrive_destinations = result('flight_arrive2',unique_arrive_destination_list, 'arrive')
+    depart_destinations = result('flight_depart2',unique_depart_destination_list, 'depart')
     task_map(arrive_destinations,depart_destinations)
 
 # extract chinese and () from destination
@@ -93,10 +93,12 @@ def get_location_list_by_address(address, attempt=1, max_attempts=5):
         else:
             raise e
         
+#!------ Refactor -----!
 
-def arrive_result(collection_name,unique_arrive_destination_list):
+
+def result(collection_name, unique_destination_list,status):
     destinations = []  
-    for location in unique_arrive_destination_list:
+    for location in unique_destination_list:
         # 乾淨的 city name 去拉經緯度
         location_data = get_location_list_by_address(location)
         if location_data:
@@ -106,11 +108,11 @@ def arrive_result(collection_name,unique_arrive_destination_list):
             for collection in flight_collection:
                 airlines_list = collection['airline']
                 airline_names = [airline['airline_name'] + airline['airline_code'] for airline in airlines_list]
-                flight_tuple = (collection['scheduled_arrive_time'], tuple(airline_names))
+                flight_tuple = (collection[f'scheduled_{status}_time'], tuple(airline_names))
                 if flight_tuple not in seen:
                     seen.add(flight_tuple)
                     flight_details.append({
-                        'scheduled_arrive_time': collection['scheduled_arrive_time'],
+                        f'scheduled_{status}_time': collection[f'scheduled_{status}_time'],
                         'airlines': airline_names
                     })
 
@@ -127,42 +129,6 @@ def arrive_result(collection_name,unique_arrive_destination_list):
             print(f"Could not fetch data for {location}")
         time.sleep(1)
     return destinations # list
-
-
-def depart_result(collection_name, unique_depart_destination_list):
-    destinations = []  
-    for location in unique_depart_destination_list:
-        # 乾淨的 city name 去拉經緯度
-        location_data = get_location_list_by_address(location)
-        if location_data:
-            flight_collection = flight_data(location, collection_name)
-            flight_details = []
-            seen = set()  # Set to track unique flights
-            for collection in flight_collection:
-                airlines_list = collection['airline']
-                airline_names = [airline['airline_name'] + airline['airline_code'] for airline in airlines_list]
-                flight_tuple = (collection['scheduled_depart_time'], tuple(airline_names))
-                if flight_tuple not in seen:
-                    seen.add(flight_tuple)
-                    flight_details.append({
-                        'scheduled_depart_time': collection['scheduled_depart_time'],
-                        'airlines': airline_names
-                    })
-
-            if not any(dest['destination'] == location for dest in destinations):
-                destinations.append({
-                    'destination': location,
-                    'latitude_longitude': location_data,
-                    'flights': flight_details
-                })
-                print("destinations--->",destinations)
-            else:
-                print(f"Destination {location} already exists in the dictionary.")
-        else:
-            print(f"Could not fetch data for {location}")
-        time.sleep(1)
-    return destinations # list
-
 
 
 def task_map(arrive_destinations,depart_destinations):
