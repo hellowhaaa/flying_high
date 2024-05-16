@@ -38,7 +38,9 @@ def main():
     unique_depart_destinations = collection_depart.aggregate(pipeline)
     unique_depart_destination_list = unique_destination_list(unique_depart_destinations)
     unique_arrive_destination_list = unique_destination_list(unique_arrive_destinations)
-    task_map(unique_arrive_destination_list,unique_depart_destination_list)
+    arrive_destinations = arrive_result('flight_arrive2',unique_arrive_destination_list)
+    depart_destinations = depart_result('flight_depart2',unique_depart_destination_list)
+    task_map(arrive_destinations,depart_destinations)
 
 # extract chinese and () from destination
 def extract_chinese(text):
@@ -163,16 +165,11 @@ def depart_result(collection_name, unique_depart_destination_list):
 
 
 
-def task_map(unique_arrive_destination_list,unique_depart_destination_list):
+def task_map(arrive_destinations,depart_destinations):
     # -----------------------------------------
     # os.path.dirname(__file__) get current file path
-    path = os.path.abspath(os.path.join(os.path.dirname(__file__),"../../server/templates"))
+    path = os.path.abspath(os.path.join(os.path.dirname(__file__),"../server/templates"))
     taoyuan_airport_coords = [25.080, 121.2325]
-
-    arrive_destinations = arrive_result('flight_arrive2',unique_arrive_destination_list)
-    depart_destinations = depart_result('flight_depart2',unique_depart_destination_list)
-
-
 
     map = folium.Map(location=taoyuan_airport_coords, zoom_start=5, tiles='cartodbpositron')
     # 設置台灣當天時間 顯示在map最上面
@@ -320,3 +317,5 @@ def task_map(unique_arrive_destination_list,unique_depart_destination_list):
     """))
     map.save(f'{path}/map_with_layers.html')
 
+if __name__ == '__main__':
+    main()
