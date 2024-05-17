@@ -110,7 +110,7 @@ def login():
         if request.method == 'POST':
             username = request.form.get('username')
             password = request.form.get('password')
-            user = check_user_credentials(username, password)
+            user = check_user_credentials(username, password, logger=current_app.logger)
             if user:
                 current_app.logger.info(f"User Logged In: {user}")
                 token = encode_auth_token(username)

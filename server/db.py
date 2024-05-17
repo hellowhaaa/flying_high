@@ -368,7 +368,7 @@ def update_arrive_email_send(username, logger):
     
 # user--register
 def create_user(username, password, email, address):
-    hashed_password = generate_password_hash(password)
+    hashed_password = generate_password_hash(password, method='pbkdf2:sha256')
     return {
         'username': username,
         'password': hashed_password,
@@ -384,11 +384,15 @@ def same_username(username):
     return collection.find_one({'username': username}) is not None
 
 
-def check_user_credentials(username, password):
+def check_user_credentials(username, password, logger):
+    logger.debug(f"Username: {username}, Type: {type(username)}")
+    logger.debug(f"Password: {password}, Type: {type(password)}")
     collection = client['flying_high']['user']
     user = collection.find_one({'username': username})
-    if user and check_password_hash(user['password'], password):
-        return user
+    if user:
+        logger.debug(f"Stored Hash: {user['password']}, Type: {type(user['password'])}")
+        if check_password_hash(user['password'], password):
+            return user
     return None
 
 def insert_new_user(user, logger):
