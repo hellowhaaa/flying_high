@@ -4,18 +4,20 @@ import os
 from dotenv import load_dotenv
 from datetime import datetime
 import pytz
+
 load_dotenv()
+url = os.getenv("MONGODB_URI_FLY")
+client = MongoClient(url)
+taiwan_tz = pytz.timezone('Asia/Taipei')
+tw_now = datetime.now(taiwan_tz)
+tw_midnight = taiwan_tz.localize(datetime(tw_now.year, tw_now.month, tw_now.day, 0, 0, 0))
+utc_midnight = tw_midnight.astimezone(pytz.utc)
 
 
 def get_arrive_flight_time(flight, logger):
     logger.info("Start Fetching Arrive Flight Time from MongoDB")
     try:
-        url = os.getenv("MONGODB_URI_FLY")
-        client = MongoClient(url)
-        taiwan_tz = pytz.timezone('Asia/Taipei')
-        tw_now = datetime.now(taiwan_tz)
-        tw_midnight = taiwan_tz.localize(datetime(tw_now.year, tw_now.month, tw_now.day, 0, 0, 0))
-        utc_midnight = tw_midnight.astimezone(pytz.utc)  # UTC Time
+        
         filter={
             'airline': {
                 '$elemMatch': {
@@ -39,14 +41,6 @@ def get_arrive_flight_time(flight, logger):
 def get_depart_flight_time(flight, logger):
     logger.info("Start Fetching Depart Flight Time from MongoDB")
     try:
-        url = os.getenv("MONGODB_URI_FLY")
-        client = MongoClient(url)
-        taiwan_tz = pytz.timezone('Asia/Taipei')
-        #  今天凌晨
-        tw_now = datetime.now(taiwan_tz)
-        tw_midnight = taiwan_tz.localize(datetime(tw_now.year, tw_now.month, tw_now.day, 0, 0, 0))
-        utc_midnight = tw_midnight.astimezone(pytz.utc)  # UTC Time
-
         filter={
             'airline': {
                 '$elemMatch': {
@@ -70,12 +64,6 @@ def get_depart_flight_time(flight, logger):
 def select_today_depart_flight_code(logger):
     logger.info("Start Fetching Today's Depart Flight Time from MongoDB")
     try:
-        url = os.getenv("MONGODB_URI_FLY")
-        client = MongoClient(url)
-        taiwan_tz = pytz.timezone('Asia/Taipei')
-        tw_now = datetime.now(taiwan_tz)
-        tw_midnight = taiwan_tz.localize(datetime(tw_now.year, tw_now.month, tw_now.day, 0, 0, 0))
-        utc_midnight = tw_midnight.astimezone(pytz.utc)
         filter={
             'updated_at': {
                 '$gt': utc_midnight
@@ -93,12 +81,6 @@ def select_today_depart_flight_code(logger):
 def select_today_arrive_flight_code(logger):
     logger.info("Start Fetching Today's Arrive Flight Time from MongoDB")
     try:
-        url = os.getenv("MONGODB_URI_FLY")
-        client = MongoClient(url)
-        taiwan_tz = pytz.timezone('Asia/Taipei')
-        tw_now = datetime.now(taiwan_tz)
-        tw_midnight = taiwan_tz.localize(datetime(tw_now.year, tw_now.month, tw_now.day, 0, 0, 0))
-        utc_midnight = tw_midnight.astimezone(pytz.utc)
         filter={
             'updated_at': {
                 '$gt': utc_midnight
@@ -116,8 +98,6 @@ def select_today_arrive_flight_code(logger):
 def select_user_depart_flight_code(logger):
     logger.info("Start Fetching User's All Depart Flight Time from MongoDB")
     try:
-        url = os.getenv("MONGODB_URI_FLY")
-        client = MongoClient(url)
         result = client['flying_high']['flight_depart2'].find()
         return list(result)
     except Exception as e:
@@ -128,8 +108,6 @@ def select_user_depart_flight_code(logger):
 def select_user_arrive_flight_code(logger):
     logger.info("Start Fetching User's All Arrive Flight Time from MongoDB")
     try:
-        url = os.getenv("MONGODB_URI_FLY")
-        client = MongoClient(url)
         result = client['flying_high']['flight_arrive2'].find()
         return list(result)
     except Exception as e:
@@ -140,8 +118,6 @@ def select_user_arrive_flight_code(logger):
 def select_insurance_amount(plan, insurance_amount,insurance_company, insurance_days, logger):
     logger.info("Start Fetching Insurance Amount from MongoDB")
     try:
-        url = os.getenv("MONGODB_URI_FLY")
-        client = MongoClient(url)
         insurance_amount = int(insurance_amount) * 10000 if int(insurance_amount) < 3000 else insurance_amount
         filter={
             'insured_amount.price': insurance_amount,
@@ -160,8 +136,6 @@ def select_insurance_amount(plan, insurance_amount,insurance_company, insurance_
 def select_user_information(username, logger):
     logger.info("Start Fetching User Information from MongoDB")
     try:
-        url = os.getenv("MONGODB_URI_FLY")
-        client = MongoClient(url)
         filter={
             'username': username
         }
@@ -177,8 +151,6 @@ def select_user_information(username, logger):
 def select_user_insurance(username, logger):
     logger.info("Start Fetching User Insurance from MongoDB")
     try:
-        url = os.getenv("MONGODB_URI_FLY")
-        client = MongoClient(url)
         filter={
             'username': username
         }
@@ -194,8 +166,6 @@ def select_user_insurance(username, logger):
 def select_user_notify(username, logger):
     logger.info("Start Fetching User Notify from MongoDB")
     try:
-        url = os.getenv("MONGODB_URI_FLY")
-        client = MongoClient(url)
         filter={
             'username': username
         }
@@ -211,8 +181,6 @@ def select_user_notify(username, logger):
 def select_user_flight(username, logger):
     logger.info("Start Fetching User Flight from MongoDB")
     try:
-        url = os.getenv("MONGODB_URI_FLY")
-        client = MongoClient(url)
         filter={
             'username': username
         }
@@ -228,8 +196,6 @@ def select_user_flight(username, logger):
 def select_depart_flight_difference(depart_taiwan_date, flight_depart_taoyuan,logger):
     logger.info("Start Fetching Depart Flight Difference from MongoDB")
     try:
-        url = os.getenv("MONGODB_URI_FLY")
-        client = MongoClient(url)
         filter={
             'airline': {
                 '$elemMatch': {

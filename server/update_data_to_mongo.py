@@ -5,13 +5,12 @@ from datetime import datetime
 import pytz
 
 load_dotenv()
-
+url = os.getenv("MONGODB_URI_FLY")
+client = MongoClient(url)
 
 def update_user_insurance(username, insurance_company, plan, insured_amount, days, logger):
     logger.info("Start Updating User Insurance to MongoDB")
     try:
-        url = os.getenv("MONGODB_URI_FLY")
-        client = MongoClient(url)
         filter = {"username": username}
 
         update = {
@@ -44,8 +43,6 @@ def update_user_flight_info(username, depart_taiwan_date, arrive_taiwan_date, fl
                             flight_arrive_taoyuan, logger):
     logger.info("Start Updating User Flight Info to MongoDB")
     try:
-        url = os.getenv("MONGODB_URI_FLY")
-        client = MongoClient(url)
         taiwan_tz = pytz.timezone('Asia/Taipei')
         # UTC time for departure flight from Taoyuan Airport
         start_date_obj = datetime.strptime(depart_taiwan_date, '%Y-%m-%d')
@@ -88,8 +85,6 @@ def update_user_flight_info(username, depart_taiwan_date, arrive_taiwan_date, fl
 def update_user_notify(username, flight_change, flight_delay, hsr, logger):
     logger.info("Start Updating User Notify to MongoDB")
     try:
-        url = os.getenv("MONGODB_URI_FLY")
-        client = MongoClient(url)
         filter = {"username": username}
 
         update = {
@@ -122,8 +117,6 @@ def update_user_notify(username, flight_change, flight_delay, hsr, logger):
 def update_depart_email_send(username, logger):
     logger.info("Start Updating Depart Email Function Set False to True in MongoDB")
     try:
-        url = os.getenv("MONGODB_URI_FLY")
-        client = MongoClient(url)
         filter = {"username": username}
         update = {
             "$set": {
@@ -146,8 +139,6 @@ def update_depart_email_send(username, logger):
 def update_arrive_email_send(username, logger):
     logger.info("Start Updating Arrive Email Function Set False to True in MongoDB")
     try:
-        url = os.getenv("MONGODB_URI_FLY")
-        client = MongoClient(url)
         filter = {"username": username}
         update = {
             "$set": {
