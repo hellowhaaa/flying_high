@@ -1,9 +1,7 @@
-# views.py
 from flask import (request, redirect, url_for, render_template, flash, 
-                    current_app,jsonify, abort, make_response)
-from models import RegisterForm, create_user, same_username, check_user_credentials
-from select_data_from_mongo import *
-from update_data_to_mongo import *
+                    current_app, jsonify, abort, make_response)
+from models import RegisterForm
+from db import *
 import os
 from pymongo import MongoClient
 from functools import wraps
