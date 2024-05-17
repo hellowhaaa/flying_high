@@ -10,6 +10,7 @@ from geopy.exc import GeocoderTimedOut,GeocoderUnavailable
 import time
 from branca.element import Element
 import logging
+from logging.handlers import RotatingFileHandler
 
 
 current_dir = os.path.dirname(os.path.abspath(__file__))
@@ -20,7 +21,7 @@ log_file_path = os.path.join(log_path, 'map.log')
 logging.basicConfig(
     level=logging.INFO,
     format='%(asctime)s %(levelname)s: %(message)s [in %(pathname)s:%(lineno)d]',
-    handlers=[logging.handlers.RotatingFileHandler(log_file_path, maxBytes=10240, backupCount=3)]
+    handlers=[RotatingFileHandler(log_file_path, maxBytes=10240, backupCount=3)]
 )
 load_dotenv()
 url = os.getenv("MONGODB_URI_FLY")
@@ -86,7 +87,6 @@ def extract_chinese(text):
     Return: 
         str: Chinese characters only
     """
-    logging.info("Start extract_chinese")
     try:
         chinese_part = re.findall(r'[\u4e00-\u9fff]+', text)
         if '(' in text:
@@ -217,6 +217,7 @@ def result(collection_name, unique_destination_list, status):
                         'latitude_longitude': latitude_longitude_list,
                         'flights': flight_details
                     })
+                    logging.info(f"Destinations: {destinations}")
                 else:
                     logging.info(f"Destination {destination} already exists in the dictionary.")
             else:
