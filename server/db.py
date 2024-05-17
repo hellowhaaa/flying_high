@@ -185,6 +185,7 @@ def select_user_flight(username, logger):
         result = client['flying_high']['user_flight'].find_one(
         filter=filter
         )
+        print("result-->",result)
         return result
     except Exception as e:
         logger.error(f"Error in select_user_notify: {str(e)}")

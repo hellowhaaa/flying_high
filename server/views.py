@@ -488,6 +488,7 @@ def my_insurance(current_user):
     try:
         user_insurance = select_user_insurance(current_user, logger=current_app.logger)
         current_app.logger.info(f"User's Insurance Plans Retrieved from MongoDB Successfully")
+        # user insurance content
         if user_insurance is not None:
             insurance_company = user_insurance["insurance_company"]
             plan = user_insurance["plan"]
@@ -496,17 +497,21 @@ def my_insurance(current_user):
             insurance_content = select_insurance_amount(plan, insured_amount,insurance_company, days, logger=current_app.logger)
             current_app.logger.info(f"Insurance Content Retrieved from MongoDB Successfully")
             insurance_content["insurance_company"] = insurance_company
-            
-            # !-- start register flight information
+            # user flight info
             user_flight = select_user_flight(current_user, logger=current_app.logger)
-            depart_taiwan_date = user_flight['depart_taiwan_date']
-            flight_depart_taoyuan = user_flight['flight_depart_taoyuan']
-            depart_flight = select_depart_flight_difference(depart_taiwan_date, flight_depart_taoyuan,logger=current_app.logger)
-            taiwan_tz = pytz.timezone('Asia/Taipei')
-            depart_taiwan_date.replace(tzinfo=pytz.utc).astimezone(taiwan_tz)
-            depart_taiwan_date = depart_taiwan_date.strftime('%Y-%m-%d')
-            return render_template('my_insurance.html', user_insurance = user_insurance, insurance_content= insurance_content, 
-                                depart_flight = depart_flight,flight_depart_taoyuan=flight_depart_taoyuan,depart_taiwan_date=depart_taiwan_date)
+            return_flight_info = {}
+            if user_flight is not None:
+                depart_taiwan_date = user_flight['depart_taiwan_date']
+                flight_depart_taoyuan = user_flight['flight_depart_taoyuan']
+                depart_flight = select_depart_flight_difference(depart_taiwan_date, flight_depart_taoyuan,logger=current_app.logger)
+                taiwan_tz = pytz.timezone('Asia/Taipei')
+                depart_taiwan_date.replace(tzinfo=pytz.utc).astimezone(taiwan_tz).strftime('%Y-%m-%d')
+                return_flight_info = {
+                    "depart_flight":depart_flight,
+                    "flight_depart_taoyuan":flight_depart_taoyuan,
+                    "depart_taiwan_date":depart_taiwan_date
+                }
+            return render_template('my_insurance.html', user_insurance = user_insurance,insurance_content=insurance_content, return_flight_info = return_flight_info)
         else:
             return redirect(url_for('user_insurance'))
     except Exception as e:
