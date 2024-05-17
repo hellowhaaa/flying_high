@@ -65,18 +65,13 @@ def token_required(f):
 
 def sign_up():
     try:
-        load_dotenv()
-        google_url = os.getenv("GOOGLE_API_KEY")
-        print(google_url)
-        mongo_client = MongoClient(os.getenv("MONGODB_URI_FLY"))
-        db = mongo_client['flying_high']
-        users_collection = db['user']
+        google_url = current_app.config.get('GOOGLE_API_KEY')
         form = RegisterForm()
         if request.method == 'POST':
             current_app.logger.info("Sign up post request received")
             if form.validate():
                 username = form.username.data
-                if same_username(users_collection, username):
+                if same_username(username):
                     flash('Username already exists')
                     return redirect(url_for('sign_up'))
                 email = form.email.data
@@ -84,15 +79,15 @@ def sign_up():
                 password = form.password.data
                 user = create_user(username, password, email, address) 
                 try:
-                    # 將新用戶插入 MongoDB
-                    users_collection.insert_one(user)
+                    # Insert new user to  MongoDB
+                    insert_new_user(user, logger=current_app.logger)
                     current_app.logger.info(f"User saved: {user['username']}")
                 except Exception as e:
                     current_app.logger.error(f"Error saving user: {e}", exc_info=True)
                     flash('An error occurred while saving the user. Please try again.', 'danger')
                     return redirect(url_for('sign_up'))
                 
-                # 設置訪問令牌
+                # Create token
                 token = encode_auth_token(username)
                 response = make_response(redirect(url_for('search_flight')))
                 response.set_cookie('access_token', f'Bearer {token}', path='/')
@@ -112,13 +107,10 @@ def sign_up():
 
 def login():
     try:
-        mongo_client = MongoClient(os.getenv("MONGODB_URI_FLY"))
-        db = mongo_client['flying_high']
-        users_collection = db['user']
         if request.method == 'POST':
             username = request.form.get('username')
             password = request.form.get('password')
-            user = check_user_credentials(users_collection, username, password)
+            user = check_user_credentials(username, password)
             if user:
                 current_app.logger.info(f"User Logged In: {user}")
                 token = encode_auth_token(username)

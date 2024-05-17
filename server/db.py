@@ -374,17 +374,25 @@ def create_user(username, password, email, address):
         'password': hashed_password,
         'email': email,
         'address': address,
-        "created_at": datetime.datetime.utcnow(),
-        "updated_at": datetime.datetime.utcnow()
+        "created_at": datetime.utcnow(),
+        "updated_at": datetime.utcnow()
     }
 
-
-def same_username(collection, username):
+# Return True if the username already exists in the database
+def same_username(username):
+    collection = client['flying_high']['user']  
     return collection.find_one({'username': username}) is not None
 
 
-def check_user_credentials(collection, username, password):
+def check_user_credentials(username, password):
+    collection = client['flying_high']['user']
     user = collection.find_one({'username': username})
     if user and check_password_hash(user['password'], password):
         return user
     return None
+
+def insert_new_user(user, logger):
+    logger.info("Start Inserting New User to MongoDB")
+    collection = client['flying_high']['user']
+    result = collection.insert_one(user)
+    return result.inserted_id
