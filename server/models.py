@@ -12,9 +12,6 @@ class RegisterForm(FlaskForm):
     address = StringField('Address', validators=[InputRequired()], render_kw={"placeholder": "Address"})
     submit = SubmitField('Register')
     
-    def set_password(self, password):
-        self.password_hash = generate_password_hash(password)
-    
     
 def create_user(username, password, email, address):
     hashed_password = generate_password_hash(password)

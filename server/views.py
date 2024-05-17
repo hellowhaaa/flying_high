@@ -83,7 +83,7 @@ def sign_up():
                 email = form.email.data
                 address = form.address.data
                 password = form.password.data
-                user = create_user(username, password, email, address)  # 使用哈希密碼
+                user = create_user(username, password, email, address) 
                 try:
                     # 將新用戶插入 MongoDB
                     users_collection.insert_one(user)
