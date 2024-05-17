@@ -1,15 +1,16 @@
+import os
+import re
+import pytz
+import jwt
+
+from db import *
+from functools import wraps
+from models import RegisterForm
+from pymongo import MongoClient
+from datetime import datetime, timedelta
+from flask_mail import Message
 from flask import (request, redirect, url_for, render_template, flash, 
                     current_app, jsonify, abort, make_response)
-from models import RegisterForm
-from db import *
-import os
-from pymongo import MongoClient
-from functools import wraps
-import jwt
-from datetime import datetime, timedelta
-import re
-from flask_mail import Message
-import pytz
 
 
 def error_handlers(app):

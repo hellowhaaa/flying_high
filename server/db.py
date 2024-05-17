@@ -1,13 +1,10 @@
-
+import pytz
+from config import Config
+from datetime import datetime
 from pymongo import MongoClient,DESCENDING
 from werkzeug.security import generate_password_hash, check_password_hash
-import os 
-from dotenv import load_dotenv
-from datetime import datetime
-import pytz
 
-load_dotenv()
-url = os.getenv("MONGODB_URI_FLY")
+url = Config.MONGODB_URI_FLY
 client = MongoClient(url)
 taiwan_tz = pytz.timezone('Asia/Taipei')
 tw_now = datetime.now(taiwan_tz)
