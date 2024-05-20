@@ -26,8 +26,8 @@ def error_handlers(app):
 def encode_auth_token(username):
     try:
         payload = {
-            'exp': datetime.utcnow() + timedelta(days=20),  # Token expiration time
-            'iat': datetime.utcnow(),  # Token issued at
+            'exp': datetime.now(timezone.utc) + timedelta(days=20),  # Token expiration time
+            'iat': datetime.now(timezone.utc),  # Token issued at
             'username': username  
         }
         return jwt.encode(
