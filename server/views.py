@@ -75,36 +75,38 @@ def sign_up():
                 username = form.username.data
                 if same_username(username):
                     flash('Username already exists')
+                    current_app.logger.error(f"Username already exists: {username}")
                     return redirect(url_for('sign_up'))
-                email = form.email.data
-                address = form.address.data
-                password = form.password.data
-                user = create_user(username, password, email, address) 
-                try:
-                    # Insert new user to  MongoDB
-                    insert_new_user(user, logger=current_app.logger)
-                    current_app.logger.info(f"User saved: {user['username']}")
-                except Exception as e:
-                    current_app.logger.error(f"Error saving user: {e}", exc_info=True)
-                    flash('An error occurred while saving the user. Please try again.', 'danger')
-                    return redirect(url_for('sign_up'))
-                
-                # Create token
-                token = encode_auth_token(username)
-                if token:
-                    # response = make_response(redirect(url_for('search_flight')))
-                    # response.set_cookie('access_token', f'Bearer {token}', path='/')
-                    # flash('You have been logged in!', 'success')
-                    # return response
-                    
-                    response = make_response(render_template('search_flight.html'))
-                    response.set_cookie('access_token', f'Bearer {token}', path='/')
-                    return response
                 else:
-                    for fieldName, errorMessages in form.errors.items():
-                        for err in errorMessages:
-                            current_app.logger.error(f"Error in {fieldName}: {err}")
-                    flash('Please correct the errors in the form.', 'danger')           
+                    email = form.email.data
+                    address = form.address.data
+                    password = form.password.data
+                    user = create_user(username, password, email, address) 
+                    try:
+                        # Insert new user to  MongoDB
+                        insert_new_user(user, logger=current_app.logger)
+                        current_app.logger.info(f"User saved: {user['username']}")
+                    except Exception as e:
+                        current_app.logger.error(f"Error saving user: {e}", exc_info=True)
+                        flash('An error occurred while saving the user. Please try again.', 'danger')
+                        return redirect(url_for('sign_up'))
+                    
+                    # Create token
+                    token = encode_auth_token(username)
+                    if token:
+                        # response = make_response(redirect(url_for('search_flight')))
+                        # response.set_cookie('access_token', f'Bearer {token}', path='/')
+                        # flash('You have been logged in!', 'success')
+                        # return response
+                        
+                        response = make_response(render_template('search_flight.html'))
+                        response.set_cookie('access_token', f'Bearer {token}', path='/')
+                        return response
+                    else:
+                        for fieldName, errorMessages in form.errors.items():
+                            for err in errorMessages:
+                                current_app.logger.error(f"Error in {fieldName}: {err}")
+                        flash('Please correct the errors in the form.', 'danger') 
         return render_template('sign_up.html', form=form, google_url=google_url)
     except Exception as e:
         current_app.logger.error(f"An error occurred: {str(e)}", exc_info=True)

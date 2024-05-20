@@ -13,6 +13,9 @@ tw_midnight = taiwan_tz.localize(datetime(tw_now.year, tw_now.month, tw_now.day,
 utc_midnight = tw_midnight.astimezone(pytz.utc)
 print("url-->",url)
 
+database = TestingConfig.MONGODB_DATABASE_TEST
+# database = Config.MONGODB_DATABASE_TEST
+
 
 def get_arrive_flight_time(flight, logger):
     logger.info("Start Fetching Arrive Flight Time from MongoDB")
@@ -383,7 +386,7 @@ def create_user(username, password, email, address):
 
 # Return True if the username already exists in the database
 def same_username(username):
-    collection = client['flying_high']['user']  
+    collection = client[database]['user']  
     return collection.find_one({'username': username}) is not None
 
 
@@ -400,7 +403,7 @@ def check_user_credentials(username, password, logger):
 
 def insert_new_user(user, logger):
     logger.info("Start Inserting New User to MongoDB")
-    collection = client['test_db']['user']
+    collection = client[database]['user']
     print(collection)
     result = collection.insert_one(user)
     return result.inserted_id

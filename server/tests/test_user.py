@@ -2,6 +2,7 @@
 import pytest
 import sys
 import os
+import time
 from pymongo import MongoClient
 from werkzeug.security import generate_password_hash
 
@@ -28,53 +29,58 @@ def client(app):
     return app.test_client()
 
 @pytest.fixture
-def setup_database():
+def database():
     print("Setting up the database...")
     client = MongoClient(os.getenv("MONGODB_URI_TEST"))
     db = client.test_db
-    try:
-        result = db.command("ping")
-        print("Ping result:", result)
-    except Exception as e:
-        print("Failed to connect to the database:", e)
-        raise
-    db.users.insert_one({
+    test_user = {
         "username": "testuser",
         "password_hash": generate_password_hash("correctpassword"),
-        "email": "test@example.com"
-    })
-    yield
-    # print("Cleaning up the database...")
-    # db.users.delete_many({})
+        "email": "test@example.com",
+        "address": "123 New St"
+    }
+    db.users.insert_one(test_user)
+
+    yield db
+
+    
+    print("Cleaning up the test user from the database...")
+    db.users.delete_one({"username": test_user['username']})
 
 
-def test_user_registration(client, setup_database):
+def test_user_registration(client, database):
+    username = f"newuser_{int(time.time())}"  # 使用基于时间的唯一用户名
     new_user = {
-        "username": "newuser",
+        "username": username,
         "password": "newpassword",
-        "email": "newuser@example.com",
+        "email": f"{username}@example.com",
         "address": "123 New St"
     }
     response = client.post('/user/sign_up', data=new_user, follow_redirects=True)
     assert response.status_code == 200
     cookies = response.headers.get('Set-Cookie', '')
-    print(f"Cookies after redirect: {cookies}")
     assert 'access_token' in cookies, f"Expected 'access_token' in cookies, got {cookies}"
 
+    try:
+        delete_result = database.user.delete_one({"username": username})
+        print(f"Attempting to delete user '{username}'. Deleted count: {delete_result.deleted_count}")
+    except Exception as e:
+        print(f"Error when trying to delete user: {e}")
 
 
-# def test_login_success(client, setup_database):
-#     """Test successful login."""
-#     response = client.post('/user/log_in', data={
-#         'username': 'testuser',
-#         'password': 'correctpassword'
-#     }, follow_redirects=True)
-#     assert response.status_code == 200
+def test_login_success(client, database):
+    """Test successful login."""
+    response = client.post('/user/log_in', data={
+        'username': 'testuser',
+        'password': 'correctpassword'
+    }, follow_redirects=True)
+    assert response.status_code == 200
 
-# def test_login_failure(client, setup_database):
-#     """Test login with wrong credentials."""
-#     response = client.post('/user/log_in', data={
-#         'username': 'testuser',
-#         'password': 'wrongpassword'
-#     }, follow_redirects=True)
-#     assert response.status_code == 200
+
+def test_login_failure(client, database):
+    """Test login with wrong credentials."""
+    response = client.post('/user/log_in', data={
+        'username': 'testuser',
+        'password': 'wrongpassword'
+    }, follow_redirects=True)
+    assert response.status_code == 200

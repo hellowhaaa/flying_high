@@ -9,6 +9,7 @@ class Config(object):
     
     # MongoDB
     MONGODB_URI_FLY = os.getenv('MONGODB_URI_FLY')
+    MONGODB_DATABASE_FLY = os.getenv('MONGODB_DATABASE_FLY')
     
     # Gmail
     MAIL_USERNAME = os.getenv('MAIL_USERNAME')
@@ -32,4 +33,5 @@ class TestingConfig(Config):
     TESTING = True
     DATABASE_URI = os.getenv("MONGODB_URI_TEST")
     WTF_CSRF_ENABLED = False
+    MONGODB_DATABASE_TEST = os.getenv("MONGODB_DATABASE_TEST")
     
