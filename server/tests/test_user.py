@@ -49,7 +49,7 @@ def database():
 
 
 def test_user_registration(client, database):
-    username = f"newuser_{int(time.time())}"  # 使用基于时间的唯一用户名
+    username = f"newuser_{int(time.time())}"  # Unique username
     new_user = {
         "username": username,
         "password": "newpassword",

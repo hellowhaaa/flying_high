@@ -54,7 +54,7 @@ def get_depart_flight_time(flight, logger):
                 '$gt': utc_midnight
             }
         }
-        result = client['flying_high']['flight_depart2'].find_one(
+        result = client[database]['flight_depart2'].find_one(
         filter=filter,
         sort=[('updated_at', DESCENDING)]
         )
@@ -127,7 +127,7 @@ def select_insurance_amount(plan, insurance_amount,insurance_company, insurance_
             'plan.plan_name': plan,
             'days': int(insurance_days)
         }
-        result = client['flying_high']['insurance_'+insurance_company].find_one(
+        result = client[database]['insurance_'+insurance_company].find_one(
             filter=filter
         )  
         return result
