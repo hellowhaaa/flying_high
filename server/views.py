@@ -26,18 +26,20 @@ def error_handlers(app):
 def encode_auth_token(username):
     try:
         payload = {
-            'exp': datetime.utcnow() + timedelta(days=20),  # Token expiration time
-            'iat': datetime.utcnow(),  # Token issued at
-            'username': username  
+            'exp': datetime.utcnow() + timedelta(days=20),
+            'iat': datetime.utcnow(),
+            'username': username
         }
-        return jwt.encode(
+        token = jwt.encode(
             payload,
             current_app.config.get('SECRET_KEY'),
             algorithm='HS256'
         )
+        current_app.logger.info(f"Generated token: {token}")
+        return token
     except Exception as e:
         current_app.logger.error(f"Error encoding token: {e}", exc_info=True)
-        return e
+        return None
 
 def token_required(f):
     @wraps(f)
@@ -89,15 +91,20 @@ def sign_up():
                 
                 # Create token
                 token = encode_auth_token(username)
-                response = make_response(redirect(url_for('search_flight')))
-                response.set_cookie('access_token', f'Bearer {token}', path='/')
-                flash('You have been logged in!', 'success')
-                return response
-            else:
-                for fieldName, errorMessages in form.errors.items():
-                    for err in errorMessages:
-                        current_app.logger.error(f"Error in {fieldName}: {err}")
-                flash('Please correct the errors in the form.', 'danger')
+                if token:
+                    # response = make_response(redirect(url_for('search_flight')))
+                    # response.set_cookie('access_token', f'Bearer {token}', path='/')
+                    # flash('You have been logged in!', 'success')
+                    # return response
+                    
+                    response = make_response(render_template('search_flight.html'))
+                    response.set_cookie('access_token', f'Bearer {token}', path='/')
+                    return response
+                else:
+                    for fieldName, errorMessages in form.errors.items():
+                        for err in errorMessages:
+                            current_app.logger.error(f"Error in {fieldName}: {err}")
+                    flash('Please correct the errors in the form.', 'danger')           
         return render_template('sign_up.html', form=form, google_url=google_url)
     except Exception as e:
         current_app.logger.error(f"An error occurred: {str(e)}", exc_info=True)

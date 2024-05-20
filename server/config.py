@@ -26,3 +26,10 @@ class Config(object):
     # Google API
     GOOGLE_API_KEY = os.getenv('GOOGLE_API_KEY')
     
+    
+class TestingConfig(Config):
+    SECRET_KEY = os.getenv('SECRET_KEY')
+    TESTING = True
+    DATABASE_URI = os.getenv("MONGODB_URI_TEST")
+    WTF_CSRF_ENABLED = False
+    

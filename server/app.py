@@ -5,14 +5,14 @@ from flask import Flask, request
 from flask_wtf import CSRFProtect
 from flask_mail import Mail
 from views import *
-from config import Config
+from config import Config, TestingConfig
 
-def create_app():
+def create_app(config_class=TestingConfig):
     # Create Flask app
     app = Flask(__name__)
     
     # configuration
-    app.config.from_object(Config)
+    app.config.from_object(config_class)
     
     # Secret key
     app.secret_key = app.config['SECRET_KEY']

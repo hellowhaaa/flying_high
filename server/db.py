@@ -1,15 +1,17 @@
 import pytz
-from config import Config
+from server.config import Config, TestingConfig
 from datetime import datetime
 from pymongo import MongoClient,DESCENDING
 from werkzeug.security import generate_password_hash, check_password_hash
 
-url = Config.MONGODB_URI_FLY
+# url = Config.MONGODB_URI_FLY
+url = TestingConfig.DATABASE_URI
 client = MongoClient(url)
 taiwan_tz = pytz.timezone('Asia/Taipei')
 tw_now = datetime.now(taiwan_tz)
 tw_midnight = taiwan_tz.localize(datetime(tw_now.year, tw_now.month, tw_now.day, 0, 0, 0))
 utc_midnight = tw_midnight.astimezone(pytz.utc)
+print("url-->",url)
 
 
 def get_arrive_flight_time(flight, logger):
@@ -398,6 +400,7 @@ def check_user_credentials(username, password, logger):
 
 def insert_new_user(user, logger):
     logger.info("Start Inserting New User to MongoDB")
-    collection = client['flying_high']['user']
+    collection = client['test_db']['user']
+    print(collection)
     result = collection.insert_one(user)
     return result.inserted_id
