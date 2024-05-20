@@ -58,7 +58,7 @@ def utc_midnight():
     except Exception as e:
         logging.error(f"Error in utc_midnight: {e}")
 
-
+# TODO: 沒有完整的完成這個function
 def aggregate_unique_destination():
     """ 
     Create an aggregation pipeline to get unique destinations
@@ -119,7 +119,7 @@ def unique_destination_list(unique_destinations):
         logging.error(f"Error in unique_destination_list: {e}")
 
 
-
+# TODO: Get / Find flight data
 def flight_data(location, collection_name):
     """
     Get flight data from mongodb collection everyday by destination
@@ -147,7 +147,7 @@ def flight_data(location, collection_name):
     except Exception as e:
         logging.error(f"Error in flight_data: {e}")
 
-
+# TODO: 寫個 while
 def get_latitude_longitude_list(destination, attempt=1, max_attempts=5):
     """ 
     Get latitude and longitude from chinese city name
@@ -162,8 +162,8 @@ def get_latitude_longitude_list(destination, attempt=1, max_attempts=5):
     
     logging.info("Start get_latitude_longitude_list")
     try:
-        useranget = "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Mobile Safari/537.36,gzip(gfe)"
-        geolocator = Nominatim(user_agent=useranget)
+        user_agent = "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Mobile Safari/537.36,gzip(gfe)"
+        geolocator = Nominatim(user_agent=user_agent)
         try: 
             destination = geolocator.geocode(destination, timeout=10)
             if destination:
@@ -218,11 +218,9 @@ def result(collection_name, unique_destination_list, status):
                         'flights': flight_details
                     })
                     logging.info(f"Destinations: {destinations}")
-                else:
-                    logging.info(f"Destination {destination} already exists in the dictionary.")
-            else:
-                logging.info(f"Could not fetch data for {destination}")
-            time.sleep(1)
+                    # logging.info(f"Destination {destination} already exists in the dictionary.")
+                # logging.info(f"Could not fetch data for {destination}")
+            # time.sleep(1)
         # each destination with its all flights
         return destinations
     except Exception as e:
