@@ -42,8 +42,6 @@ def database():
     db.users.insert_one(test_user)
 
     yield db
-
-    
     print("Cleaning up the test user from the database...")
     db.users.delete_one({"username": test_user['username']})
 

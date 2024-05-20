@@ -1,7 +1,6 @@
 import pytest
 import sys
 import os
-import time
 import json
 from unittest.mock import patch
 from pymongo import MongoClient
@@ -38,28 +37,20 @@ def captured_templates(app):
     finally:
         template_rendered.disconnect(record, app)
 
-@pytest.fixture
-def database():
-    print("Setting up the database...")
-    client = MongoClient(os.getenv("MONGODB_URI_TEST"))
-    db = client.test_db
-    yield db
-    print("Cleaning up the database...")
-
+# 目的是要對這隻 API 進行測試 所以沒有使用 Mock Data
 def test_depart_flight_time_success(client):
-    with patch('db.get_depart_flight_time') as mock_get_flight:
-        with captured_templates(client.application) as templates:
-            response = client.post('/depart_flight_time', data={
-                'airline': 'BR',
-                'flight_number': '16'
-            }, follow_redirects=True)
-            assert response.status_code == 200
-            assert len(templates) == 1
-            template, context = templates[0]
-            assert template.name == 'flight_time.html'
-            assert 'flight' in context
-            print("航空: ",context['flight']['airline_name'])
-            assert context['flight']['airline_name'] == '長榮航空'
+    with captured_templates(client.application) as templates:
+        response = client.post('/depart_flight_time', data={
+            'airline': 'BR',
+            'flight_number': '16'
+        }, follow_redirects=True)
+        assert response.status_code == 200
+        assert len(templates) == 1
+        template, context = templates[0]
+        assert template.name == 'flight_time.html'
+        assert 'flight' in context
+        print("航空: ",context['flight']['airline_name'])
+        assert context['flight']['airline_name'] == '長榮航空'
     
 
 def test_index_page(client):
