@@ -47,12 +47,19 @@ def database():
     print("Cleaning up the database...")
 
 def test_depart_flight_time_success(client):
-    with captured_templates(client.application) as templates:
-        response = client.post('/depart_flight_time', data={
-            'airline': 'UA',
-            'flight_number': '123'
-        }, follow_redirects=True)
-        assert response.status_code == 200
+    with patch('db.get_depart_flight_time') as mock_get_flight:
+        with captured_templates(client.application) as templates:
+            response = client.post('/depart_flight_time', data={
+                'airline': 'BR',
+                'flight_number': '16'
+            }, follow_redirects=True)
+            assert response.status_code == 200
+            assert len(templates) == 1
+            template, context = templates[0]
+            assert template.name == 'flight_time.html'
+            assert 'flight' in context
+            print("航空: ",context['flight']['airline_name'])
+            assert context['flight']['airline_name'] == '長榮航空'
     
 
 def test_index_page(client):
