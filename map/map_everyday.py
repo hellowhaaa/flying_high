@@ -17,11 +17,14 @@ current_dir = os.path.dirname(os.path.abspath(__file__))
 project_root = os.path.dirname(current_dir)
 log_path = os.path.join(project_root, 'map', 'logs')
 os.makedirs(log_path, exist_ok=True)
-log_file_path = os.path.join(log_path, 'map.log')
+# Generate log file name with the current date
+current_date = datetime.now().strftime("%Y%m%d")
+log_file_path = os.path.join(log_path, f'map_{current_date}.log')
+
 logging.basicConfig(
     level=logging.INFO,
     format='%(asctime)s %(levelname)s: %(message)s [in %(pathname)s:%(lineno)d]',
-    handlers=[RotatingFileHandler(log_file_path, maxBytes=10240, backupCount=3)]
+    handlers=[RotatingFileHandler(log_file_path, maxBytes=10240, backupCount=5)]
 )
 load_dotenv()
 url = os.getenv("MONGODB_URI_FLY")
@@ -32,7 +35,7 @@ def main():
     db = client['flying_high']
     collection_arrive = db['flight_arrive2']
     collection_depart = db['flight_depart2']
-    pipeline = aggregate_unique_destination()
+    pipeline = aggregation_pipeline()
     unique_arrive_destinations = collection_arrive.aggregate(pipeline)
     unique_depart_destinations = collection_depart.aggregate(pipeline)
     unique_depart_destination_list = unique_destination_list(unique_depart_destinations)
@@ -48,8 +51,8 @@ def utc_midnight():
     Return:
         datetime object: UTC Time
     """
-    logging.info("Start utc_midnight")
     try:
+        logging.info("Start utc_midnight")
         taiwan_tz = pytz.timezone('Asia/Taipei')
         tw_now = datetime.now(taiwan_tz)
         tw_midnight = taiwan_tz.localize(datetime(tw_now.year, tw_now.month, tw_now.day, 0, 0, 0))
@@ -58,14 +61,13 @@ def utc_midnight():
     except Exception as e:
         logging.error(f"Error in utc_midnight: {e}")
 
-# TODO: 沒有完整的完成這個function
-def aggregate_unique_destination():
+
+def aggregation_pipeline():
     """ 
     Create an aggregation pipeline to get unique destinations
     Return: 
         list: pipeline list
     """
-    logging.info("Start aggregate_unique_destination")
     try:
         midnight = utc_midnight()
         pipeline = [
@@ -107,7 +109,6 @@ def unique_destination_list(unique_destinations):
     Return: 
         list: unique destinations list
     """
-    logging.info("Start unique_destination_list")
     try:
         unique_destination_list = []
         for destination in unique_destinations:
@@ -119,8 +120,7 @@ def unique_destination_list(unique_destinations):
         logging.error(f"Error in unique_destination_list: {e}")
 
 
-# TODO: Get / Find flight data
-def flight_data(location, collection_name):
+def get_flight_data(location, collection_name):
     """
     Get flight data from mongodb collection everyday by destination
     
@@ -130,8 +130,6 @@ def flight_data(location, collection_name):
     Return: 
         list: everyday's each flight's collection in one list 
     """
-    
-    logging.info("Start flight_data")
     try:
         midnight = utc_midnight()
         filter={
@@ -147,8 +145,9 @@ def flight_data(location, collection_name):
     except Exception as e:
         logging.error(f"Error in flight_data: {e}")
 
-# TODO: 寫個 while
-def get_latitude_longitude_list(destination, attempt=1, max_attempts=5):
+
+
+def get_latitude_longitude_list(destination, max_attempts=5):
     """ 
     Get latitude and longitude from chinese city name
     
@@ -159,25 +158,24 @@ def get_latitude_longitude_list(destination, attempt=1, max_attempts=5):
     Return: 
         list: latitude and longitude
     """
-    
-    logging.info("Start get_latitude_longitude_list")
-    try:
-        user_agent = "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Mobile Safari/537.36,gzip(gfe)"
-        geolocator = Nominatim(user_agent=user_agent)
-        try: 
-            destination = geolocator.geocode(destination, timeout=10)
-            if destination:
-                return [destination.latitude, destination.longitude]
+    attempt = 0
+    user_agent = "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Mobile Safari/537.36,gzip(gfe)"
+    geolocator = Nominatim(user_agent=user_agent)
+    while attempt < max_attempts:
+        try:
+            destination_result = geolocator.geocode(destination, timeout=10)
+            if destination_result:
+                return (destination_result.latitude, destination_result.longitude)
             else:
                 return (None, None)
         except (GeocoderTimedOut, GeocoderUnavailable) as e:
-            if attempt <= max_attempts:
-                time.sleep(2)
-                return get_latitude_longitude_list(destination, attempt=attempt+1)
-            else:
-                raise e
-    except Exception as e:
-        logging.error(f"Error in get_latitude_longitude_list: {e}")
+            logging.warning(f"Attempt {attempt+1} failed: {str(e)}")
+            attempt += 1
+            time.sleep(2)  
+        except Exception as e:
+            logging.error(f"Error in get_latitude_longitude_list: {e}")
+            return (None, None)
+
 
 
 def result(collection_name, unique_destination_list, status):
@@ -191,13 +189,13 @@ def result(collection_name, unique_destination_list, status):
     Return: 
         list: dictionary inside with destination, latitude_longitude, flights and {scheduled_arrive_time, airlines}
     """
-    logging.info("Start result")
     try:
+        logging.info("Start result")
         destinations = []  
         for destination in unique_destination_list:
             latitude_longitude_list = get_latitude_longitude_list(destination)
             if latitude_longitude_list:
-                each_flight_collection = flight_data(destination, collection_name)
+                each_flight_collection = get_flight_data(destination, collection_name)
                 flight_details = []
                 seen = set()  # Set to track unique flights
                 for collection in each_flight_collection:
@@ -217,11 +215,6 @@ def result(collection_name, unique_destination_list, status):
                         'latitude_longitude': latitude_longitude_list,
                         'flights': flight_details
                     })
-                    logging.info(f"Destinations: {destinations}")
-                    # logging.info(f"Destination {destination} already exists in the dictionary.")
-                # logging.info(f"Could not fetch data for {destination}")
-            # time.sleep(1)
-        # each destination with its all flights
         return destinations
     except Exception as e:
         logging.error(f"Error in result: {e}")

@@ -40,9 +40,10 @@ def create_app(config_class=TestingConfig):
     if not app.debug:
         current_dir = os.path.dirname(os.path.abspath(__file__))
         project_root = os.path.dirname(current_dir)
+        current_date = datetime.now().strftime("%Y%m%d")
         log_path = os.path.join(project_root, 'server', 'logs')
         os.makedirs(log_path, exist_ok=True)
-        file_handler = RotatingFileHandler(os.path.join(log_path, 'app.log'), maxBytes=10240, backupCount=3)
+        file_handler = RotatingFileHandler(os.path.join(log_path, f'app_{current_date}.log'), maxBytes=10240, backupCount=5)
         file_handler.setFormatter(logging.Formatter(
             '%(asctime)s %(levelname)s: %(message)s [in %(pathname)s:%(lineno)d]'
         ))

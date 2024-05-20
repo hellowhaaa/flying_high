@@ -1,6 +1,6 @@
 import pytz
 from server.config import Config, TestingConfig
-from datetime import datetime
+from datetime import datetime, timezone
 from pymongo import MongoClient,DESCENDING
 from werkzeug.security import generate_password_hash, check_password_hash
 
@@ -232,10 +232,10 @@ def update_user_insurance(username, insurance_company, plan, insured_amount, day
                 "plan": plan,
                 "insured_amount": insured_amount,
                 "days": days,
-                "updated_at": datetime.utcnow()
+                "updated_at": datetime.now(timezone.utc)
             },
             "$setOnInsert": {
-                "created_at": datetime.utcnow()  # Only set this field on insert (upsert)
+                "created_at": datetime.now(timezone.utc)  # Only set this field on insert (upsert)
             }
         }
         result = client['flying_high']['user_insurance'].update_many(
@@ -275,10 +275,10 @@ def update_user_flight_info(username, depart_taiwan_date, arrive_taiwan_date, fl
                 "arrive_taiwan_date": end_date_utc_midnight,
                 "flight_depart_taoyuan": flight_depart_taoyuan,
                 "flight_arrive_taoyuan": flight_arrive_taoyuan,
-                "updated_at": datetime.utcnow()
+                "updated_at": datetime.now(timezone.utc)
             },
             "$setOnInsert": {
-                "created_at": datetime.utcnow()  # Only set this field on insert (upsert)
+                "created_at": datetime.now(timezone.utc)  # Only set this field on insert (upsert)
             }
         }
         result = client['flying_high']['user_flight'].update_many(
@@ -305,12 +305,12 @@ def update_user_notify(username, flight_change, flight_delay, hsr, logger):
                 "flight_change": flight_change,
                 "flight_delay": flight_delay,
                 "hsr_station": hsr,
-                "updated_at": datetime.utcnow()
+                "updated_at": datetime.now(timezone.utc)
             },
             "$setOnInsert": {
                 "depart_email_send": False,
                 "arrive_email_send": False,
-                "created_at": datetime.utcnow()  # Only set this field on insert (upsert)
+                "created_at": datetime.now(timezone.utc)  # Only set this field on insert (upsert)
             }
         }
         result = client['flying_high']['user_notify'].update_many(
@@ -380,8 +380,8 @@ def create_user(username, password, email, address):
         'password': hashed_password,
         'email': email,
         'address': address,
-        "created_at": datetime.utcnow(),
-        "updated_at": datetime.utcnow()
+        "created_at": datetime.now(timezone.utc),
+        "updated_at": datetime.now(timezone.utc)
     }
 
 # Return True if the username already exists in the database
