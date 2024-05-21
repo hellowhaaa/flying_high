@@ -165,29 +165,29 @@ def crawl_data():
             print('--------------------')
             
             # Backup to S3
-            taiwan_time_split = taiwan_title_time_element.split("機")[1].split(" (")[0].strip().split("/")
-            taiwan_time_file = f"depart/{taiwan_time_split[0]}-{taiwan_time_split[1]}-{taiwan_time_split[2]}"
-            back_up_data = {
-                "taiwan_title_time": taiwan_title_time_element,
-                "airline": alphabet_ls,
-                "scheduled_depart_time": scheduled_depart_time_element,
-                "actual_depart_time": actual_depart_time_element,
-                "destination": destination_element,
-                "terminal": terminal_element,
-                "gate": gate_element,
-                "status": status_element,
-                "time_difference": time_diff_minute,
-            }
+            # taiwan_time_split = taiwan_title_time_element.split("機")[1].split(" (")[0].strip().split("/")
+            # taiwan_time_file = f"depart/{taiwan_time_split[0]}-{taiwan_time_split[1]}-{taiwan_time_split[2]}"
+            # back_up_data = {
+            #     "taiwan_title_time": taiwan_title_time_element,
+            #     "airline": alphabet_ls,
+            #     "scheduled_depart_time": scheduled_depart_time_element,
+            #     "actual_depart_time": actual_depart_time_element,
+            #     "destination": destination_element,
+            #     "terminal": terminal_element,
+            #     "gate": gate_element,
+            #     "status": status_element,
+            #     "time_difference": time_diff_minute,
+            # }
             
-            try:
-                airline_code = ""
-                for flight in alphabet_ls:
-                    airline_code += flight['airline_code']
-                    airline_code += "_"
-                key = f"{taiwan_time_file}_{airline_code}.json"
-                backup_to_s3(key, back_up_data)
-            except Exception as e:
-                logging.error(f"An exception occurred: {str(e)}", exc_info=True)
+            # try:
+            #     airline_code = ""
+            #     for flight in alphabet_ls:
+            #         airline_code += flight['airline_code']
+            #         airline_code += "_"
+            #     key = f"{taiwan_time_file}_{airline_code}.json"
+            #     backup_to_s3(key, back_up_data)
+            # except Exception as e:
+            #     logging.error(f"An exception occurred: {str(e)}", exc_info=True)
     except Exception as e:
         logging.error(f"An exception occurred: {str(e)}", exc_info=True)        
     finally:
