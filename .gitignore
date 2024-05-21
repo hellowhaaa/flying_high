@@ -55,6 +55,8 @@ email_notify/dags/.env
 map/create_latitude.py
 map/dags/__pycache__/
 
+
+try_transform/
 logs/
 .env
 .idea/
