@@ -79,7 +79,7 @@
 <div class="container">
   <div class="background-image"></div>
   <div class="outer">
-    <h3 class="section-title">查看保單</h3>
+    <h3 class="section-title">我的保單</h3>
     <div class="card-row">
       <!-- 投保資訊card-->
       <div class="info-box">
@@ -95,7 +95,7 @@
 
         <div>
           <h3>登錄航班資訊</h3>
-
+          {% if return_flight_info %}
           <p>登錄日期: {{ depart_taiwan_date }}</p>
           <p>登錄班機: {{ flight_depart_taoyuan }}</p>
           {% if depart_flight%} {% if
@@ -113,6 +113,8 @@
           <p>起飛時間差：準時</p>
           {% endif %} {% else %}
           <p>起飛時間差：尚未起飛</p>
+          {% endif %} {% else %}
+          <p>您尚未設定航班資訊</p>
           {% endif %}
         </div>
       </div>

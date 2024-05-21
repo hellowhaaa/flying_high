@@ -1,17 +1,16 @@
-# views.py
-from flask import (request, redirect, url_for, render_template, flash, 
-                    current_app,jsonify, abort, make_response)
-from models import RegisterForm, create_user, same_username, check_user_credentials
-from select_data_from_mongo import *
-from update_data_to_mongo import *
 import os
-from pymongo import MongoClient
-from functools import wraps
-import jwt
-from datetime import datetime, timedelta
 import re
-from flask_mail import Message
 import pytz
+import jwt
+
+from db import *
+from functools import wraps
+from models import RegisterForm
+from pymongo import MongoClient
+from datetime import datetime, timedelta
+from flask_mail import Message
+from flask import (request, redirect, url_for, render_template, flash, 
+                    current_app, jsonify, abort, make_response)
 
 
 def error_handlers(app):
@@ -27,8 +26,8 @@ def error_handlers(app):
 def encode_auth_token(username):
     try:
         payload = {
-            'exp': datetime.utcnow() + timedelta(days=1),  # Token expiration time
-            'iat': datetime.utcnow(),  # Token issued at
+            'exp': datetime.now(timezone.utc) + timedelta(days=20),  # Token expiration time
+            'iat': datetime.now(timezone.utc),  # Token issued at
             'username': username  
         }
         return jwt.encode(
@@ -66,31 +65,29 @@ def token_required(f):
 
 def sign_up():
     try:
-        mongo_client = MongoClient(os.getenv("MONGODB_URI_FLY"))
-        db = mongo_client['flying_high']
-        users_collection = db['user']
+        google_url = current_app.config.get('GOOGLE_API_KEY')
         form = RegisterForm()
         if request.method == 'POST':
             current_app.logger.info("Sign up post request received")
             if form.validate():
                 username = form.username.data
-                if same_username(users_collection, username):
+                if same_username(username):
                     flash('Username already exists')
                     return redirect(url_for('sign_up'))
                 email = form.email.data
                 address = form.address.data
                 password = form.password.data
-                user = create_user(username, password, email, address)  # 使用哈希密碼
+                user = create_user(username, password, email, address) 
                 try:
-                    # 將新用戶插入 MongoDB
-                    users_collection.insert_one(user)
+                    # Insert new user to  MongoDB
+                    insert_new_user(user, logger=current_app.logger)
                     current_app.logger.info(f"User saved: {user['username']}")
                 except Exception as e:
                     current_app.logger.error(f"Error saving user: {e}", exc_info=True)
                     flash('An error occurred while saving the user. Please try again.', 'danger')
                     return redirect(url_for('sign_up'))
                 
-                # 設置訪問令牌
+                # Create token
                 token = encode_auth_token(username)
                 response = make_response(redirect(url_for('search_flight')))
                 response.set_cookie('access_token', f'Bearer {token}', path='/')
@@ -101,7 +98,7 @@ def sign_up():
                     for err in errorMessages:
                         current_app.logger.error(f"Error in {fieldName}: {err}")
                 flash('Please correct the errors in the form.', 'danger')
-        return render_template('sign_up.html', form=form)
+        return render_template('sign_up.html', form=form, google_url=google_url)
     except Exception as e:
         current_app.logger.error(f"An error occurred: {str(e)}", exc_info=True)
         abort(500)
@@ -110,13 +107,10 @@ def sign_up():
 
 def login():
     try:
-        mongo_client = MongoClient(os.getenv("MONGODB_URI_FLY"))
-        db = mongo_client['flying_high']
-        users_collection = db['user']
         if request.method == 'POST':
             username = request.form.get('username')
             password = request.form.get('password')
-            user = check_user_credentials(users_collection, username, password)
+            user = check_user_credentials(username, password, logger=current_app.logger)
             if user:
                 current_app.logger.info(f"User Logged In: {user}")
                 token = encode_auth_token(username)
@@ -300,7 +294,7 @@ def update_notify(current_user):
 
 def index():
     try:
-        return render_template('homepage.html')
+        return render_template('search_flight.html')
     except Exception as e:
         current_app.logger.error(f"An error occurred: {str(e)}", exc_info=True)
         abort(500)
@@ -494,6 +488,7 @@ def my_insurance(current_user):
     try:
         user_insurance = select_user_insurance(current_user, logger=current_app.logger)
         current_app.logger.info(f"User's Insurance Plans Retrieved from MongoDB Successfully")
+        # user insurance content
         if user_insurance is not None:
             insurance_company = user_insurance["insurance_company"]
             plan = user_insurance["plan"]
@@ -502,17 +497,21 @@ def my_insurance(current_user):
             insurance_content = select_insurance_amount(plan, insured_amount,insurance_company, days, logger=current_app.logger)
             current_app.logger.info(f"Insurance Content Retrieved from MongoDB Successfully")
             insurance_content["insurance_company"] = insurance_company
-            
-            # !-- start register flight information
+            # user flight info
             user_flight = select_user_flight(current_user, logger=current_app.logger)
-            depart_taiwan_date = user_flight['depart_taiwan_date']
-            flight_depart_taoyuan = user_flight['flight_depart_taoyuan']
-            depart_flight = select_depart_flight_difference(depart_taiwan_date, flight_depart_taoyuan,logger=current_app.logger)
-            taiwan_tz = pytz.timezone('Asia/Taipei')
-            depart_taiwan_date.replace(tzinfo=pytz.utc).astimezone(taiwan_tz)
-            depart_taiwan_date = depart_taiwan_date.strftime('%Y-%m-%d')
-            return render_template('my_insurance.html', user_insurance = user_insurance, insurance_content= insurance_content, 
-                                depart_flight = depart_flight,flight_depart_taoyuan=flight_depart_taoyuan,depart_taiwan_date=depart_taiwan_date)
+            return_flight_info = {}
+            if user_flight is not None:
+                depart_taiwan_date = user_flight['depart_taiwan_date']
+                flight_depart_taoyuan = user_flight['flight_depart_taoyuan']
+                depart_flight = select_depart_flight_difference(depart_taiwan_date, flight_depart_taoyuan,logger=current_app.logger)
+                taiwan_tz = pytz.timezone('Asia/Taipei')
+                depart_taiwan_date.replace(tzinfo=pytz.utc).astimezone(taiwan_tz).strftime('%Y-%m-%d')
+                return_flight_info = {
+                    "depart_flight":depart_flight,
+                    "flight_depart_taoyuan":flight_depart_taoyuan,
+                    "depart_taiwan_date":depart_taiwan_date
+                }
+            return render_template('my_insurance.html', user_insurance = user_insurance,insurance_content=insurance_content, return_flight_info = return_flight_info)
         else:
             return redirect(url_for('user_insurance'))
     except Exception as e:

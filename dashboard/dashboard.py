@@ -8,7 +8,6 @@ import os
 from datetime import datetime, timedelta
 import logging
 from logging.handlers import RotatingFileHandler
-from streamlit_navigation_bar import st_navbar
 
 log_path = os.path.join(os.getcwd(), 'logs')
 # Ensure the directory exists
@@ -29,7 +28,7 @@ def navbar():
         <style>
         .navbar {
             display: flex;
-            justify-content: center;
+            justify-content: flex-start;
             
             padding: 10px;
         }
@@ -53,10 +52,10 @@ def navbar():
         </style>
         <nav class="navbar">
             <ul>
-                <li><a href="#home">Home</a></li>
-                <li><a href="#features">Features</a></li>
-                <li><a href="#pricing">Pricing</a></li>
-                <li><a href="#dropdown">Dropdown</a></li>
+                <li><a href="https://www.flyinghigh.live">Homepage</a></li>
+                <li><a href="https://www.flyinghigh.live/insurance">Insurance</a></li>
+                <li><a href="https://www.flyinghigh.live/flight_map">Flight Map</a></li>
+                <li><a href="https://www.flyinghigh.live/dashboard">Dashboard</a></li>
             </ul>
         </nav>
     """, unsafe_allow_html=True)
