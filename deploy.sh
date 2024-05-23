@@ -43,3 +43,11 @@ gunicorn --workers 2 --bind localhost:5000 'app:create_app()' --daemon
 
 echo "started gunicorn"
 
+# run streamlit
+cd /home/ec2-user/production/dashboard
+sudo lsof -ti:8501 | xargs kill -9
+streamlit run dashboard.py --server.port 8501
+
+echo "started streamlit"
+
+
