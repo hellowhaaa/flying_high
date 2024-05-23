@@ -11,17 +11,14 @@ Access my site at https://www.flyinghigh.live/
 
 - [Flying High](#flying-high)
   - [Demo Link](#demo-link)
-  - [Table of contents](#table-of-contents)
+  - [Table of Contents](#table-of-contents)
   - [System Architecture](#system-architecture)
-  - [Demo](#demo)
+    - [Architecture Diagram](#architecture-diagram)
+    - [Simple Introduction of Architecture](#simple-introduction-of-architecture)
   - [Feature](#feature)
+    - [Infrastructure](#infrastructure)
     - [Website](#website)
-    - [Datapipeline](#data-pipeline)
-    - [Database](#database)
-    - [Visualization](#visualization)
-    - [Scheduling](#scheduling)
-    - [Monitoring](#monitoring)
-    - [CI/CD](#cicd)
+  - [Demo](#demo-1)
   - [Technologies](#technologies)
   - [Deployment](#deployment)
   - [Contact](#contact)
@@ -58,9 +55,9 @@ Access my site at https://www.flyinghigh.live/
 
 ## Feature
 
-#### Infrustucture
+### Infrastructure
 
-- Datapiple
+- Data Pipeline
 
   - Extract
     - 1. Crawled data from Taoyuan airport website by crawling package, Selenium
@@ -78,7 +75,7 @@ Access my site at https://www.flyinghigh.live/
 
 - Database: Store all data in MongoDB on the purpose of flexible schema which makes the data stored rapidly and easily whenever data resource changed.
 
-- Server: Deploy website by flask and streamlit framgework on second Amazon EC2.
+- Servers: Deploy website by flask and streamlit framework on second Amazon EC2.
 
 - Maintenance
 
@@ -90,6 +87,20 @@ Access my site at https://www.flyinghigh.live/
 - CI/CD: Established a CI/CD pipeline using GitHub Actions to build and test code every time pushing a commit to
   GitHub, which can save a lot of time and effort.
 
+### Website
+
+- Flight Finder: Streamline your travel planning with our intuitive search feature, complete with an auto-complete dropdown menu. Find specific departure or arrival flights in real-time, ensuring you're always one step ahead.
+
+- Insurance Solutions: Quickly access potential insured amounts varying by different insurers.
+
+- Real-Time Flight Alerts: Stay informed and never miss a beat with automated email notifications. Any changes to your flight are immediately communicated, keeping user updated and prepared.
+
+- Personalized Insurance Insights: Easily retrieve detailed insurance information relevant to your profile.
+
+- Interactive Flight Map: View all flights departing from or arriving at Taoyuan Airport each day, offering user a comprehensive overview of travel options.
+
+- Airline Performance Metrics: Gain insight into airline reliability with on-time performance tracker. Compare and contrast the punctuality of different carriers, empowering you with the knowledge to choose the best airline for your travels.
+
 ## Demo
 
 ![Search_Flight_Insurance](https://github.com/hellowhaaa/flying_high/assets/98002855/7d03a627-aafc-4767-a645-75101672cccd)
@@ -99,3 +110,16 @@ Access my site at https://www.flyinghigh.live/
 ![Flight_Maps](https://github.com/hellowhaaa/flying_high/assets/98002855/8dd9f712-0ef7-434e-a4a9-cbfadd7952ea)
 
 ![Dashboard](https://github.com/hellowhaaa/flying_high/assets/98002855/5bb259eb-32c1-481f-94ca-f114a3d801a5)
+
+## Technologies
+
+- Programming: Python, HTML, CSS/Bootstrap, JavaScript
+- Frameworks: Flask, Streamlit
+- Database: MongoDB
+- Tools: Airflow, Docker
+- Cloud Engineering - AWS: EC2, CloudWatch, S3, Route53
+- Automation: GitHub Actions
+
+## Contact
+
+Lily Chou - lily28252005@gmail.com
