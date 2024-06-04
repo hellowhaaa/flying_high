@@ -59,19 +59,22 @@ Access my site at https://www.flyinghigh.live/
 
 - Data Pipeline
 
-  - Extract
-    1. Crawled data from Taoyuan airport website by crawling package, Selenium
-    2. Fetch the high-speed train timetable by POST API
-  - Transform
-    1. Crawled data will be parsed and tranformed to a JSON structure
-  - Load
-    1. Load into MongoDB for storing and AWS S3 bucket for back up.
-    2. Update collection of flight departure and arrival times to avoid duplicate data.
-  - Containerization & Scheduling
-    1. Utilized docker-compose to set up Airflow on the first AWS EC2 Ubuntu instance, to ensure consistency and isolation across different systems
-    2. Notify registered users with information about available high-speed train services every day at midnight.
-    3. Search MongoDB for users who have registered to receive email notifications every 20 minutes. If there are any delays or changes to their flights, users are notified via the Gmail SMTP service.
-    4. Aggregate and transform flight data from MongoDB to create flight maps everyday
+![alt text](./docs/data_pipeline.png)
+
+- Extract
+  1. Crawled data from Taoyuan airport website by crawling package, Selenium
+  2. Fetch the high-speed train timetable by POST API
+- Transform
+  1. Crawled data will be parsed and tranformed to a JSON structure
+- Load
+  1. Load into MongoDB for storing and AWS S3 bucket for back up.
+  2. Update collection of flight departure and arrival times to avoid duplicate data.
+- Containerization & Scheduling
+
+  1. Utilized docker-compose to set up Airflow on the first AWS EC2 Ubuntu instance, to ensure consistency and isolation across different systems
+  2. Notify registered users with information about available high-speed train services every day at midnight.
+  3. Search MongoDB for users who have registered to receive email notifications every 20 minutes. If there are any delays or changes to their flights, users are notified via the Gmail SMTP service.
+  4. Aggregate and transform flight data from MongoDB to create flight maps everyday
 
 - Database: Store all data in MongoDB on the purpose of flexible schema which makes the data stored rapidly and easily whenever data resource changed.
 
