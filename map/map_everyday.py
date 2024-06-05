@@ -43,6 +43,9 @@ def main():
     arrive_destinations = result('flight_arrive2', unique_arrive_destination_list, 'arrive')
     depart_destinations = result('flight_depart2', unique_depart_destination_list, 'depart')
     create_map(arrive_destinations, depart_destinations)
+    taiwan_tz = pytz.timezone('Asia/Taipei')
+    current_date = datetime.now(taiwan_tz).strftime('%Y-%m-%d')
+    logging.info(f"End map_everyday.py {current_date}")
 
 
 def utc_midnight():
@@ -52,7 +55,7 @@ def utc_midnight():
         datetime object: UTC Time
     """
     try:
-        logging.info("Start utc_midnight")
+        # logging.info("Start utc_midnight")
         taiwan_tz = pytz.timezone('Asia/Taipei')
         tw_now = datetime.now(taiwan_tz)
         tw_midnight = taiwan_tz.localize(datetime(tw_now.year, tw_now.month, tw_now.day, 0, 0, 0))
@@ -190,7 +193,7 @@ def result(collection_name, unique_destination_list, status):
         list: dictionary inside with destination, latitude_longitude, flights and {scheduled_arrive_time, airlines}
     """
     try:
-        logging.info("Start result")
+        # logging.info("Start result")
         destinations = []  
         for destination in unique_destination_list:
             latitude_longitude_list = get_latitude_longitude_list(destination)
@@ -227,7 +230,7 @@ def create_map(arrive_destinations,depart_destinations):
         arrive_destinations (dict)
         depart_destinations (dict)  
     """
-    logging.info("Start create_map")
+    # logging.info("Start create_map")
     try:
         
         # html file path
@@ -364,6 +367,7 @@ def create_map(arrive_destinations,depart_destinations):
         # add LayerControl
         map.add_child(folium.LayerControl())
         map.save(f'{path}/map_with_layers.html')
+        
     except Exception as e:
         logging.error(f"Error in create_map: {e}")
 
