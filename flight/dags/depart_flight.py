@@ -26,111 +26,60 @@ from botocore.exceptions import ClientError
 
 FORMAT = '%(asctime)s %(levelname)s: %(message)s'
 logging.basicConfig(level=logging.DEBUG, format=FORMAT)
+options = webdriver.ChromeOptions()
+options.add_argument('--ignore-ssl-errors=yes')
+options.add_argument('--ignore-certificate-errors')
+options.add_argument('--headless')
+options.add_argument('--no-sandbox')
+options.add_argument('--disable-dev-shm-usage')
+
+# Set command timeout to 60 seconds
+capabilities = options.to_capabilities()
+driver = webdriver.Remote(
+    command_executor='http://remote_chromedriver:4444/wd/hub',
+    keep_alive=True,
+    options=options # Increase the timeout to 60 seconds
+)
+url = 'https://www.taoyuan-airport.com/flight_depart?k=&time=all'
+driver.get(url)
 
 def crawl_data():
     try:
-        options = webdriver.ChromeOptions()
-        options.add_argument('--ignore-ssl-errors=yes')
-        options.add_argument('--ignore-certificate-errors')
-        options.add_argument('--headless')
-        options.add_argument('--no-sandbox')
-        options.add_argument('--disable-dev-shm-usage')
-        
-        # Set command timeout to 60 seconds
-        capabilities = options.to_capabilities()
-        driver = webdriver.Remote(
-            command_executor='http://remote_chromedriver:4444/wd/hub',
-            keep_alive=True,
-            options=options # Increase the timeout to 60 seconds
-        )
-        url = 'https://www.taoyuan-airport.com/flight_depart?k=&time=all'
-        driver.get(url)
-        for i in range(2,500):
+        for i in range(2,310):
+            # taiwan_title_time
             taiwan_title_time = '//*[@id="print"]/p[2]'
+            taiwan_title_time_element = get_taiwan_title_time(taiwan_title_time)
+            
+            # scheduled_depart_time
             scheduled_depart_time = f'//*[@id="print"]/ul[2]/li[{i}]/div[1]/span[2]'
+            scheduled_depart_time_element = get_scheduled_depart_time(scheduled_depart_time)
+            
+            # actual_depart_time
             actual_depart_time = f'//*[@id="print"]/ul[2]/li[{i}]/div[8]/span[2]'
+            actual_depart_time_element = get_actual_depart_time(actual_depart_time)
+            
+            # destination
             destination = f'//*[@id="print"]/ul[2]/li[{i}]/div[2]/p[2]'
+            destination_element = get_destination(destination)
+            
+            # airlines
             airline = f'//*[@id="print"]/ul[2]/li[{i}]/div[3]'
+            alphabet_ls = get_airlines(airline)
+            
+            # terminal
             terminal = f'//*[@id="print"]/ul[2]/li[{i}]/div[4]'
+            terminal_element = get_terminal(terminal)
+            
+            # gate
             gate = f'//*[@id="print"]/ul[2]/li[{i}]/div[5]'
+            gate_element = get_gate(gate)
+            
+            # status
             status = f'//*[@id="print"]/ul[2]/li[{i}]/div[7]/p'
-            # ? ------ taiwan_title_time ------  
-            try:  
-                WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, taiwan_title_time)))
-                taiwan_title_time_element = driver.find_element(By.XPATH, taiwan_title_time).text.strip()
-                logging.info(f"taiwan_title_time: {taiwan_title_time_element}")
-            except TimeoutException as e:
-                logging.error(f"An exception occurred: {str(e)}. taiwan_title_time not found", exc_info=True)     
-            # ? ------ airline ------
-            try:  
-                WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, airline)))
-                airline_element = driver.find_element(By.XPATH, airline).text.strip()
-                flight2 = airline_element.split()
-                flight = airline_element
-                alphabet_ls= []
-                for i in range(len(flight2)):
-                    airline_dict = {}
-                    if i %2 == 0:
-                        airline_dict['airline_name'] = flight2[i]
-                        airline_dict['airline_code'] = flight2[i+1]
-                        alphabet_ls.append(airline_dict)
-                logging.info(f"airline: {alphabet_ls}")
-            except TimeoutException as e:
-                logging.error(f"An exception occurred: {str(e)}. airline not found", exc_info=True) 
-                break
-                # ? ------ actual_depart_time -----
-            try:
-                WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, actual_depart_time)))
-                actual_depart_time_element = driver.find_element(By.XPATH, actual_depart_time).text.strip()
-                logging.info(f"actual_arrive_time: {actual_depart_time_element}")
-            except TimeoutException as e:
-                logging.error(f"An exception occurred: {str(e)}. actual_arrive_time not found", exc_info=True) 
-                break 
-            # ? ------ scheduled_depart_time -----
-            try:
-                WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, scheduled_depart_time)))
-                scheduled_depart_time_element = driver.find_element(By.XPATH, scheduled_depart_time).text.strip()
-                logging.info(f"scheduled_depart_time: {scheduled_depart_time_element}")
-            except TimeoutException as e:
-                logging.error(f"An exception occurred: {str(e)}. scheduled_depart_time not found", exc_info=True) 
-                
-            # ? ------ destination ------
-            try:
-                WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, destination)))
-                destination_element = driver.find_element(By.XPATH, destination).text.strip()
-                logging.info(f"destination: {destination_element}")
-            except TimeoutException as e:
-                logging.error(f"An exception occurred: {str(e)}. destination not found", exc_info=True) 
-            # ? ------ terminal ------   
-            try:  
-                WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, terminal)))
-                terminal_element = driver.find_element(By.XPATH, terminal).text.strip()
-                logging.info(f"terminal: {terminal_element}")
-            except TimeoutException as e:
-                logging.error(f"An exception occurred: {str(e)}. terminal not found", exc_info=True)     
-            # ? ------ gate ------  
-            try:  
-                WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, gate)))
-                gate_element = driver.find_element(By.XPATH, gate).text.strip()
-                logging.info(f"gate: {gate_element}")
-            except TimeoutException as e:
-                logging.error(f"An exception occurred: {str(e)}. gate not found", exc_info=True) 
-            # ? ------ status ------ 
-            try:  
-                WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, status)))
-                status_element = driver.find_element(By.XPATH, status).text.strip()
-                logging.info(f"status: {status_element}")
-            except TimeoutException:
-                logging.error(f"An exception occurred: {str(e)}. status not found", exc_info=True)
-            # ? ------ calculate time difference ------
-            try:
-                time_diff_minute = calculate_time_diff(actual_depart_time_element, scheduled_depart_time_element)
-                logging.info(f"Time difference: {time_diff_minute['time_difference_min']} minutes")
-            except Exception as e:
-                logging.error(f"An exception occurred: {str(e)}", exc_info=True)
-            
-            
-            
+            status_element = get_status(status)
+                            
+            # time_difference
+            time_diff_minute = calculate_time_diff(actual_depart_time_element, scheduled_depart_time_element)
             collection = insert_mongodb_atlas()
             try:
                 result = collection.update_many(
@@ -192,8 +141,95 @@ def crawl_data():
         logging.error(f"An exception occurred: {str(e)}", exc_info=True)        
     finally:
         driver.quit()
+
+def get_taiwan_title_time(taiwan_title_time):
+    try:  
+        WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, taiwan_title_time)))
+        taiwan_title_time_element = driver.find_element(By.XPATH, taiwan_title_time).text.strip()
+        logging.info(f"taiwan_title_time: {taiwan_title_time_element}")
+        return taiwan_title_time_element
+    except TimeoutException as e:
+        logging.error(f"An exception occurred: {str(e)}. taiwan_title_time not found", exc_info=True)
+
+
+def get_airlines(airline):
+    try:  
+        WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, airline)))
+        airline_element = driver.find_element(By.XPATH, airline).text.strip()
+        flight2 = airline_element.split()
+        flight = airline_element
+        alphabet_ls= []
+        for i in range(len(flight2)):
+            airline_dict = {}
+            if i %2 == 0:
+                airline_dict['airline_name'] = flight2[i]
+                airline_dict['airline_code'] = flight2[i+1]
+                alphabet_ls.append(airline_dict)
+        logging.info(f"airline: {alphabet_ls}")
+        return alphabet_ls
+    except TimeoutException as e:
+        logging.error(f"An exception occurred: {str(e)}. airline not found", exc_info=True)
     
-        
+
+def get_actual_depart_time(actual_depart_time):
+    try:
+        WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, actual_depart_time)))
+        actual_depart_time_element = driver.find_element(By.XPATH, actual_depart_time).text.strip()
+        logging.info(f"actual_arrive_time: {actual_depart_time_element}")
+        return actual_depart_time_element
+    except TimeoutException as e:
+        logging.error(f"An exception occurred: {str(e)}. actual_arrive_time not found", exc_info=True) 
+
+
+def get_scheduled_depart_time(scheduled_depart_time):
+    try:
+        WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, scheduled_depart_time)))
+        scheduled_depart_time_element = driver.find_element(By.XPATH, scheduled_depart_time).text.strip()
+        logging.info(f"scheduled_depart_time: {scheduled_depart_time_element}")
+        return scheduled_depart_time_element
+    except TimeoutException as e:
+        logging.error(f"An exception occurred: {str(e)}. scheduled_depart_time not found", exc_info=True) 
+
+def get_destination(destination):
+    try:
+        WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, destination)))
+        destination_element = driver.find_element(By.XPATH, destination).text.strip()
+        logging.info(f"destination: {destination_element}")
+        return destination_element
+    except TimeoutException as e:
+        logging.error(f"An exception occurred: {str(e)}. destination not found", exc_info=True) 
+
+def get_terminal(terminal):
+    try:  
+        WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, terminal)))
+        terminal_element = driver.find_element(By.XPATH, terminal).text.strip()
+        logging.info(f"terminal: {terminal_element}")
+        return terminal_element
+    except TimeoutException as e:
+        logging.error(f"An exception occurred: {str(e)}. terminal not found", exc_info=True)     
+    
+    
+def get_gate(gate):
+    try:  
+        WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, gate)))
+        gate_element = driver.find_element(By.XPATH, gate).text.strip()
+        logging.info(f"gate: {gate_element}")
+        return gate_element
+    except TimeoutException as e:
+        logging.error(f"An exception occurred: {str(e)}. gate not found", exc_info=True) 
+    
+    
+def get_status(status):
+    try:  
+        WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, status)))
+        status_element = driver.find_element(By.XPATH, status).text.strip()
+        logging.info(f"status: {status_element}")
+        return status_element
+    except TimeoutException:
+        logging.error(f"An exception occurred: {str(e)}. status not found", exc_info=True)
+    
+    
+    
 def insert_mongodb_atlas():
     load_dotenv()
     uri = os.getenv("MONGODB_URI_FLY")
