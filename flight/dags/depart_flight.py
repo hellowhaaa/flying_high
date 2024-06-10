@@ -29,13 +29,20 @@ logging.basicConfig(level=logging.DEBUG, format=FORMAT)
 
 
 def main_steps():
-    for i in range(2, 310):
-        crawled_data = crawl_data(i)
-        insert_mongodb_atlas(crawled_data)
-        # back_up_to_s3(crawled_data)
     
+    try:
+        for i in range(2, 310):
+            driver = set_up_driver()
+            url = 'https://www.taoyuan-airport.com/flight_depart?k=&time=all'
+            driver.get(url)
+            crawled_data = crawl_data(i, driver)
+            insert_mongodb_atlas(crawled_data)
+            # back_up_to_s3(crawled_data)
+    finally:
+        driver.quit()
+        
 
-def crawl_data(i):
+def set_up_driver():
     options = webdriver.ChromeOptions()
     options.add_argument('--ignore-ssl-errors=yes')
     options.add_argument('--ignore-certificate-errors')
@@ -49,12 +56,11 @@ def crawl_data(i):
         keep_alive=True,
         options=options 
     )
+    return driver
 
-    url = 'https://www.taoyuan-airport.com/flight_depart?k=&time=all'
-    driver.get(url)
 
+def crawl_data(i, driver):
     try:
-    
         # taiwan_title_time
         taiwan_title_time = '//*[@id="print"]/p[2]'
         taiwan_title_time_element = get_taiwan_title_time(taiwan_title_time, driver)
