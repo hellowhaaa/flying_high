@@ -9,17 +9,12 @@ from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
-from selenium.webdriver.chrome.service import Service
-from webdriver_manager.chrome import ChromeDriverManager
 from selenium.common.exceptions import TimeoutException
 from dotenv import load_dotenv
 import os
 import datetime
 import logging
-from airflow.utils.dates import days_ago
-
 from selenium import webdriver
-from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
 import boto3
 import json
 from botocore.exceptions import ClientError
@@ -29,17 +24,18 @@ logging.basicConfig(level=logging.DEBUG, format=FORMAT)
 
 
 def main_steps():
-    
+    driver = set_up_driver() 
+    url = 'https://www.taoyuan-airport.com/flight_depart?k=&time=all'
+    driver.get(url)
     try:
         for i in range(2, 310):
-            driver = set_up_driver()
-            url = 'https://www.taoyuan-airport.com/flight_depart?k=&time=all'
-            driver.get(url)
             crawled_data = crawl_data(i, driver)
             insert_mongodb_atlas(crawled_data)
             # back_up_to_s3(crawled_data)
+    except Exception as e:
+        logging.error("Error---->: " + str(e))
     finally:
-        driver.quit()
+        driver.quit()  
         
 
 def set_up_driver():
@@ -49,8 +45,6 @@ def set_up_driver():
     options.add_argument('--headless')
     options.add_argument('--no-sandbox')
     options.add_argument('--disable-dev-shm-usage')
-    
-    capabilities = options.to_capabilities()
     driver = webdriver.Remote(
         command_executor='http://remote_chromedriver:4444/wd/hub',
         keep_alive=True,
@@ -112,8 +106,7 @@ def crawl_data(i, driver):
         
     except Exception as e:
         logging.error(f"An exception occurred: {str(e)}", exc_info=True)        
-    finally:
-        driver.quit()
+
 
 
 def get_taiwan_title_time(taiwan_title_time, driver):
@@ -130,14 +123,13 @@ def get_airlines(airline, driver):
     try:  
         WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, airline)))
         airline_element = driver.find_element(By.XPATH, airline).text.strip()
-        flight2 = airline_element.split()
-        flight = airline_element
+        flight = airline_element.split()
         alphabet_ls= []
-        for i in range(len(flight2)):
+        for i in range(len(flight)):
             airline_dict = {}
             if i %2 == 0:
-                airline_dict['airline_name'] = flight2[i]
-                airline_dict['airline_code'] = flight2[i+1]
+                airline_dict['airline_name'] = flight[i]
+                airline_dict['airline_code'] = flight[i+1]
                 alphabet_ls.append(airline_dict)
         logging.info(f"airline: {alphabet_ls}")
         return alphabet_ls
