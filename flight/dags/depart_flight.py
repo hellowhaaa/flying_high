@@ -28,12 +28,15 @@ def main_steps():
     url = 'https://www.taoyuan-airport.com/flight_depart?k=&time=all'
     driver.get(url)
     try:
-        for i in range(2, 310):
+        for i in range(200, 310):
             crawled_data = crawl_data(i, driver)
+            if not crawled_data:
+                break
             insert_mongodb_atlas(crawled_data)
             # back_up_to_s3(crawled_data)
     except Exception as e:
         logging.error("Error---->: " + str(e))
+        
     finally:
         driver.quit()  
         
@@ -61,8 +64,11 @@ def crawl_data(i, driver):
 
         # scheduled_depart_time
         scheduled_depart_time = f'//*[@id="print"]/ul[2]/li[{i}]/div[1]/span[2]'
-        scheduled_depart_time_element = get_scheduled_depart_time(scheduled_depart_time, driver)
-
+        if get_scheduled_depart_time(scheduled_depart_time, driver):
+            scheduled_depart_time_element = get_scheduled_depart_time(scheduled_depart_time, driver)
+        else:
+            return False
+            
         # actual_depart_time
         actual_depart_time = f'//*[@id="print"]/ul[2]/li[{i}]/div[8]/span[2]'
         actual_depart_time_element = get_actual_depart_time(actual_depart_time, driver)
@@ -101,6 +107,7 @@ def crawl_data(i, driver):
                     "status": status_element,
                     "time_difference": time_diff_minute
                 }
+        
         return json_format
         
         
@@ -154,7 +161,8 @@ def get_scheduled_depart_time(scheduled_depart_time, driver):
         logging.info(f"scheduled_depart_time: {scheduled_depart_time_element}")
         return scheduled_depart_time_element
     except TimeoutException as e:
-        logging.error(f"An exception occurred: {str(e)}. scheduled_depart_time not found", exc_info=True) 
+        logging.error(f"An exception occurred: {str(e)}. scheduled_depart_time not found", exc_info=True)
+        return False
 
 
 def get_destination(destination, driver):
