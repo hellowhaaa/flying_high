@@ -23,16 +23,16 @@ FORMAT = '%(asctime)s %(levelname)s: %(message)s'
 logging.basicConfig(level=logging.DEBUG, format=FORMAT)
 
 
-def main_steps():
+def depart_flight():
     driver = set_up_driver() 
     url = 'https://www.taoyuan-airport.com/flight_depart?k=&time=all'
     driver.get(url)
     try:
-        for i in range(200, 310):
-            crawled_data = crawl_data(i, driver)
+        for i in range(250, 310):
+            crawled_data = crawl_data(i, driver, depart = True)
             if not crawled_data:
                 break
-            insert_mongodb_atlas(crawled_data)
+            insert_mongodb_atlas(crawled_data, 'flight_depart2')
             # back_up_to_s3(crawled_data)
     except Exception as e:
         logging.error("Error---->: " + str(e))
@@ -40,6 +40,22 @@ def main_steps():
     finally:
         driver.quit()  
         
+
+def arrive_flight():
+    driver = set_up_driver()
+    url = 'https://www.taoyuan-airport.com/flight_arrival?k=&time=all'
+    driver.get(url)
+    try:
+        for i in range(2, 310):
+            crawled_data = crawl_data(i, driver, depart = False)
+            if not crawled_data:
+                break
+            insert_mongodb_atlas(crawled_data, 'flight_arrive2')
+            # back_up_to_s3(crawled_data)
+    except Exception as e:
+        logging.error("Error---->: " + str(e))
+    finally:
+        driver.quit()  
 
 def set_up_driver():
     options = webdriver.ChromeOptions()
@@ -56,22 +72,24 @@ def set_up_driver():
     return driver
 
 
-def crawl_data(i, driver):
+
+
+def crawl_data(i, driver, depart):
     try:
         # taiwan_title_time
         taiwan_title_time = '//*[@id="print"]/p[2]'
         taiwan_title_time_element = get_taiwan_title_time(taiwan_title_time, driver)
 
         # scheduled_depart_time
-        scheduled_depart_time = f'//*[@id="print"]/ul[2]/li[{i}]/div[1]/span[2]'
-        if get_scheduled_depart_time(scheduled_depart_time, driver):
-            scheduled_depart_time_element = get_scheduled_depart_time(scheduled_depart_time, driver)
+        scheduled_time = f'//*[@id="print"]/ul[2]/li[{i}]/div[1]/span[2]'
+        if get_scheduled_time(scheduled_time, driver):
+            scheduled_time_element = get_scheduled_time(scheduled_time, driver)
         else:
             return False
             
         # actual_depart_time
-        actual_depart_time = f'//*[@id="print"]/ul[2]/li[{i}]/div[8]/span[2]'
-        actual_depart_time_element = get_actual_depart_time(actual_depart_time, driver)
+        actual_time = f'//*[@id="print"]/ul[2]/li[{i}]/div[8]/span[2]'
+        actual_time_element = get_actual_time(actual_time, driver)
 
         # destination
         destination = f'//*[@id="print"]/ul[2]/li[{i}]/div[2]/p[2]'
@@ -94,20 +112,28 @@ def crawl_data(i, driver):
         status_element = get_status(status, driver)
 
         # time_difference
-        time_diff_minute = calculate_time_diff(actual_depart_time_element, scheduled_depart_time_element)
-        
+        scheduled_time = ''
+        actual_time = ''
+        if depart:
+            time_diff_minute = calculate_time_diff(actual_time_element, scheduled_time_element)
+            scheduled_time = 'scheduled_depart_time'
+            actual_time = 'actual_depart_time'
+        else:
+            scheduled_time = 'scheduled_arrive_time'
+            actual_time = 'actual_arrive_time'
+            time_diff_minute = None
+            
         json_format = {
                     "taiwan_title_time": taiwan_title_time_element,  
                     "airline": alphabet_ls,
-                    "scheduled_depart_time": scheduled_depart_time_element,
-                    "actual_depart_time": actual_depart_time_element,
+                    scheduled_time: scheduled_time_element,
+                    actual_time: actual_time_element,
                     "destination": destination_element,
                     "terminal": terminal_element,
                     "gate": gate_element,
                     "status": status_element,
                     "time_difference": time_diff_minute
                 }
-        
         return json_format
         
         
@@ -144,24 +170,24 @@ def get_airlines(airline, driver):
         logging.error(f"An exception occurred: {str(e)}. airline not found", exc_info=True)
     
 
-def get_actual_depart_time(actual_depart_time, driver):
+def get_actual_time(actual_time, driver):
     try:
-        WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, actual_depart_time)))
-        actual_depart_time_element = driver.find_element(By.XPATH, actual_depart_time).text.strip()
-        logging.info(f"actual_arrive_time: {actual_depart_time_element}")
-        return actual_depart_time_element
+        WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, actual_time)))
+        actual_time_element = driver.find_element(By.XPATH, actual_time).text.strip()
+        logging.info(f"actual_time: {actual_time_element}")
+        return actual_time_element
     except TimeoutException as e:
-        logging.error(f"An exception occurred: {str(e)}. actual_arrive_time not found", exc_info=True) 
+        logging.error(f"An exception occurred: {str(e)}. actual_time not found", exc_info=True) 
 
 
-def get_scheduled_depart_time(scheduled_depart_time, driver):
+def get_scheduled_time(scheduled_time, driver):
     try:
-        WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, scheduled_depart_time)))
-        scheduled_depart_time_element = driver.find_element(By.XPATH, scheduled_depart_time).text.strip()
-        logging.info(f"scheduled_depart_time: {scheduled_depart_time_element}")
-        return scheduled_depart_time_element
+        WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, scheduled_time)))
+        scheduled_time_element = driver.find_element(By.XPATH, scheduled_time).text.strip()
+        logging.info(f"scheduled_time: {scheduled_time_element}")
+        return scheduled_time_element
     except TimeoutException as e:
-        logging.error(f"An exception occurred: {str(e)}. scheduled_depart_time not found", exc_info=True)
+        logging.error(f"An exception occurred: {str(e)}. scheduled_time not found", exc_info=True)
         return False
 
 
@@ -205,12 +231,18 @@ def get_status(status, driver):
         logging.error(f"An exception occurred: {str(e)}. status not found", exc_info=True)
     
     
-def insert_mongodb_atlas(crawled_data):
+def insert_mongodb_atlas(crawled_data, collection_name):
     load_dotenv()
     uri = os.getenv("MONGODB_URI_FLY")
     client = MongoClient(uri)
     db = client['flying_high']
-    collection = db['flight_depart2']
+    collection = db[collection_name]
+    time_mapping = {
+        'flight_depart2': ('scheduled_depart_time', 'actual_depart_time'),
+        'flight_arrive2': ('scheduled_arrive_time', 'actual_arrive_time')
+    }
+    scheduled_time, actual_time = time_mapping.get(collection_name, ('', ''))
+        
     try:
         result = collection.update_many(
             {
@@ -219,8 +251,8 @@ def insert_mongodb_atlas(crawled_data):
             },
             {
                 "$set": {
-                    "scheduled_depart_time": crawled_data['scheduled_depart_time'],
-                    "actual_depart_time": crawled_data['actual_depart_time'],
+                    scheduled_time: crawled_data[scheduled_time],
+                    actual_time: crawled_data[actual_time],
                     "destination": crawled_data['destination'],
                     "airline": crawled_data['airline'],
                     "terminal": crawled_data['terminal'],
@@ -340,7 +372,7 @@ default_args = {
 }
 
 with DAG(
-    dag_id="release_depart_flight2",
+    dag_id="flight_combine",
     schedule="*/30 * * * *",
     start_date=pendulum.datetime(2024, 4, 15, tz="UTC"),
     default_args=default_args,
@@ -358,9 +390,15 @@ with DAG(
     )
     
     task_depart_flight = PythonOperator(
-        task_id = "insert_depart_flight_mongodb",
-        python_callable=main_steps,
-        dag = dag  
+        task_id = "depart_flight",
+        python_callable=depart_flight,
+        dag = dag
+    )
+        
+    task_arrive_flight = PythonOperator(
+        task_id = "arrive_flight",
+        python_callable=arrive_flight,
+        dag = dag        
     )
     
-(task_start >> task_depart_flight >> task_end)
+(task_start >> [task_depart_flight,task_arrive_flight] >> task_end)
