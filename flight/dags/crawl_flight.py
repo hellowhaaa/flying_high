@@ -11,6 +11,7 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.common.exceptions import TimeoutException
 from dotenv import load_dotenv
+import pytz
 import os
 import datetime
 import logging
@@ -18,9 +19,13 @@ from selenium import webdriver
 import boto3
 import json
 from botocore.exceptions import ClientError
+import requests
+import certifi
 
 FORMAT = '%(asctime)s %(levelname)s: %(message)s'
 logging.basicConfig(level=logging.DEBUG, format=FORMAT)
+DEPART_API_ENDPOINT  = 'https://www.flyinghigh.live/send_depart_email'
+import os
 
 
 def depart_flight():
@@ -28,15 +33,16 @@ def depart_flight():
     url = 'https://www.taoyuan-airport.com/flight_depart?k=&time=all'
     driver.get(url)
     try:
-        for i in range(250, 310):
+        for i in range(290, 310):
             crawled_data = crawl_data(i, driver, depart = True)
             if not crawled_data:
                 break
             insert_mongodb_atlas(crawled_data, 'flight_depart2')
             # back_up_to_s3(crawled_data)
+            if crawled_data['status'] == '預計時間變更.' or crawled_data['status'] == '時間未定' or crawled_data['status'] == '取消':
+                inform_depart_flight_user(crawled_data)
     except Exception as e:
         logging.error("Error---->: " + str(e))
-        
     finally:
         driver.quit()  
         
@@ -72,7 +78,85 @@ def set_up_driver():
     return driver
 
 
+def inform_depart_flight_user(crawled_data):
+    airlines = crawled_data['airline']
+    scheduled_depart_time = crawled_data['scheduled_depart_time']
+    status = crawled_data['status']
+    for airline in airlines:
+        airline_code = airline['airline_code']
+        send_email_dic = select_user_flight(airline_code)
+        if send_email_dic is not None: # check if there are users need to be send email
+            for col in send_email_dic:
+                username = col['username']
+                logging.info("Who need to be notified: %s", username)
+                user_info = select_user_email(username)
+                if user_info is not None:
+                    email = user_info['email']
+                    data = {'email': email,
+                            'scheduled_depart_time':scheduled_depart_time,
+                            'status':status,
+                            'airline_code':airline_code,
+                            'username':username
+                        }
+                    logging.info("Data post to API: %s", data)
+                    try:
+                        response = requests.post(url=DEPART_API_ENDPOINT, data=data, verify=certifi.where())
+                        response_text = response.text
+                        logging.info("Response after Post: %s", response_text)
+                        response.raise_for_status()
+                    except requests.exceptions.HTTPError as err:
+                        logging.error(f"HTTP error occurred: {err}")
+                    except requests.exceptions.ConnectionError as err:
+                        logging.error(f"Connection error occurred: {err}")
+                    except Exception as err:
+                        logging.error(f"An error occurred: {err}")
+            
+            
+def select_user_flight(airline_code):
+    logging.info("Start to get username for specific flight which assigned for today.")
+    try:
+        load_dotenv()
+        url = os.getenv("MONGODB_URI_FLY")
+        client = MongoClient(url)
+        taiwan_tz = pytz.timezone('Asia/Taipei')
+        #  Midnight of today
+        tw_now = datetime.datetime.now(taiwan_tz)
+        tw_midnight = taiwan_tz.localize(datetime.datetime(tw_now.year, tw_now.month, tw_now.day, 0, 0, 0))
+        # UTC Time
+        utc_midnight = tw_midnight.astimezone(pytz.utc)
+        logging.info("User's UTC time: %s", utc_midnight)
+        # 找出有登記 此飛機 且出發日期為今天 （utc時間）的 user
+        filter = {
+            'flight_depart_taoyuan': airline_code,
+            'flight_change': True,
+            'depart_email_send':False,
+            'depart_taiwan_date': {
+                '$eq': utc_midnight
+            }
+        }
+        result = client['flying_high']['user_flight'].find(
+        filter=filter)
+        result = list(result)
+        logging.info("Result: %s", result)
+        return result #list
+    except Exception as e:
+        logging.error(f"An exception occurred: {str(e)}", exc_info=True)
 
+def select_user_email(username):
+    logging.info("Start to get user email.")
+    try:
+        load_dotenv()
+        url = os.getenv("MONGODB_URI_FLY")
+        client = MongoClient(url)
+        filter={
+        'username': username
+        }
+        result = client['flying_high']['user'].find_one(
+        filter=filter
+        )   
+        return result # dict      
+    except Exception as e:
+        logging.error(f"An exception occurred: {str(e)}", exc_info=True)
 
 def crawl_data(i, driver, depart):
     try:
@@ -110,6 +194,7 @@ def crawl_data(i, driver, depart):
         # status
         status = f'//*[@id="print"]/ul[2]/li[{i}]/div[7]/p'
         status_element = get_status(status, driver)
+        
 
         # time_difference
         scheduled_time = ''
@@ -359,7 +444,8 @@ def calculate_time_diff(actual_depart_time_element, scheduled_depart_time_elemen
         return_dict = {"time_condition":time_condition,
                     "time_difference_min":int(time_diff.total_seconds() / 60)}
         return return_dict
-    return return_dict
+    return {"time_condition": "時間未定",
+            "time_difference_min": None}
         
 
 default_args = {
@@ -401,4 +487,5 @@ with DAG(
         dag = dag        
     )
     
-(task_start >> [task_depart_flight,task_arrive_flight] >> task_end)
+(task_start >> task_depart_flight >> task_end)
+# (task_start >> [task_depart_flight,task_arrive_flight] >> task_end)
