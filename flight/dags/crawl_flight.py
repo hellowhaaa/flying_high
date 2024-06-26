@@ -25,6 +25,7 @@ import certifi
 FORMAT = '%(asctime)s %(levelname)s: %(message)s'
 logging.basicConfig(level=logging.DEBUG, format=FORMAT)
 DEPART_API_ENDPOINT  = 'https://www.flyinghigh.live/send_depart_email'
+ARRIVE_API_ENDPOINT = 'https://www.flyinghigh.live/send_arrive_email'
 import os
 
 
@@ -33,7 +34,7 @@ def depart_flight():
     url = 'https://www.taoyuan-airport.com/flight_depart?k=&time=all'
     driver.get(url)
     try:
-        for i in range(290, 310):
+        for i in range(2, 310):
             crawled_data = crawl_data(i, driver, depart = True)
             if not crawled_data:
                 break
@@ -52,11 +53,13 @@ def arrive_flight():
     url = 'https://www.taoyuan-airport.com/flight_arrival?k=&time=all'
     driver.get(url)
     try:
-        for i in range(2, 310):
+        for i in range(185, 310):
             crawled_data = crawl_data(i, driver, depart = False)
             if not crawled_data:
                 break
             insert_mongodb_atlas(crawled_data, 'flight_arrive2')
+            if crawled_data['status'] == '預計時間變更.' or crawled_data['status'] == '時間未定' or crawled_data['status'] == '取消':
+                inform_arrive_flight_user(crawled_data)
             # back_up_to_s3(crawled_data)
     except Exception as e:
         logging.error("Error---->: " + str(e))
@@ -78,13 +81,71 @@ def set_up_driver():
     return driver
 
 
+def inform_arrive_flight_user(crawled_data):
+    airlines = crawled_data['airline']
+    scheduled_arrive_time = crawled_data['scheduled_arrive_time']
+    status = crawled_data['status']
+    actual_arrive_time = crawled_data['actual_arrive_time'] if crawled_data['actual_arrive_time'] != "" else None
+    logging.info("Actual Arrive Time: %s", actual_arrive_time)
+    if actual_arrive_time is not None: # check if the flight has been canceled or time is fixed
+        train_ls = []
+        actual_arrive_time = datetime.datetime.strptime(actual_arrive_time, "%H:%M").time()
+        for airline in airlines:
+            airline_code = airline['airline_code']
+            send_email_dic = select_user_flight(airline_code, 'flight_arrive_taoyuan', 'arrive_email_send', 'arrive_taiwan_date')
+            if len(send_email_dic) != 0: # check if there are users need to be send email (List)
+                logging.info("Who need to be notified: %s", send_email_dic)
+                hsr_station = send_email_dic[0]['hsr_station']
+                train_time = select_hsr_train(hsr_station)
+                logging.info("Train time: %s", train_time)
+                if train_time is not None: # check if there are trains available
+                    for each_train in train_time['train_item']:
+                        train_departure_time_str = each_train['departure_time']
+                        if train_departure_time_str: # departure_time could be None
+                            train_departure_time = datetime.datetime.strptime(train_departure_time_str, "%H:%M").time()
+                            if is_within_five_hours(actual_arrive_time, train_departure_time):
+                                train_destination_time = each_train['destination_time']
+                                non_reserved_car = each_train['non_reserved_Car']
+                                train_id = each_train['id']
+                                formatted_time_str = train_departure_time.strftime("%H:%M")
+                                train_ls.append((train_id,formatted_time_str, train_destination_time, non_reserved_car))
+                    logging.info("Train list: %s", train_ls)
+                    username = send_email_dic[0]['username']
+                    user_info = select_user_email(username)
+                    logging.info("User Information: %s", user_info)
+                    if user_info is not None:
+                        email = user_info['email']
+                        actual_arrive_time = actual_arrive_time.strftime("%H:%M") if actual_arrive_time else None
+                        data = {'email': email,
+                                'scheduled_arrive_time':scheduled_arrive_time,
+                                'status':status,
+                                'airline_code':airline_code,
+                                'username':username,
+                                'train_ls':train_ls,
+                                "actual_arrive_time":actual_arrive_time  # Could be None
+                            }
+                        logging.info("Data post to API: %s", data)
+                        try:
+                            headers = {'Content-Type': 'application/json'}
+                            response = requests.post(url=ARRIVE_API_ENDPOINT, data=json.dumps(data), headers=headers, verify=certifi.where())
+                            response_text = response.text
+                            logging.info("Response after Post: %s", response_text)
+                            response.raise_for_status()
+                        except requests.exceptions.HTTPError as err:
+                            logging.error(f"HTTP error occurred: {err}")
+                        except requests.exceptions.ConnectionError as err:
+                            logging.error(f"Connection error occurred: {err}")
+                        except Exception as err:
+                            logging.error(f"An error occurred: {err}")
+                
+            
 def inform_depart_flight_user(crawled_data):
     airlines = crawled_data['airline']
     scheduled_depart_time = crawled_data['scheduled_depart_time']
     status = crawled_data['status']
     for airline in airlines:
         airline_code = airline['airline_code']
-        send_email_dic = select_user_flight(airline_code)
+        send_email_dic = select_user_flight(airline_code, 'flight_depart_taoyuan', 'depart_email_send', 'depart_taiwan_date')
         if send_email_dic is not None: # check if there are users need to be send email
             for col in send_email_dic:
                 username = col['username']
@@ -112,7 +173,7 @@ def inform_depart_flight_user(crawled_data):
                         logging.error(f"An error occurred: {err}")
             
             
-def select_user_flight(airline_code):
+def select_user_flight(airline_code, flight_taoyuan, email_send, taiwan_date):
     logging.info("Start to get username for specific flight which assigned for today.")
     try:
         load_dotenv()
@@ -127,17 +188,16 @@ def select_user_flight(airline_code):
         logging.info("User's UTC time: %s", utc_midnight)
         # 找出有登記 此飛機 且出發日期為今天 （utc時間）的 user
         filter = {
-            'flight_depart_taoyuan': airline_code,
+            flight_taoyuan: airline_code,
             'flight_change': True,
-            'depart_email_send':False,
-            'depart_taiwan_date': {
+            email_send: False,
+            taiwan_date: {
                 '$eq': utc_midnight
             }
         }
         result = client['flying_high']['user_flight'].find(
         filter=filter)
         result = list(result)
-        logging.info("Result: %s", result)
         return result #list
     except Exception as e:
         logging.error(f"An exception occurred: {str(e)}", exc_info=True)
@@ -446,7 +506,33 @@ def calculate_time_diff(actual_depart_time_element, scheduled_depart_time_elemen
         return return_dict
     return {"time_condition": "時間未定",
             "time_difference_min": None}
+
+def select_hsr_train(hsr_station):
+    try:
+        logging.info("Start to get HSR train time.")
+        load_dotenv()
+        url = os.getenv("MONGODB_URI_FLY")
+        client = MongoClient(url)
+        filter={
+        'end_station': hsr_station
+        }
+        sort=list({
+            'updated_at': -1
+        }.items())
+        result = client['flying_high']['hsr_time'].find_one(
+        filter=filter,
+        sort=sort
+        )
+        return result # list
+    except Exception as e:
+        logging.error(f"An exception occurred: {str(e)}", exc_info=True)
         
+    
+def is_within_five_hours(start_time, end_time):
+    # check if the difference between start_time and end_time is within 5 hours
+    start_minutes = start_time.hour * 60 + start_time.minute
+    end_minutes = end_time.hour * 60 + end_time.minute
+    return 0 <= (end_minutes - start_minutes) <= 5 * 60      
 
 default_args = {
     'owner': 'airflow',
