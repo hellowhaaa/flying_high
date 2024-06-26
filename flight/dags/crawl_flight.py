@@ -53,20 +53,19 @@ def arrive_flight():
     url = 'https://www.taoyuan-airport.com/flight_arrival?k=&time=all'
     driver.get(url)
     try:
-        for i in range(245, 310):
+        for i in range(290, 310):
             crawled_data = crawl_data(i, driver, depart = False)
             if not crawled_data:
                 break
             insert_mongodb_atlas(crawled_data, 'flight_arrive2')
-            if crawled_data['status'] == '預計時間變更.':
-                inform_arrive_info_and_hsr(crawled_data)
-            elif crawled_data['status'] == '時間未定' or crawled_data['status'] == '取消':
+            if crawled_data['status'] == '預計時間變更.' or crawled_data['status'] == '時間未定' or crawled_data['status'] == '取消':
                 inform_flight_change(crawled_data, condition='arrive')
             # back_up_to_s3(crawled_data)
     except Exception as e:
         logging.error("Error---->: " + str(e))
     finally:
         driver.quit()  
+
 
 def set_up_driver():
     options = webdriver.ChromeOptions()
@@ -83,64 +82,27 @@ def set_up_driver():
     return driver
 
 
-def inform_arrive_info_and_hsr(crawled_data):
-    airlines = crawled_data['airline']
-    scheduled_arrive_time = crawled_data['scheduled_arrive_time']
-    status = crawled_data['status']
-    actual_arrive_time = crawled_data['actual_arrive_time'] if crawled_data['actual_arrive_time'] != "" else None
-    logging.info("Actual Arrive Time: %s", actual_arrive_time)
-    if actual_arrive_time is not None: # check if the flight has been canceled or time is fixed
-        train_ls = []
-        actual_arrive_time = datetime.datetime.strptime(actual_arrive_time, "%H:%M").time()
-        for airline in airlines:
-            airline_code = airline['airline_code']
-            send_email_dic = select_user_flight(airline_code, 'flight_arrive_taoyuan', 'arrive_email_send', 'arrive_taiwan_date')
-            if len(send_email_dic) != 0: # check if there are users need to be send email (List)
-                logging.info("Who need to be notified: %s", send_email_dic)
-                hsr_station = send_email_dic[0]['hsr_station']
-                train_time = select_hsr_train(hsr_station)
-                logging.info("Train time: %s", train_time)
-                if train_time is not None: # check if there are trains available
-                    for each_train in train_time['train_item']:
-                        train_departure_time_str = each_train['departure_time']
-                        if train_departure_time_str: # departure_time could be None
-                            train_departure_time = datetime.datetime.strptime(train_departure_time_str, "%H:%M").time()
-                            if is_within_five_hours(actual_arrive_time, train_departure_time):
-                                train_destination_time = each_train['destination_time']
-                                non_reserved_car = each_train['non_reserved_Car']
-                                train_id = each_train['id']
-                                formatted_time_str = train_departure_time.strftime("%H:%M")
-                                train_ls.append((train_id,formatted_time_str, train_destination_time, non_reserved_car))
-                    logging.info("Train list: %s", train_ls)
-                    username = send_email_dic[0]['username']
-                    user_info = select_user_email(username)
-                    logging.info("User Information: %s", user_info)
-                    if user_info is not None:
-                        email = user_info['email']
-                        actual_arrive_time = actual_arrive_time.strftime("%H:%M") if actual_arrive_time else None
-                        data = {'email': email,
-                                'scheduled_arrive_time':scheduled_arrive_time,
-                                'status':status,
-                                'airline_code':airline_code,
-                                'username':username,
-                                'train_ls':train_ls,
-                                "actual_arrive_time":actual_arrive_time  # Could be None
-                            }
-                        logging.info("Data post to API: %s", data)
-                        try:
-                            headers = {'Content-Type': 'application/json'}
-                            response = requests.post(url=ARRIVE_API_ENDPOINT, data=json.dumps(data), headers=headers, verify=certifi.where())
-                            response_text = response.text
-                            logging.info("Response after Post: %s", response_text)
-                            response.raise_for_status()
-                        except requests.exceptions.HTTPError as err:
-                            logging.error(f"HTTP error occurred: {err}")
-                        except requests.exceptions.ConnectionError as err:
-                            logging.error(f"Connection error occurred: {err}")
-                        except Exception as err:
-                            logging.error(f"An error occurred: {err}")
-                
-            
+def get_hsr_time(actual_arrive_time, send_email_dic):
+    train_ls = []
+    actual_arrive_time = datetime.datetime.strptime(actual_arrive_time, "%H:%M").time()
+    if len(send_email_dic) != 0: # check if there are users need to be send email (List)
+        hsr_station = send_email_dic[0]['hsr_station']
+        train_time = select_hsr_train(hsr_station)
+        if train_time is not None: # check if there are trains available
+            for each_train in train_time['train_item']:
+                train_departure_time_str = each_train['departure_time']
+                if train_departure_time_str: # departure_time could be None
+                    train_departure_time = datetime.datetime.strptime(train_departure_time_str, "%H:%M").time()
+                    if is_within_five_hours(actual_arrive_time, train_departure_time):
+                        train_destination_time = each_train['destination_time']
+                        non_reserved_car = each_train['non_reserved_Car']
+                        train_id = each_train['id']
+                        formatted_time_str = train_departure_time.strftime("%H:%M")
+                        train_ls.append((train_id,formatted_time_str, train_destination_time, non_reserved_car))
+            logging.info("Train list: %s", train_ls)
+    return train_ls
+
+
 def inform_flight_change(crawled_data, condition):
     scheduled_time = crawled_data[f"scheduled_{condition}_time"]
     airlines = crawled_data['airline']
@@ -152,21 +114,37 @@ def inform_flight_change(crawled_data, condition):
                                     f'{condition}_email_send', 
                                     f'{condition}_taiwan_date')
         if send_email_dic is not None: # check if there are users need to be send email
+            actual_arrive_time = crawled_data[f'actual_{condition}_time'] 
+            logging.info("Actual Arrive Time: %s", actual_arrive_time)
+            if condition == 'arrive' and actual_arrive_time is not None: 
+                hsr_list = get_hsr_time(actual_arrive_time, send_email_dic)
+                hsr_list = hsr_list if len(hsr_list) != 0 else '沒有班次可搭乘' 
             for col in send_email_dic:
                 username = col['username']
                 logging.info("Who need to be notified: %s", username)
                 user_info = select_user_email(username)
                 if user_info is not None:
                     email = user_info['email']
-                    data = {'email': email,
-                            f'scheduled_{condition}_time':scheduled_time,
-                            'status':status,
-                            'airline_code':airline_code,
-                            'username':username
-                        }
+                    data = {
+                    'email': email,
+                    f'scheduled_{condition}_time': scheduled_time,
+                    'status': status,
+                    'airline_code': airline_code,
+                    'username': username
+                    }
+
+                    if actual_arrive_time is not None and condition == 'arrive':
+                        data.update({
+                            'train_ls': hsr_list,
+                            'actual_arrive_time': actual_arrive_time  # Could be None
+                        })
                     logging.info("Data post to API: %s", data)
                     try:
-                        response = requests.post(url=DEPART_API_ENDPOINT if condition == 'depart' else ARRIVE_API_ENDPOINT, data=data, verify=certifi.where())
+                        if condition == 'depart':
+                            response = requests.post(url=DEPART_API_ENDPOINT, data=data, verify=certifi.where())
+                        elif condition == 'arrive':
+                            headers = {'Content-Type': 'application/json'}
+                            response = requests.post(url=ARRIVE_API_ENDPOINT, data=json.dumps(data), headers=headers, verify=certifi.where())
                         response_text = response.text
                         logging.info("Response after Post: %s", response_text)
                         response.raise_for_status()
@@ -207,6 +185,7 @@ def select_user_flight(airline_code, flight_taoyuan, email_send, taiwan_date):
     except Exception as e:
         logging.error(f"An exception occurred: {str(e)}", exc_info=True)
 
+
 def select_user_email(username):
     logging.info("Start to get user email.")
     try:
@@ -222,6 +201,7 @@ def select_user_email(username):
         return result # dict      
     except Exception as e:
         logging.error(f"An exception occurred: {str(e)}", exc_info=True)
+
 
 def crawl_data(i, driver, depart):
     try:
