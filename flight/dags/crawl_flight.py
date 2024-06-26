@@ -34,14 +34,14 @@ def depart_flight():
     url = 'https://www.taoyuan-airport.com/flight_depart?k=&time=all'
     driver.get(url)
     try:
-        for i in range(2, 310):
+        for i in range(285, 310):
             crawled_data = crawl_data(i, driver, depart = True)
             if not crawled_data:
                 break
             insert_mongodb_atlas(crawled_data, 'flight_depart2')
             # back_up_to_s3(crawled_data)
             if crawled_data['status'] == '預計時間變更.' or crawled_data['status'] == '時間未定' or crawled_data['status'] == '取消':
-                inform_depart_flight_user(crawled_data)
+                inform_flight_change(crawled_data, condition='depart')
     except Exception as e:
         logging.error("Error---->: " + str(e))
     finally:
@@ -53,13 +53,15 @@ def arrive_flight():
     url = 'https://www.taoyuan-airport.com/flight_arrival?k=&time=all'
     driver.get(url)
     try:
-        for i in range(185, 310):
+        for i in range(245, 310):
             crawled_data = crawl_data(i, driver, depart = False)
             if not crawled_data:
                 break
             insert_mongodb_atlas(crawled_data, 'flight_arrive2')
-            if crawled_data['status'] == '預計時間變更.' or crawled_data['status'] == '時間未定' or crawled_data['status'] == '取消':
-                inform_arrive_flight_user(crawled_data)
+            if crawled_data['status'] == '預計時間變更.':
+                inform_arrive_info_and_hsr(crawled_data)
+            elif crawled_data['status'] == '時間未定' or crawled_data['status'] == '取消':
+                inform_flight_change(crawled_data, condition='arrive')
             # back_up_to_s3(crawled_data)
     except Exception as e:
         logging.error("Error---->: " + str(e))
@@ -81,7 +83,7 @@ def set_up_driver():
     return driver
 
 
-def inform_arrive_flight_user(crawled_data):
+def inform_arrive_info_and_hsr(crawled_data):
     airlines = crawled_data['airline']
     scheduled_arrive_time = crawled_data['scheduled_arrive_time']
     status = crawled_data['status']
@@ -139,13 +141,16 @@ def inform_arrive_flight_user(crawled_data):
                             logging.error(f"An error occurred: {err}")
                 
             
-def inform_depart_flight_user(crawled_data):
+def inform_flight_change(crawled_data, condition):
+    scheduled_time = crawled_data[f"scheduled_{condition}_time"]
     airlines = crawled_data['airline']
-    scheduled_depart_time = crawled_data['scheduled_depart_time']
     status = crawled_data['status']
     for airline in airlines:
         airline_code = airline['airline_code']
-        send_email_dic = select_user_flight(airline_code, 'flight_depart_taoyuan', 'depart_email_send', 'depart_taiwan_date')
+        send_email_dic = select_user_flight(airline_code, 
+                                    f'flight_{condition}_taoyuan', 
+                                    f'{condition}_email_send', 
+                                    f'{condition}_taiwan_date')
         if send_email_dic is not None: # check if there are users need to be send email
             for col in send_email_dic:
                 username = col['username']
@@ -154,14 +159,14 @@ def inform_depart_flight_user(crawled_data):
                 if user_info is not None:
                     email = user_info['email']
                     data = {'email': email,
-                            'scheduled_depart_time':scheduled_depart_time,
+                            f'scheduled_{condition}_time':scheduled_time,
                             'status':status,
                             'airline_code':airline_code,
                             'username':username
                         }
                     logging.info("Data post to API: %s", data)
                     try:
-                        response = requests.post(url=DEPART_API_ENDPOINT, data=data, verify=certifi.where())
+                        response = requests.post(url=DEPART_API_ENDPOINT if condition == 'depart' else ARRIVE_API_ENDPOINT, data=data, verify=certifi.where())
                         response_text = response.text
                         logging.info("Response after Post: %s", response_text)
                         response.raise_for_status()
