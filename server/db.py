@@ -331,7 +331,7 @@ def update_depart_email_send(username, logger):
                 "depart_email_send": True
             }
         }
-        result = client['flying_high']['user_notify'].update_one(
+        result = client['flying_high']['user_flight'].update_one(
             filter=filter,
             update=update
         )
@@ -353,7 +353,7 @@ def update_arrive_email_send(username, logger):
                 "arrive_email_send": True
             }
         }
-        result = client['flying_high']['user_notify'].update_one(
+        result = client['flying_high']['user_flight'].update_one(
             filter=filter,
             update=update
         )
