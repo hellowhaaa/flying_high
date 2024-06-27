@@ -34,7 +34,7 @@ def depart_flight():
     url = 'https://www.taoyuan-airport.com/flight_depart?k=&time=all'
     driver.get(url)
     try:
-        for i in range(285, 310):
+        for i in range(2, 310):
             crawled_data = crawl_data(i, driver, depart = True)
             if not crawled_data:
                 break
@@ -53,7 +53,7 @@ def arrive_flight():
     url = 'https://www.taoyuan-airport.com/flight_arrival?k=&time=all'
     driver.get(url)
     try:
-        for i in range(290, 310):
+        for i in range(2, 310):
             crawled_data = crawl_data(i, driver, depart = False)
             if not crawled_data:
                 break
@@ -116,9 +116,10 @@ def inform_flight_change(crawled_data, condition):
         if send_email_dic is not None: # check if there are users need to be send email
             actual_arrive_time = crawled_data[f'actual_{condition}_time'] 
             logging.info("Actual Arrive Time: %s", actual_arrive_time)
-            if condition == 'arrive' and actual_arrive_time is not None: 
+            logging.info("type: %s", type(actual_arrive_time)) # string -> ""
+            if condition == 'arrive' and actual_arrive_time != "": 
                 hsr_list = get_hsr_time(actual_arrive_time, send_email_dic)
-                hsr_list = hsr_list if len(hsr_list) != 0 else '沒有班次可搭乘' 
+                hsr_list = hsr_list if len(hsr_list) != 0 else '沒有班次可搭乘'
             for col in send_email_dic:
                 username = col['username']
                 logging.info("Who need to be notified: %s", username)
@@ -133,7 +134,7 @@ def inform_flight_change(crawled_data, condition):
                     'username': username
                     }
 
-                    if actual_arrive_time is not None and condition == 'arrive':
+                    if actual_arrive_time != "" and condition == 'arrive':
                         data.update({
                             'train_ls': hsr_list,
                             'actual_arrive_time': actual_arrive_time  # Could be None
@@ -558,5 +559,5 @@ with DAG(
         dag = dag        
     )
     
-(task_start >> task_depart_flight >> task_end)
-# (task_start >> [task_depart_flight,task_arrive_flight] >> task_end)
+
+(task_start >> [task_depart_flight,task_arrive_flight] >> task_end)
