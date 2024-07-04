@@ -55,7 +55,7 @@ def navbar():
                 <li><a href="https://www.flyinghigh.live">Homepage</a></li>
                 <li><a href="https://www.flyinghigh.live/insurance">Insurance</a></li>
                 <li><a href="https://www.flyinghigh.live/flight_map">Flight Map</a></li>
-                <li><a href="https://www.flyinghigh.live/dashboard">Dashboard</a></li>
+                <li><a href="https://www.flyinghigh.live/dashboard">Airline On-Time Performance</a></li>
             </ul>
         </nav>
     """, unsafe_allow_html=True)

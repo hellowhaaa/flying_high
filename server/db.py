@@ -167,7 +167,7 @@ def select_user_notify(username, logger):
         filter={
             'username': username
         }
-        result = client['flying_high']['user_notify'].find_one(
+        result = client['flying_high']['user_flight'].find_one(
         filter=filter
         )
         return result
@@ -308,7 +308,7 @@ def update_user_notify(username, flight_change, flight_delay, hsr, logger):
                 "created_at": datetime.now(timezone.utc)  # Only set this field on insert (upsert)
             }
         }
-        result = client['flying_high']['user_notify'].update_many(
+        result = client['flying_high']['user_flight'].update_many(
             filter=filter,
             update=update,
             upsert=True)
@@ -331,7 +331,7 @@ def update_depart_email_send(username, logger):
                 "depart_email_send": True
             }
         }
-        result = client['flying_high']['user_notify'].update_one(
+        result = client['flying_high']['user_flight'].update_one(
             filter=filter,
             update=update
         )
@@ -353,7 +353,7 @@ def update_arrive_email_send(username, logger):
                 "arrive_email_send": True
             }
         }
-        result = client['flying_high']['user_notify'].update_one(
+        result = client['flying_high']['user_flight'].update_one(
             filter=filter,
             update=update
         )

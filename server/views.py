@@ -181,7 +181,7 @@ def user_flight(current_user):
         
         user_info_dict = select_user_flight(current_user, logger=current_app.logger)
         taiwan_tz = pytz.timezone('Asia/Taipei')
-        if user_info_dict is not None:
+        if user_info_dict is not None and 'depart_taiwan_date' in user_info_dict:
             depart_taiwan_date = user_info_dict['depart_taiwan_date'].replace(tzinfo=pytz.utc).astimezone(taiwan_tz)
             user_info_dict['depart_taiwan_date'] = depart_taiwan_date.strftime('%Y-%m-%d')
             
