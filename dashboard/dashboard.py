@@ -1,11 +1,10 @@
 import streamlit as st
 import pandas as pd
-import numpy as np
 import matplotlib.pyplot as plt
 from dotenv import load_dotenv
 from pymongo import MongoClient
 import os
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 import logging
 from logging.handlers import RotatingFileHandler
 
@@ -124,7 +123,7 @@ def get_airline_on_time_performance(airline_name):
         return None
     try:
         # 取幾週的資料
-        current_date = datetime.utcnow()
+        current_date = datetime.now(timezone.utc)
         four_weeks_ago = current_date - timedelta(weeks=4)
         pipeline = [
             {
@@ -203,7 +202,7 @@ def get_destination_on_time_performance(destination):
         logger.error(f'Error connecting to MongoDB: {e}')
         return None
     try:
-        current_date = datetime.utcnow()
+        current_date = datetime.now(timezone.utc)
         four_weeks_ago = current_date - timedelta(weeks=4)
         pipeline = [
             {
@@ -303,7 +302,7 @@ def select_airlines_all(week):
         logger.error(f'Error connecting to MongoDB: {e}')
         return None
     try:
-        one_week_ago = datetime.utcnow() - timedelta(days=7*int(week))
+        one_week_ago = datetime.now(timezone.utc) - timedelta(days=7*int(week))
         pipeline = [
         {"$match": {
             "created_at": {"$gte": one_week_ago}
