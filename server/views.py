@@ -13,6 +13,7 @@ from flask import (request, redirect, url_for, render_template, flash,
                     current_app, jsonify, abort, make_response)
 
 
+
 def error_handlers(app):
     @app.errorhandler(404)
     def not_found_error(error):
@@ -294,7 +295,17 @@ def update_notify(current_user):
 
 def index():
     try:
-        return render_template('search_flight.html')
+        depart_ranking = select_flight_count('depart', logger=current_app.logger)
+        depart_list = []
+        for each in depart_ranking:
+            # depart_count = {
+            #     "destination": each['destination'],
+            #     "count":each['count']
+            # }
+            # depart_list.append(depart_count)
+            depart_list.append(each['destination'])
+        airline_list = select_airlines_all(logger=current_app.logger)
+        return render_template('homepage.html', depart_list = depart_list, airline_list = airline_list)
     except Exception as e:
         current_app.logger.error(f"An error occurred: {str(e)}", exc_info=True)
         abort(500)
