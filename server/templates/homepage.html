@@ -22,6 +22,7 @@
 .container {
   width: 100%; 
   max-width: none; 
+  color: #555
 }
 
 .card-body {
@@ -88,7 +89,10 @@
   bottom: 10px;
 }
 
-
+.card-subtitle{
+  font-size: 13px;
+  font-style: italic;
+}
 
 </style>
 
@@ -101,7 +105,7 @@
       <img class="card-img-top" src="../static/images/sunset_airplane.jpg" alt="Card image cap">
       <div class="card-body">
         <h5 class="card-title">航空公司準時排名</h5>
-        <h6 class="card-subtitle mb-2 text-muted">Card subtitle</h6>
+        <p class="card-subtitle mb-2 text-muted">了解各家航空起飛準時性, 機票購買有個底</p>
         <p class="card-text">
           {% for airline in airline_list %}
           <h6>{{ loop.index }}. {{ airline }}</h6>
@@ -118,7 +122,7 @@
         <img class="card-img-top" src="../static/images/travel.jpg" alt="Card image cap">
         <div class="card-body">
           <h5 class="card-title">台灣前五大最熱門航點</h5>
-          <h6 class="card-subtitle mb-2 text-muted">Card subtitle</h6>
+          <p class="card-subtitle mb-2 text-muted">了解時下熱門景點, 揪伴結團出國去</p>
           <p class="card-text">
             {% for destination in depart_list %}
             <h6>{{ loop.index }}. {{ destination }}</h6>
@@ -137,7 +141,7 @@
         <img class="card-img-top" src="../static/images/cabin_dark.jpg" alt="Card image cap">
         <div class="card-body">
           <h5 class="card-title">想要追蹤你的航班嗎？</h5>
-          <h6 class="card-subtitle mb-2 text-muted">Card subtitle</h6>
+          <p class="card-subtitle mb-2 text-muted">快來打開通知設定, 設定好航班後, Email 馬上通知航班變化！</p>
           <div class="link-container">
           <a href="{{ url_for('search_flight') }}" class="card-link2">搜尋航班</a>
           <a href="{{ url_for('user_flight') }}" class="card-link2">前往航班設定</a>
@@ -153,7 +157,7 @@
         <img class="card-img-top" src="../static/images/insurance.jpg" alt="Card image cap">
         <div class="card-body">
           <h5 class="card-title">想要知道保險理賠內容嗎？</h5>
-          <h6 class="card-subtitle mb-2 text-muted">Card subtitle</h6>
+          <p class="card-subtitle mb-2 text-muted">飛機 Delay了嗎？ 馬上知道保多少！</p>
           <a href="{{ url_for('user_insurance') }}" class="card-link">前往設定</a>
         </div>
       </div>
