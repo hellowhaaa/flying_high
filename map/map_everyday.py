@@ -1,4 +1,5 @@
 import folium
+from datetime import datetime, timezone
 import os
 from pymongo import MongoClient
 import pytz
@@ -36,10 +37,15 @@ def main():
     collection_arrive = db['flight_arrive2']
     collection_depart = db['flight_depart2']
     pipeline = aggregation_pipeline()
-    unique_arrive_destinations = collection_arrive.aggregate(pipeline)
-    unique_depart_destinations = collection_depart.aggregate(pipeline)
-    unique_depart_destination_list = unique_destination_list(unique_depart_destinations)
-    unique_arrive_destination_list = unique_destination_list(unique_arrive_destinations)
+    aggregated_arrive_destinations = collection_arrive.aggregate(pipeline)
+    aggregated_depart_destinations = collection_depart.aggregate(pipeline)
+    # for homepage
+    insert_count_to_mongodb(aggregated_arrive_destinations, 'arrive')
+    insert_count_to_mongodb(aggregated_depart_destinations, 'depart')
+    
+    unique_depart_destination_list = unique_destination_list(aggregated_depart_destinations)
+    unique_arrive_destination_list = unique_destination_list(aggregated_arrive_destinations)
+    
     arrive_destinations = result('flight_arrive2', unique_arrive_destination_list, 'arrive')
     depart_destinations = result('flight_depart2', unique_depart_destination_list, 'depart')
     create_map(arrive_destinations, depart_destinations)
@@ -79,7 +85,7 @@ def aggregation_pipeline():
                         "updated_at": {"$gt": midnight}  
                     }
                 },
-                {"$group": {"_id": "$destination"}},
+                {"$group": {"_id": "$destination", "count":{"$sum": 1}}},
                 {"$sort": {"_id": 1}} 
             ]
         return pipeline
@@ -121,6 +127,33 @@ def unique_destination_list(unique_destinations):
         return unique_destination_list
     except Exception as e:
         logging.error(f"Error in unique_destination_list: {e}")
+
+def insert_count_to_mongodb(aggregated_destinations, condition):
+    """ 
+    Extract unique destinations from the aggregation result and extract Chinese characters
+    
+    Keyword arguments:
+        unique_destinations -- aggregate result    
+    Return: 
+        list: unique destinations list
+    """
+    try:
+        for destination_dic in aggregated_destinations:
+            if destination_dic['_id'] is not None: # 排除 None
+                destination = extract_chinese(destination_dic['_id'])
+                destination_count = {
+                    "condition": condition,
+                    "destination": destination,
+                    "count": destination_dic['count'],
+                    "created_at": datetime.now(timezone.utc)
+                }
+                collection = client['flying_high']['flight_count']
+                result = collection.insert_one(destination_count)
+                print("result->", result.inserted_id)
+                
+    except Exception as e:
+        logging.error(f"Error in unique_destination_list: {e}")
+
 
 
 def get_flight_data(location, collection_name):
@@ -218,6 +251,7 @@ def result(collection_name, unique_destination_list, status):
                         'latitude_longitude': latitude_longitude_list,
                         'flights': flight_details
                     })
+        print("destinations-->", destinations)
         return destinations
     except Exception as e:
         logging.error(f"Error in result: {e}")
@@ -302,7 +336,7 @@ def create_map(arrive_destinations,depart_destinations):
                     <a class="nav-link" href="/flight_map">Flight Map</a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link" href="https://www.flyinghigh.live/dashboard/">Dashboard</a>
+                    <a class="nav-link" href="https://www.flyinghigh.live/dashboard/">Airline On-Time Performance</a>
                 </li>
                 </ul>
             </div>

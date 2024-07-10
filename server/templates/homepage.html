@@ -1,100 +1,168 @@
-{% extends "layout.html" %} {% block homepage %}
+{% extends "layout.html" %}{% block content %}
 
-<script
-  src="https://code.jquery.com/jquery-2.1.1.min.js"
-  type="text/javascript"
-></script>
-<link
-  href="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.1/css/select2.min.css"
-  rel="stylesheet"
-/>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.1/js/select2.min.js"></script>
-<!-- <script type="text/javascript">
-  $(document).ready(function () {
-    var country = [
-      "Australia",
-      "Bangladesh",
-      "Denmark",
-      "Hong Kong",
-      "Indonesia",
-      "Netherlands",
-      "New Zealand",
-      "South Africa",
-    ];
-    $("#country").select2({
-      data: country,
-    });
-  });
-</script> -->
+<style>
+  .card-spacing {
+    margin-bottom: 20px;
+    margin-top: 40px;
+  }
+  .card {
+    min-height: 500px; 
+  }
+  .card-img-top {
+  width: 100%; 
+  height: auto; 
+}
+.row {
+    display: flex;
+    align-items: flex-start;
+    margin-right: 0; 
+    margin-left: 0; 
+    justify-content: center; 
+}
+.container {
+  width: 100%; 
+  max-width: none; 
+  color: #555
+}
 
-<script type="text/javascript">
-  $(document).ready(function () {
-    fetch("/fetch_depart_flight_code")
-      .then((response) => response.json())
-      .then((data) => {
-        $("#depart_airlines").select2({
-          data: Object.keys(data).map((key) => ({ id: key, text: key })),
-        });
+.card-body {
+  position: relative; 
+  padding-bottom: 20px; 
+}
 
-        $("#depart_airlines").on("change", function () {
-          var selectedAirline = $(this).val();
-          var flightCodes = data[selectedAirline] || [];
-          $("#depart_flightCodes")
-            .empty()
-            .select2({
-              data: flightCodes.map((code) => ({ id: code, text: code })),
-            });
-        });
-      })
-      .catch((error) =>
-        console.error("Error fetching the airline data:", error)
-      );
-  });
-</script>
+.card-link {
+  position: absolute;
+  bottom: 10px; 
+  right: 10px; 
+  color: #555;
+  text-decoration: none; 
+  transition: color 0.3s ease, text-shadow 0.3s ease;
+}
 
-<script type="text/javascript">
-  $(document).ready(function () {
-    fetch("/fetch_arrive_flight_code")
-      .then((response) => response.json())
-      .then((data) => {
-        $("#arrive_airlines").select2({
-          data: Object.keys(data).map((key) => ({ id: key, text: key })),
-        });
+.card-link:hover, .card-link:focus {
+  color: #5a6269; 
+  text-decoration: none; 
+}
 
-        $("#arrive_airlines").on("change", function () {
-          var selectedAirline = $(this).val();
-          var flightCodes = data[selectedAirline] || [];
-          $("#arrive_flightCodes")
-            .empty()
-            .select2({
-              data: flightCodes.map((code) => ({ id: code, text: code })),
-            });
-        });
-      })
-      .catch((error) =>
-        console.error("Error fetching the airline data:", error)
-      );
-  });
-</script>
+.card-link::after {
+  content: '';
+  display: block;
+  width: 0;
+  height: 2px;
+  background: #515457;
+  transition: width 0.3s;
+}
 
-{% endblock %} {% block content %}
-<h1>主頁</h1>
-<h1>DropDown with Search using jQuery</h1>
-<div>
-  <select id="depart_airlines" style="width: 300px">
-    <!-- Dropdown List Option -->
-  </select>
-  <select id="depart_flightCodes" style="width: 300px">
-    <!-- Dropdown List Option -->
-  </select>
-</div>
-<div>
-  <select id="arrive_airlines" style="width: 300px">
-    <!-- Dropdown List Option -->
-  </select>
-  <select id="arrive_flightCodes" style="width: 300px">
-    <!-- Dropdown List Option -->
-  </select>
+.card-link:hover::after, .card-link:focus::after {
+  width: 100%; 
+}
+
+.card-link2 {
+  color: #555;
+  text-decoration: none; 
+  transition: color 0.3s ease, text-shadow 0.3s ease;
+  display: block; 
+  margin-bottom: 5px; 
+}
+
+.card-link2:hover, .card-link2:focus {
+  color: #5a6269; 
+  text-decoration: none; 
+}
+
+.card-link2::after {
+  content: '';
+  display: block;
+  width: 0;
+  height: 2px;
+  background: #515457;
+  transition: width 0.3s;
+}
+
+.card-link2:hover::after, .card-link2:focus::after {
+  width: 100%; 
+}
+
+.link-container {
+  position: absolute;
+  right: 10px;
+  bottom: 10px;
+}
+
+.card-subtitle{
+  font-size: 13px;
+  font-style: italic;
+}
+
+</style>
+
+<div class="container">
+  <div class="row d-flex justify-content-center align-items-start">
+
+  <!-- 航空公司準時排名 -->
+  <div class="col-md-6 col-lg-3 card-spacing">
+    <div class="card" style="width: 18rem">
+      <img class="card-img-top" src="../static/images/sunset_airplane.jpg" alt="Card image cap">
+      <div class="card-body">
+        <h5 class="card-title">航空公司準時排名</h5>
+        <p class="card-subtitle mb-2 text-muted">了解各家航空起飛準時性, 機票購買有個底</p>
+        <p class="card-text">
+          {% for airline in airline_list %}
+          <h6>{{ loop.index }}. {{ airline }}</h6>
+          {% endfor %}
+        </p>
+        <a href="{{ streamlit_url }}" class="card-link">查看所有航空表現</a>
+      </div>
+    </div>
+  </div>
+
+    <!-- 台灣前五大最熱門航點 -->
+    <div class="col-md-6 col-lg-3 card-spacing">
+      <div class="card" style="width: 18rem">
+        <img class="card-img-top" src="../static/images/travel.jpg" alt="Card image cap">
+        <div class="card-body">
+          <h5 class="card-title">台灣前五大最熱門航點</h5>
+          <p class="card-subtitle mb-2 text-muted">了解時下熱門景點, 揪伴結團出國去</p>
+          <p class="card-text">
+            {% for destination in depart_list %}
+            <h6>{{ loop.index }}. {{ destination }}</h6>
+            {% endfor %}
+          </p>
+          <a href="{{ url_for('flight_map') }}" class="card-link">查看所有航點</a>
+        </div>
+      </div>
+    </div>
+
+    
+
+    <!-- 追蹤你的航班 -->
+    <div class="col-md-6 col-lg-3 card-spacing">
+      <div class="card" style="width: 18rem">
+        <img class="card-img-top" src="../static/images/cabin_dark.jpg" alt="Card image cap">
+        <div class="card-body">
+          <h5 class="card-title">想要追蹤你的航班嗎？</h5>
+          <p class="card-subtitle mb-2 text-muted">快來打開通知設定, 設定好航班後, Email 馬上通知航班變化！</p>
+          <div class="link-container">
+          <a href="{{ url_for('search_flight') }}" class="card-link2">搜尋航班</a>
+          <a href="{{ url_for('user_flight') }}" class="card-link2">前往航班設定</a>
+          <a href="{{ url_for('user_notify') }}" class="card-link2">開啟通知設定</a>
+        </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 知道保險理賠內容 -->
+    <div class="col-md-6 col-lg-3 card-spacing">
+      <div class="card" style="width: 18rem">
+        <img class="card-img-top" src="../static/images/insurance.jpg" alt="Card image cap">
+        <div class="card-body">
+          <h5 class="card-title">想要知道保險理賠內容嗎？</h5>
+          <p class="card-subtitle mb-2 text-muted">飛機 Delay了嗎？ 馬上知道保多少！</p>
+          <a href="{{ url_for('user_insurance') }}" class="card-link">前往設定</a>
+        </div>
+      </div>
+    </div>
+  </div>
 </div>
 
 {% endblock %}
