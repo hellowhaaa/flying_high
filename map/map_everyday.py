@@ -336,7 +336,7 @@ def create_map(arrive_destinations,depart_destinations):
                     <a class="nav-link" href="/flight_map">Flight Map</a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link" href="https://www.flyinghigh.live/dashboard/">Dashboard</a>
+                    <a class="nav-link" href="https://www.flyinghigh.live/dashboard/">Airline On-Time Performance</a>
                 </li>
                 </ul>
             </div>
