@@ -37,12 +37,16 @@ def main():
     collection_arrive = db['flight_arrive2']
     collection_depart = db['flight_depart2']
     pipeline = aggregation_pipeline()
+    
+    # for homepage
     aggregated_arrive_destinations = collection_arrive.aggregate(pipeline)
     aggregated_depart_destinations = collection_depart.aggregate(pipeline)
-    # for homepage
     insert_count_to_mongodb(aggregated_arrive_destinations, 'arrive')
     insert_count_to_mongodb(aggregated_depart_destinations, 'depart')
     
+    # for map
+    aggregated_arrive_destinations = collection_arrive.aggregate(pipeline)
+    aggregated_depart_destinations = collection_depart.aggregate(pipeline)
     unique_depart_destination_list = unique_destination_list(aggregated_depart_destinations)
     unique_arrive_destination_list = unique_destination_list(aggregated_arrive_destinations)
     
@@ -118,12 +122,14 @@ def unique_destination_list(unique_destinations):
     Return: 
         list: unique destinations list
     """
+    print('unique_destinations: ', unique_destinations)
     try:
         unique_destination_list = []
         for destination in unique_destinations:
             if destination['_id'] is not None: # 排除 None
                 destination = extract_chinese(destination['_id'])
                 unique_destination_list.append(destination)
+        print('unique_destination_list', unique_destination_list)
         return unique_destination_list
     except Exception as e:
         logging.error(f"Error in unique_destination_list: {e}")
@@ -141,16 +147,37 @@ def insert_count_to_mongodb(aggregated_destinations, condition):
         for destination_dic in aggregated_destinations:
             if destination_dic['_id'] is not None: # 排除 None
                 destination = extract_chinese(destination_dic['_id'])
-                destination_count = {
-                    "condition": condition,
-                    "destination": destination,
-                    "count": destination_dic['count'],
-                    "created_at": datetime.now(timezone.utc)
-                }
+                # destination_count = {
+                #     "condition": condition,
+                #     "destination": destination,
+                #     "count": destination_dic['count'],
+                #     "created_at": datetime.now(timezone.utc)
+                # }
+                taiwan_tz = pytz.timezone('Asia/Taipei')
+                tw_now = datetime.now(taiwan_tz)
+                tw_midnight = taiwan_tz.localize(datetime(tw_now.year, tw_now.month, tw_now.day, 0, 0, 0))
+                utc_midnight = tw_midnight.astimezone(pytz.utc)
                 collection = client['flying_high']['flight_count']
-                result = collection.insert_one(destination_count)
-                print("result->", result.inserted_id)
-                
+                # result = collection.insert_one(destination_count)
+                # print("result->", result.inserted_id)
+                result = collection.update_many(
+                    {
+                        "condition": condition,
+                        "destination": destination,
+                        "created_at": utc_midnight
+                    },
+                    {
+                        "$set":{
+                            "count": destination_dic['count'],
+                            "updated_at": datetime.now(timezone.utc)
+                        }
+                    },
+                    upsert=True
+                )
+                logging.info(f"Matched count: {result.matched_count}")
+                logging.info(f"Modified count: {result.modified_count}")
+                if result.upserted_id:
+                    logging.info(f'Upserted ID: {result.upserted_id}')  # 新建 document 的 ID
     except Exception as e:
         logging.error(f"Error in unique_destination_list: {e}")
 

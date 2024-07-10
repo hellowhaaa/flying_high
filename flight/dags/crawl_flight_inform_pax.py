@@ -1,6 +1,6 @@
 from airflow import DAG
 from airflow.operators.python import PythonOperator
-from datetime import timedelta
+from datetime import timedelta, timezone
 import pendulum
 from airflow.operators.empty import EmptyOperator
 from airflow.operators.python import PythonOperator
@@ -390,10 +390,10 @@ def insert_mongodb_atlas(crawled_data, collection_name):
                     "gate": crawled_data['gate'],
                     "status": crawled_data['status'],
                     "time_difference": crawled_data['time_difference'],
-                    "updated_at": datetime.datetime.utcnow()
+                    "updated_at": datetime.now(timezone.utc)
                 },
                 "$setOnInsert": {
-                    "created_at": datetime.datetime.utcnow()  # 只有在首次創建時 insert
+                    "created_at": datetime.now(timezone.utc)  # 只有在首次創建時 insert
                 }
             },
             upsert=True  # 如果沒有找到 match 'taiwan_title_time', 'airline'的 document，就 insert 一個新的
@@ -447,9 +447,9 @@ def check_file_exists(s3_client, bucket, key):
     
 def create_or_update_json(bucket_name, key, data, exists, s3_client):
     if not exists:
-        data['created_at'] = datetime.datetime.utcnow()  
+        data['created_at'] = datetime.now(timezone.utc)
 
-    data['updated_at'] = datetime.datetime.utcnow() 
+    data['updated_at'] = datetime.now(timezone.utc) 
     json_data = json.dumps(data, ensure_ascii=False, default=str)
 
     try:
