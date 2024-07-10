@@ -1,6 +1,7 @@
 import pytz
+import pandas as pd
 from config import Config
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 from pymongo import MongoClient,DESCENDING
 from werkzeug.security import generate_password_hash, check_password_hash
 
@@ -213,6 +214,67 @@ def select_depart_flight_difference(depart_taiwan_date, flight_depart_taoyuan,lo
     except Exception as e:
         logger.error(f"Error in select_depart_flight_difference: {str(e)}")
         return None
+    
+    
+def select_flight_count(condition, logger):
+    logger.info("Start Fetching Flight Count from MongoDB")
+    try:
+        
+        
+        filter={
+                'condition': condition,
+                'created_at': {
+                    '$gt': utc_midnight
+            }
+            }
+        sort = list({'count': -1}.items())
+        limit = 5
+        result = client['flying_high']['flight_count'].find(
+        filter = filter,
+        sort = sort,
+        limit = limit
+        )
+        return result
+        
+        
+    except Exception as e:
+        logger.error(f"Error in select_flight_count: {str(e)}")
+        return None
+    
+    
+def select_airlines_all(logger):
+    try:
+        collection = client['flying_high']['flight_depart2']
+        one_month_ago = datetime.now(timezone.utc) - timedelta(days=7*int(4))
+        pipeline = [
+        {"$match": {
+            "created_at": {"$gte": one_month_ago}
+        }},
+        {"$unwind": "$airline"},  # Unwind the airline array to access individual airline objects
+        {"$group": {
+            "_id": "$airline.airline_name",  # Group by airline name
+            "count": {"$sum": 1},  
+            "average_delay_minutes": {"$avg": "$time_difference.time_difference_min"} 
+        }},
+        {"$sort": {"count": -1}}   #sort by the count in descending order
+        ]
+        
+
+        result = list(collection.aggregate(pipeline))
+        df = pd.DataFrame(result)
+        df.rename(columns={'_id': 'Airline', 'count': 'Flights Count', 'average_delay_minutes': 'Average Delay Minutes'}, inplace=True)
+        df_sorted = df.sort_values(by='Average Delay Minutes', ascending=True)
+        top_five = df_sorted.head(5)
+        airline_names = top_five['Airline'].tolist()
+        logger.info(f'Get all airlines data successfully')
+        
+        return airline_names
+    except Exception as e:
+        logger.error(f'Error aggregating data: {e}')
+        return None
+    
+    
+    
     
     
 # update--
