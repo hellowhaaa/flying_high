@@ -224,7 +224,7 @@ def select_flight_count(condition, logger):
         filter={
                 'condition': condition,
                 'created_at': {
-                    '$gt': utc_midnight
+                    '$eq': utc_midnight
             }
             }
         sort = list({'count': -1}.items())
